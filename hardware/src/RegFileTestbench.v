@@ -10,7 +10,7 @@ module RegFileTestbench();
 
   reg Clock;
 
-  // Clock Sinal generation:
+  // Clock Signal generation:
   initial Clock = 0; 
   always #(Halfcycle) Clock = ~Clock;
 
@@ -23,6 +23,11 @@ module RegFileTestbench();
   wire [31:0] rd1;
   wire [31:0] rd2;
 
+   reg [31:0] RFout;
+   reg [31:0] Expected;
+   reg [5:0]  testNumber;
+   
+ 
   RegFile DUT(.clk(Clock),
               .we(we),
               .ra1(ra1),
@@ -32,20 +37,83 @@ module RegFileTestbench();
               .rd1(rd1),
               .rd2(rd2));
   
-
+   task checkOutput;
+      input [5:0] testNumber;
+      
+      
+      
+      if (RFout !== Expected) begin
+	 $display("FAILED Test %d: Incorrect result. Got: %d, Expected: %d",testNumber,  RFout, Expected);
+      end
+      else begin
+	 $display("Passed Test # - %d", testNumber);
+      end
+   endtask
+	 
+	
+      
   // Testing logic:
   initial begin
-    #1;
-    // Verify that writing to reg 0 is a nop
-    
+     we = 1;
+     
+     // Verify that writing to reg 0 is a nop
+     //Ensuring that register 0 remains 0
+     testNumber = 0;
+     wa = 0;
+     wd = 30;
+     
+     ra1 = 0;
+     ra2 = 1;
+     
+     Expected = 0;
+     #10;
+     RFout = rd1;     
+     checkOutput(testNumber);
+     
     // Verify that data written to any other register is returned the same
     // cycle
-    
+     //Writing to address1, and then reading from it in same cycle
+     testNumber = 1;
+     
+     wa = 1;
+     wd = 40;
+     Expected = 40;
+     #10;
+     RFout = wd;
+     
+     checkOutput(testNumber);
+     
     // Verify that the we pin prevents data from being written
+     testNumber = 2;
+     wa = 2;
+     wd = 50;
+     ra2 = 2;
+     Expected = 50;
+     #10;
+     RFout = rd2;
+     
+     checkOutput(testNumber);
 
+     testNumber = 3;
+     we = 0;
+     wd = 60;
+     #10;
+     
+     checkOutput(testNumber);
+     
     // Verify the reads are asynchronous
+     testNumber = 4;
+     
+     wa = 3;
+     we = 1;
+     wd = 70;
+     Expected = 70;
+     ra2 = 3;
+     #10;
+     RFout = rd2;
+     
+     checkOutput(testNumber);
    
-    $display("All tests passed!");
     $finish();
   end
 endmodule
