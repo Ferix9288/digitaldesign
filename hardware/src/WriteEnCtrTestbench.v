@@ -16,6 +16,9 @@ module WriteEnCtrTestbench();
 
    reg [5:0]  opcode;
    reg [1:0]  byteOffset;
+   reg [3:0]  AddrPartition;
+   reg [31:0] ALUOut;
+   
    wire [3:0] writeEn;
    
    reg [5:0]  testNumber;
@@ -38,6 +41,8 @@ module WriteEnCtrTestbench();
 
    WriteEnCtr DUT( .opcode(opcode),
 		   .byteOffset(byteOffset),
+		   .AddrPartition(AddrPartition),
+		   .ALUOut(ALUOut),
 		   .writeEn(writeEn)
 		   );
    
@@ -50,20 +55,33 @@ module WriteEnCtrTestbench();
      testNumber = 0;
      opcode = `ADDIU;
      byteOffset = 2'b0;
+     AddrPartition = 4'b0??1;
+     ALUOut = 32'h3000ffff;   
      Expected = 4'b0000;
      #1;
      checkOutput(testNumber);
-     
-     //Store byte @ offset 00 => 1000 for write enable
+
+     //If doesn't match correct address partition, then writeEnable -> 0
      testNumber = 1;
      opcode = `SB;
+     byteOffset = 2'b10;
+     ALUOut = 32'h4fffffff;
+     #1;
+     checkOutput(testNumber);
+     
+     
+     
+     //Store byte @ offset 00 => 1000 for write enable
+     testNumber = 2;
+     opcode = `SB;
      byteOffset = 2'b0;
+     ALUOut = 32'h3fffffff;     
      Expected = 4'b1000;
      #1;
      checkOutput(testNumber);
      
      //Store byte @ offset 01 => 0100 for write enable
-     testNumber = 2;
+     testNumber = 3;
      opcode = `SB;
      byteOffset = 2'b01;
      Expected = 4'b0100;
@@ -71,7 +89,7 @@ module WriteEnCtrTestbench();
      checkOutput(testNumber);
     
      //Store byte @ offset 10 => 0010 for write enable
-     testNumber = 3;
+     testNumber = 4;
      opcode = `SB;
      byteOffset = 2'b10;
      Expected = 4'b0010;
@@ -81,7 +99,7 @@ module WriteEnCtrTestbench();
 
      
      //Store byte @ offset 11  => 0001 for write enable
-     testNumber = 4;
+     testNumber = 5;
      opcode = `SB;
      byteOffset = 2'b11;
      Expected = 4'b0001;
@@ -89,7 +107,7 @@ module WriteEnCtrTestbench();
      checkOutput(testNumber);
      
     //Store half-word @ offset 00  => 1100 for write enable
-     testNumber = 5;
+     testNumber = 6;
      opcode = `SH;
      byteOffset = 2'b00;
      Expected = 4'b1100;
@@ -97,7 +115,7 @@ module WriteEnCtrTestbench();
      checkOutput(testNumber);
      
      //Store half-word @ offset 11  => 0011 for write enable
-     testNumber = 6;
+     testNumber = 7;
      opcode = `SH;
      byteOffset = 2'b11;
      Expected = 4'b0011;
@@ -105,7 +123,7 @@ module WriteEnCtrTestbench();
      checkOutput(testNumber);
      
      //Store word @ offset w/e  => 1111 for write enable
-     testNumber = 7;     
+     testNumber = 8;     
      opcode = `SW;
      byteOffset = 2'b10;
      Expected = 4'b1111;
