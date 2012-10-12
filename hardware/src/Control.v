@@ -12,7 +12,7 @@ module Control(
 	       //ALUOutM
 
 	       //Write Ctr Inputs for Instr Memory
-	       // opcodeM,
+	       //opcodeM,
 	       //byteOffsetM,
 	       //ALUOutM
 
@@ -42,7 +42,7 @@ module Control(
 	       output reg extType,
 	       output reg ALUsrc,
 	       output reg regDst,
-	       output reg [3:0] ALUop,
+	       output  [3:0] ALUop,
 	       output reg jump,
 	       output reg jr,
 	       output reg jal,
@@ -71,7 +71,7 @@ module Control(
 
 	       );
 
-   ALUDecoder ALUdec(
+   ALUdec ALUdecoder(
 		     .funct(funct),
 		     .opcode(opcode),
 		     .ALUop(ALUop)
@@ -113,7 +113,7 @@ module Control(
 		       .DataOutValid(DataOutValid),
 		       .UARTDataOut(UARTDataOut),
 		       .opcode(opcodeM),
-		       .DataInvalid(DataInvalid),
+		       .DataInValid(DataInValid),
 		       .DataOutReady(DataOutReady),
 		       .UARTCtrOut(UARTCtrOut),
 		       .UARTCtr(UARTCtr));
@@ -131,7 +131,7 @@ module Control(
 	   extType = 0;
 	   ALUsrc = 0;
 	   regDst = 1;
-	   jump = (funct == `JR | funct == `JALR)? 1:0;	      
+	   jump = 0;	      
 	   jr = (funct == `JR | funct == `JALR)? 1:0;
 	   jal = (funct == `JALR)? 1:0;
 	end

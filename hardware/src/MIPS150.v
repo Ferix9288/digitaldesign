@@ -9,6 +9,129 @@ module MIPS150(
 // will likely want to break control and datapath out
 // into separate modules that you instantiate here.
 
+   wire    memToReg;
+   wire    regWrite;
+   wire    extType;
+   wire    ALUsrc;
+   wire    regDst;
+   wire [3:0] ALUop;
+   wire       jump;
+   wire       jr;
+   wire       jal;
+   wire [3:0] dataMemWriteEn;
+   wire [3:0] instrMemWriteEn;
+   wire       branchCtr;
+   wire       FwdAfromMtoE;
+   wire       FwdBfromMtoE;
+   wire       FwdAfromMtoF;
+   wire       FwdBfromMtoF;
+   wire       UARTCtr;
+   wire       UARTCtrOut;
+   wire       DataInValid;
+   wire       DataOutReady;
+   wire [5:0] opcodeF;
+   wire [5:0] functF;
+   wire [5:0] opcodeM;
+   wire [1:0] byteOffsetM;
+   wire [5:0] opcodeE;
+   wire [31:0] rd1E;
+   wire [31:0] rd2E;
+   wire [4:0]  rsF;
+   wire [4:0]  rtF;
+   wire [4:0]  rsE;
+   wire [4:0]  rtE;
+   wire [4:0]  waM;
+   wire        regWriteM;
+   wire [31:0] ALUOutM;
+   wire        DataInReady;
+   wire        DataOutValid;
+   wire [7:0]  UARTDataOut;
+   
+	      
+   
+   DataPath DataPath(
+		     .clk(clk),
+		     .stall(stall),
+		     .reset(rst),
+		     .SIn(FPGA_SERIAL_RX),
+		     .SOut(FPGA_SERIAL_TX),
+		     .memToReg(memToReg),
+		     .regWrite(regWrite),
+		     .extType(extType),
+		     .ALUsrc(ALUsrc),
+		     .regDst(regDst),
+		     .ALUop(ALUop),
+		     .jump(jump),
+		     .jr(jr),
+		     .jal(jal),
+		     .dataMemWriteEn(dataMemWriteEn),
+		     .instrMemWriteEn(instrMemWriteEn),
+		     .branchCtr(branchCtr),
+		     .FwdAfromMtoE(FwdAfromMtoE),
+		     .FwdBfromMtoE(FwdBfromMtoE),
+		     .FwdAfromMtoF(FwdAfromMtoF),
+		     .FwdBfromMtoF(FwdBfromMtoF),
+		     .UARTCtr(UARTCtr),
+		     .UARTCtrOut(UARTCtrOut),
+		     .DataInValid(DataInValid),
+		     .DataOutReady(DataOutReady),
+		     .opcodeF(opcodeF),
+		     .functF(functF),
+		     .opcodeM(opcodeM),
+		     .byteOffsetM(byteOffsetM),
+		     .opcodeE(opcodeE),
+		     .rd1E(rd1E),
+		     .rd2E(rd2E),
+		     .rsF(rsF),
+		     .rtF(rtF),
+		     .rsE(rsE),
+		     .rtE(rtE),
+		     .waM(waM),
+		     .regWriteM(regWriteM),
+		     .ALUOutM(ALUOutM),
+		     .DataInReady(DataInReady),
+		     .DataOutValid(DataOutValid),
+		     .UARTDataOut(UARTDataOut));
+   
+   Control Controls(.opcodeF(opcodeF),
+		    .functF(functF),
+		    .opcodeM(opcodeM),
+		    .byteOffsetM(byteOffsetM),
+		    .opcodeE(opcodeE),
+		    .rd1E(rd1E),
+		    .rd2E(rd2E),
+		    .rsF(rsF),
+		    .rtF(rtF),
+		    .rsE(rsE),
+		    .rtE(rtE),
+		    .waM(waM),
+		    .regWriteM(regWriteM),
+		    .ALUOutM(ALUOutM),
+		    .DataInReady(DataInReady),
+		    .DataOutValid(DataOutValid),
+		    .UARTDataOut(UARTDataOut),
+		    .memToReg(memToReg),
+		    .regWrite(regWrite),
+		    .extType(extType),
+		    .ALUsrc(ALUsrc),
+		    .regDst(regDst),
+		    .ALUop(ALUop),
+		    .jump(jump),
+		    .jr(jr),
+		    .jal(jal),
+		    .dataMemWriteEn(dataMemWriteEn),
+		    .instrMemWriteEn(instrMemWriteEn),
+		    .branchCtr(branchCtr),
+		    .FwdAfromMtoE(FwdAfromMtoE),
+		    .FwdBfromMtoE(FwdBfromMtoE),
+		    .FwdAfromMtoF(FwdAfromMtoF),
+		    .FwdBfromMtoF(FwdBfromMtoF),
+		    .UARTCtr(UARTCtr),
+		    .UARTCtrOut(UARTCtrOut),
+		    .DataInValid(DataInValid),
+		    .DataOutReady(DataOutReady));
+   
+		    
 
 
 endmodule
