@@ -61,10 +61,8 @@ module RegFileTestbench();
      testNumber = 0;
      wa = 0;
      wd = 30;
-     
      ra1 = 0;
      ra2 = 1;
-     
      Expected = 0;
      #10;
      RFout = rd1;     
@@ -74,13 +72,11 @@ module RegFileTestbench();
     // cycle
      //Writing to address1, and then reading from it in same cycle
      testNumber = 1;
-     
      wa = 1;
      wd = 40;
      Expected = 40;
      #10;
      RFout = wd;
-     
      checkOutput(testNumber);
      
     // Verify that the we pin prevents data from being written
@@ -91,19 +87,16 @@ module RegFileTestbench();
      Expected = 50;
      #10;
      RFout = rd2;
-     
      checkOutput(testNumber);
 
      testNumber = 3;
      we = 0;
      wd = 60;
-     #10;
-     
+     #10;    
      checkOutput(testNumber);
      
     // Verify the reads are asynchronous
      testNumber = 4;
-     
      wa = 3;
      we = 1;
      wd = 70;
@@ -111,7 +104,6 @@ module RegFileTestbench();
      ra2 = 3;
      #10;
      RFout = rd2;
-     
      checkOutput(testNumber);
    
     $finish();

@@ -14,7 +14,6 @@ module DataOutMaskTestbench();
   initial Clock = 0; 
   always #(Halfcycle) Clock = ~Clock;
 
-  // Register and wires to test the RegFile
    reg [31:0] DataOutMem;
    reg [5:0]  opcode;
    reg [1:0]  byteOffset;
@@ -50,26 +49,22 @@ module DataOutMaskTestbench();
    
   // Testing logic:
   initial begin
-     testNumber = 0;
 
      //LoadByte Instruction; should sign extend
+     testNumber = 0;
      DataOutMem = 32'hffffffff;
      opcode = `LB;
      byteOffset = 2'b0;
      Expected = {24'hffffff, DataOutMem[30:23]};
      #1;
-
      checkOutput(testNumber);
 
-     
      //If not a load instruction, then just return what DataOutMem is 
      opcode = `ADDIU;
      DataOutMem = 32'h4;
      Expected = 4;
      #1;
-     
      checkOutput(testNumber);
-     
      
      //LoadByte (signed extended) where byte offset is @ 00
      for(i = 0; i < loops; i = i + 1)
@@ -92,7 +87,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b10;
 	  Expected = {24'hffffff, DataOutMem[15:8]};
 	  #1;
-	  
 	  checkOutput(testNumber);
        end // for (i = 0; i < loops; i = i + 1)
 
@@ -105,7 +99,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b10;
 	  Expected = {24'b0, DataOutMem[15:8]};
 	  #1;
-	  
 	  checkOutput(testNumber);
        end // for (i = 0; i < loops; i = i + 1)
 
@@ -118,7 +111,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b10;
 	  Expected = {24'hffffff, DataOutMem[15:8]};
 	  #1;
-	  
 	  checkOutput(testNumber);
        end // for (i = 0; i < loops; i = i + 1)
 
@@ -132,7 +124,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b01;
 	  Expected = {15'hffff, DataOutMem[15:0], 1'b0};
 	  #1;
-
 	  checkOutput(testNumber);
        end
 
@@ -145,7 +136,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b01;
 	  Expected = {15'b0, DataOutMem[15:0], 1'b0};
 	  #1;
-
 	  checkOutput(testNumber);
        end // for (i = 0; i < loops; i = i + 1)
 
@@ -158,7 +148,6 @@ module DataOutMaskTestbench();
 	  byteOffset = 2'b11;
 	  Expected = {DataOutMem[31:2], 2'b0};
 	  #1;
-
 	  checkOutput(testNumber);
        end // for (i = 0; i < loops; i = i + 1) 
      

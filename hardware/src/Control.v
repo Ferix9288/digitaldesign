@@ -7,7 +7,7 @@ module Control(input [5:0] opcode,
 	      // output reg [3:0] memWrite,
 	       output reg regWrite,
 	       output reg extType,
-	       output reg branchCtr,
+	       output reg branchCtr, //Redundant?
 	       output reg ALUsrc,
 	       output reg regDst,
 	       output reg [3:0] ALUop,

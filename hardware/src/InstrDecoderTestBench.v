@@ -14,7 +14,6 @@ module InstrDecoderTestBench();
   initial Clock = 0; 
   always #(Halfcycle) Clock = ~Clock;
 
-  // Register and wires to test the RegFile
    reg [31:0] instruction;
    wire [4:0] rs;
    wire [4:0] rt;
@@ -93,7 +92,6 @@ module InstrDecoderTestBench();
 	  targetOut = instruction[25:0];
 	  #1;
 	  checkOutput(instruction);
-//, opcodeOut, functOut);
        end
     $finish();
   end
