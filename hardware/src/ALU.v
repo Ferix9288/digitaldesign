@@ -25,8 +25,6 @@ module ALU(
 	`ALU_ADDU: begin
 	   Out = A + B;
 	end
-	
-	
 	`ALU_SUBU: begin
 	   Out = A - B;
 	end

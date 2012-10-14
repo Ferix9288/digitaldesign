@@ -2,10 +2,14 @@
 `include "ALUop.vh"
 
 module Control(
-	       //Original Control unit inputs
+	      // input reset,
+	       //Original Control Unit Inputs
 	       input [5:0] opcodeF,
 	       input [5:0] functF,
 
+	       //For ALU
+	       input [5:0] functE,
+	       
 	       //Write Ctr Inputs for Data Memory
 	       input [5:0] opcodeM,
 	       input [1:0] byteOffsetM,
@@ -64,7 +68,7 @@ module Control(
 
 	       //UART Ctr outputs
 	       output UARTCtr,
-	       output UARTCtrOut,
+	       output [31:0] UARTCtrOut,
 	       output DataInValid,
 	       output DataOutReady
 
@@ -72,8 +76,8 @@ module Control(
 	       );
 
    ALUdec ALUdecoder(
-		     .funct(funct),
-		     .opcode(opcode),
+		     .funct(functE),
+		     .opcode(opcodeE),
 		     .ALUop(ALUop)
 		     );
 
@@ -123,17 +127,17 @@ module Control(
    
    always @(*) begin
             
-      case(opcode)
+      case(opcodeF)
 	`RTYPE: begin
 	   memToReg = 0;
 	   //memWrite = 0;
-	   regWrite = (funct == `JR)? 0:1;
+	   regWrite = (functF == `JR)? 0:1;
 	   extType = 0;
 	   ALUsrc = 0;
 	   regDst = 1;
 	   jump = 0;	      
-	   jr = (funct == `JR | funct == `JALR)? 1:0;
-	   jal = (funct == `JALR)? 1:0;
+	   jr = (functF == `JR | functF == `JALR)? 1:0;
+	   jal = (functF == `JALR)? 1:0;
 	end
 
 	`LB, `LH, `LW, `LBU, `LHU: begin
@@ -141,7 +145,7 @@ module Control(
 	   //memWrite = 0;
 	   //To determine whether or not we have an illegal read access
 	   casez(ALUOutM[31:28])
-	     4'b0zz1 || 4'b1000: //Sucessful read in Data Memory or UART
+	     4'b0zz1, 4'b1000: //Sucessful read in Data Memory or UART
 	       regWrite = 1;
 	     default:
 	       regWrite = 0;
@@ -241,7 +245,17 @@ module Control(
 	end
    
 	   
-      endcase
+      endcase // case (opcodeF)
+      
+      /*
+       * if (reset) begin
+	 ALUsrc = x;
+	 jump = x;
+	 jr = x;
+	 jal = x;
+	 
+      end
+       */
    end  
 endmodule
 	  

@@ -7,7 +7,7 @@ module MIPS150(
 
 // Use this as the top-level module for your CPU. You
 // will likely want to break control and datapath out
-// into separate modules that you instantiate here.
+   // into separate modules that you instantiate here.
 
    wire    memToReg;
    wire    regWrite;
@@ -26,14 +26,16 @@ module MIPS150(
    wire       FwdAfromMtoF;
    wire       FwdBfromMtoF;
    wire       UARTCtr;
-   wire       UARTCtrOut;
-   wire       DataInValid;
-   wire       DataOutReady;
-   wire [5:0] opcodeF;
-   wire [5:0] functF;
-   wire [5:0] opcodeM;
-   wire [1:0] byteOffsetM;
-   wire [5:0] opcodeE;
+   wire [31:0] UARTCtrOut;
+   wire        DataInValid;
+   wire        DataOutReady;
+   wire [5:0]  opcodeF;
+   wire [5:0]  functF;
+   wire [5:0]  functE;
+   
+   wire [5:0]  opcodeM;
+   wire [1:0]  byteOffsetM;
+   wire [5:0]  opcodeE;
    wire [31:0] rd1E;
    wire [31:0] rd2E;
    wire [4:0]  rsF;
@@ -47,7 +49,7 @@ module MIPS150(
    wire        DataOutValid;
    wire [7:0]  UARTDataOut;
    
-	      
+   
    
    DataPath DataPath(
 		     .clk(clk),
@@ -77,6 +79,7 @@ module MIPS150(
 		     .DataOutReady(DataOutReady),
 		     .opcodeF(opcodeF),
 		     .functF(functF),
+		     .functE(functE),
 		     .opcodeM(opcodeM),
 		     .byteOffsetM(byteOffsetM),
 		     .opcodeE(opcodeE),
@@ -95,6 +98,7 @@ module MIPS150(
    
    Control Controls(.opcodeF(opcodeF),
 		    .functF(functF),
+		    .functE(functE),
 		    .opcodeM(opcodeM),
 		    .byteOffsetM(byteOffsetM),
 		    .opcodeE(opcodeE),
