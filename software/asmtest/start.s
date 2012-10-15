@@ -3,17 +3,19 @@
 
 _start:
 
-jal works
-nop
-nop
-nop
+#addu $t0, $0, $0
+#lw $t1, 0($t0)
+#nop
 
-works:
-addiu $t0, $0, 15
-addiu $t1, $t0, 15
+li $t0, 0x30000101
+li $s7, 0x30000100
+sb $t0, 0($s7)
+
+nop
+	
+lb $t6, 0($s7)
+nop
 
 #Forwarding works
 #addu $s0, $s7, $s7
 #addu $s0, $s7, $s7
-	
-

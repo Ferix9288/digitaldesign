@@ -51,6 +51,7 @@ module Control(
 	       output reg jump,
 	       output reg jr,
 	       output reg jal,
+	       output reg jalr,
 
 	       //Write Ctr Output for Data Memory
 	       output [3:0] dataMemWriteEn,
@@ -122,10 +123,8 @@ module Control(
 		       .DataOutReady(DataOutReady),
 		       .UARTCtrOut(UARTCtrOut),
 		       .UARTCtr(UARTCtr));
-     
-
-
    
+        
    always @(*) begin
       
 	
@@ -138,8 +137,9 @@ module Control(
 	   ALUsrc = 0;
 	   regDst = 1;
 	   jump = 0;	      
-	   jr = (functF === `JR | functF === `JALR)? 1:0;
-	   jal = (functF === `JALR)? 1:0;
+	   jr = (functF === `JR)? 1:0;
+	   jal = 0;
+	   jalr = (functF === `JALR)? 1:0;	   
 	end
 
 	`LB, `LH, `LW, `LBU, `LHU: begin
@@ -151,14 +151,15 @@ module Control(
 	       regWrite = 1;
 	     default:
 	       regWrite = 0;
-	   endcase
-
+	   endcase // casez (ALUOutM[31:28])
+	   
 	   extType = 0;
 	   ALUsrc = 1;
 	   regDst = 0;
 	   jump = 0;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end // case: `LB, `LH, `LW, `LBU, `LHU
 
 	`SB, `SH, `SW: begin
@@ -171,6 +172,7 @@ module Control(
 	   jump = 0;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end // case: `SB, `SH, `SW
 	
 	 `ADDIU, `SLTI, `SLTIU: begin
@@ -183,6 +185,7 @@ module Control(
 	    jump = 0;
 	    jr = 0;
 	    jal = 0;
+	    jalr = 0;
 	 end
 	    
 	   
@@ -196,6 +199,7 @@ module Control(
 	   jump = 0;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end // case: `ANDI, `ORI, `XORI
 
 	`LUI: begin
@@ -208,6 +212,7 @@ module Control(
 	   jump = 0;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end // case: `LUI
 
 	`J: begin
@@ -220,6 +225,7 @@ module Control(
 	   jump = 1;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end // case: `J
 
 	`JAL: begin
@@ -232,6 +238,7 @@ module Control(
 	   jump = 1;
 	   jr = 0;
 	   jal = 1;
+	   jalr = 0;
 	end // case: `JAL
 
 	`BEQ, `BNE, `BLEZ, `BGTZ, `BLTZ, `BGEZ: begin
@@ -244,9 +251,21 @@ module Control(
 	   jump = 0;
 	   jr = 0;
 	   jal = 0;
+	   jalr = 0;
 	end
-   
-	   
+
+	default: begin
+	   memToReg = 0;
+	   regWrite = 0;
+	   extType = 0;
+	   ALUsrc = 0;
+	   regDst = 0;
+	   jump = 0;
+	   jr = 0;
+	   jal = 0;
+	   jalr = 0;
+	end
+	
       endcase // case (opcodeF)
       
       /*

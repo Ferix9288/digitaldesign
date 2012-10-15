@@ -16,6 +16,7 @@ module DataPath(
 		input jump,
 		input jr,
 		input jal,
+		input jalr,
 
 		//Write Ctr output 
 		input [3:0] dataMemWriteEn,
@@ -113,13 +114,19 @@ module DataPath(
 
    //~Inputs~
    reg [11:0] 			 dataMemAddr;
-   reg [31:0] 			 dataMemIn;
+   reg [31:0] 			 dataMemIn; //also for Instr Mem
 
    //~Outputs~
    wire [31:0] 			 dataMemOut;
    reg [31:0] 			 dataMemOutM;
 
-   //--FOR Data Memory Mask--
+   //--FOR Data Memory Mask (IN)--
+   //~Inputs~
+   // reg [31:0] 			 ALUOutE;
+   // reg [5:0] 			 opcodeE;
+   wire [31:0] 			 dataInMasked;
+   
+   //--FOR Data Memory Mask (OUT)--
 
    //~Inputs~
    reg [5:0] 			 opcodeM;
@@ -210,9 +217,19 @@ module DataPath(
 			   .ena(!stall),
 			   .wea(dataMemWriteEn),
 			   .addra(dataMemAddr),
-			   .dina(dataMemIn),
+			   .dina(dataInMasked), //CHANGED
 			   //Output
 			   .douta(dataMemOut));
+
+   //Instantiating Data Memory In
+   DataInMask DataInMasked(
+			 //Inputs
+			 .DataMemIn(dataMemIn),
+			 .opcode(opcodeE),
+			 //Output
+			 .DataInMasked(dataInMasked));
+   
+				    
    
   //Instantiating Data Memory Out Mask
    DataOutMask DataMemMask(
@@ -230,7 +247,7 @@ module DataPath(
 			    .ena(!stall),
 			    .wea(instrMemWriteEn),
 			    .addra(instrMemAddr),
-			    .dina(instrMemIn),
+			    .dina(dataInMasked),
 			    .clkb(clk),
 			    .addrb(instrMemAddr),
 			    //Output
@@ -252,8 +269,8 @@ module DataPath(
    UART UARTModule(
 		   //Inputs
 		   .Clock(clk),
-		   .Reset(rst),
-		   .DataIn(UARTDataIn),
+		   .Reset(reset),
+		   .DataIn(UARTDataIn), //Should it be DataInMasked?
 		   .DataInValid(UARTDataInValid),
 		   //Output
 		   .DataInReady(UARTDataInReady),
@@ -284,11 +301,16 @@ module DataPath(
    reg 				 jF; 				 
    reg 				 jrF;
    reg 				 jalF;
+   reg 				 jalrF;
+   reg [31:0] 			 pcF;
+   
    reg 				 regWriteE;
    reg [25:0] 			 targetE;
    reg 				 jE;  
    reg 				 jrE;
    reg 				 jalE;
+   reg 				 jalrE;
+
 
      
    //Assign control signals to appropriate registers
@@ -308,7 +330,8 @@ module DataPath(
 	 regDstF = regDst;
 	 jF = jump;	 
 	 jrF = jr;
-	 jalF = jal;   
+	 jalF = jal;
+	 jalrF = jalr;
       end   
    end
 
@@ -341,14 +364,14 @@ module DataPath(
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
       end
-      else if (jE)
-	nextPC = {PC[31:28], targetE, 2'b0};
-      else if (jrE)
-	nextPC = rd1E;
-      else begin
+      else if (jE) begin
+	 nextPC = {PC[31:28], targetE, 2'b0};
+      end else if (jrE || jalrE) begin
+	 nextPC = rd1E;
+      end else begin
 	 nextPC = PC + 4;
       end
-
+      
       if (!resetClocked) begin
 	 instrMemAddr = nextPC[13:2];
       end
@@ -394,6 +417,8 @@ module DataPath(
 	 //If sign-extended and most significant bit is a 1, sign extend
 	 //Otherwise, just zero-extend
 	 targetF = DecTarget;
+	 pcF = PC;
+	 
       end // always@ (posedge clk)
       immediateFSigned = ((extType == 0) && (immediateF[15] == 1'b1))?
 			 {16'b1, immediateF} : {16'b0, immediateF};
@@ -427,7 +452,8 @@ module DataPath(
 	 regDstE <= regDstF;
 	 jE <= jF;
 	 jrE <= jrF;
-	 jalE <= jalF;	 
+	 jalE <= jalF;	
+	 jalrE <= jalrF;
       end else begin 
 	 regWriteE = 0;	 
       end
@@ -441,6 +467,8 @@ module DataPath(
    //reg [31:0] rd1E;
    //reg [31:0] rd2E;
    reg [31:0] immediateESigned;
+   reg [31:0] pcE;
+   
    
    //transfering non-control signals
    always@(posedge clk) begin
@@ -454,6 +482,8 @@ module DataPath(
 	 rd2E <= rd2F;
 	 targetE <= targetF;
 	 immediateESigned <= immediateFSigned;
+	 pcE <= pcF;
+	 
 	// ALUOutE <= ALUOut;
 	 
       end
@@ -491,8 +521,8 @@ module DataPath(
    reg 				 regDstM;
    reg 				 jrM;
    reg 				 jalM;
+   reg 				 jalrM;
    
-
    //transfering control signals   
    always@(posedge clk) begin
       if (!reset) begin
@@ -503,6 +533,7 @@ module DataPath(
 	 regDstM <= regDstE;
 	 jrM <= jrE;
 	 jalM <= jalE;
+	 jalrM <= jalrE;
       end else begin
 	 regWriteM = 0;
       end
@@ -516,6 +547,8 @@ module DataPath(
    reg [31:0] rd1M;
    reg [31:0] rd2M;
    reg [31:0] immediateMSigned;
+   reg [31:0] pcM;
+
    
 //   reg [31:0] ALUOutM;   
 //   reg [1:0]  byteOffsetM;
@@ -533,6 +566,8 @@ module DataPath(
 	 immediateMSigned <= immediateESigned;
 	 ALUOutM <= ALUOutE;
 	 byteOffsetM <= byteOffsetE;
+	 pcM <= pcE;
+	 
 
       end // if (!reset)
       
@@ -594,7 +629,7 @@ module DataPath(
 
    //Connecting write-back value to RegFile Write Port
    always@(*) begin
-      regWD = (jalM)? PC + 8: writeBack;
+      regWD = (jalM || jalrM)? pcM + 8: writeBack;
       regWA = (jalM)? 31 : waM;
    end
 
