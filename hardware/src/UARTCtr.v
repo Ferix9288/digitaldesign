@@ -18,11 +18,11 @@ module UARTCtr (input [31:0] ALUOut,
       
    assign isUART = (ALUOut[31:28] == 4'b1000);
    assign UARTop = ALUOut[3:0];
-   assign isLoad =  (opcode == `LB) || (opcode == `LH) ||
-		    (opcode == `LW) || (opcode == `LBU) ||
-		    (opcode == `LHU);
-   assign isStore = (opcode == `SB) || (opcode == `SH) ||
-		    (opcode == `SW);
+   assign isLoad =  (opcode === `LB) || (opcode === `LH) ||
+		    (opcode === `LW) || (opcode === `LBU) ||
+		    (opcode === `LHU);
+   assign isStore = (opcode === `SB) || (opcode === `SH) ||
+		    (opcode === `SW);
    
    always @(*) begin
 

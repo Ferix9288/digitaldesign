@@ -3,4 +3,17 @@
 
 _start:
 
-addiu $s7, $0, 15
+jal works
+nop
+nop
+nop
+
+works:
+addiu $t0, $0, 15
+addiu $t1, $t0, 15
+
+#Forwarding works
+#addu $s0, $s7, $s7
+#addu $s0, $s7, $s7
+	
+

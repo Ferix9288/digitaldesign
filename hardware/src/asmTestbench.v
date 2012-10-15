@@ -2,7 +2,7 @@
 
 module asmTestbench();
 
-    reg Clock, Reset;
+    reg Clock, Reset, stall;
     wire FPGA_SERIAL_RX, FPGA_SERIAL_TX;
 
     reg   [7:0] DataIn;
@@ -42,18 +42,21 @@ module asmTestbench();
                         .SIn(             FPGA_SERIAL_TX),
                         .SOut(            FPGA_SERIAL_RX));
 
-    initial begin
+   initial begin
       // Reset. Has to be long enough to not be eaten by the debouncer.)
 
       Reset = 1;
-       #(30*Cycle);
-       
+      stall = 0;
+      
+      #(30*Cycle);
+      
       Reset = 0;
 
-       #(1000*Cycle);
-       
+      #(1000*Cycle);
+      
+      
 
       $finish();
-  end
+   end
 
 endmodule

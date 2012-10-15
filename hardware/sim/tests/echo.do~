@@ -1,0 +1,21 @@
+start EchoTestbench
+file copy -force ../../../software/echo/echo.mif imem_blk_ram.mif
+file copy -force ../../../software/echo/echo.mif dmem_blk_ram.mif
+add wave EchoTestbench/*
+
+add wave EchoTestbench/CPU/
+add wave EchoTestbench/CPU/DataPath/clk
+add wave EchoTestbench/CPU/DataPath/rst
+add wave EchoTestbench/CPU/DataPath/PC
+add wave EchoTestbench/CPU/DataPath/nextPC
+add wave EchoTestbench/CPU/DataPath/instrMemAddr
+add wave EchoTestbench/CPU/DataPath/instrMemOut
+add wave EchoTestbench/CPU/DataPath/target*
+add wave EchoTestbench/CPU/DataPath/ALUOut*
+
+add wave EchoTestbench/CPU/DataPath/Regfile/*
+add wave EchoTestbench/CPU/DataPath/Regfile/rf
+
+add wave EchoTestbench/CPU/DataPath/UARTModule/*
+
+run 10000us

@@ -31,11 +31,12 @@ module MIPS150(
    wire        DataOutReady;
    wire [5:0]  opcodeF;
    wire [5:0]  functF;
+   wire [31:0] ALUOutM;
    wire [5:0]  functE;
-   
-   wire [5:0]  opcodeM;
-   wire [1:0]  byteOffsetM;
+   wire [31:0] ALUOutE;
    wire [5:0]  opcodeE;
+   wire [1:0]  byteOffsetE;
+   //wire [5:0]  opcodeE;
    wire [31:0] rd1E;
    wire [31:0] rd2E;
    wire [4:0]  rsF;
@@ -44,7 +45,6 @@ module MIPS150(
    wire [4:0]  rtE;
    wire [4:0]  waM;
    wire        regWriteM;
-   wire [31:0] ALUOutM;
    wire        DataInReady;
    wire        DataOutValid;
    wire [7:0]  UARTDataOut;
@@ -79,10 +79,11 @@ module MIPS150(
 		     .DataOutReady(DataOutReady),
 		     .opcodeF(opcodeF),
 		     .functF(functF),
+		     .ALUOutM(ALUOutM),
 		     .functE(functE),
-		     .opcodeM(opcodeM),
-		     .byteOffsetM(byteOffsetM),
 		     .opcodeE(opcodeE),
+		     .byteOffsetE(byteOffsetE),
+		     .ALUOutE(ALUOutE),
 		     .rd1E(rd1E),
 		     .rd2E(rd2E),
 		     .rsF(rsF),
@@ -91,17 +92,17 @@ module MIPS150(
 		     .rtE(rtE),
 		     .waM(waM),
 		     .regWriteM(regWriteM),
-		     .ALUOutM(ALUOutM),
 		     .DataInReady(DataInReady),
 		     .DataOutValid(DataOutValid),
 		     .UARTDataOut(UARTDataOut));
    
    Control Controls(.opcodeF(opcodeF),
 		    .functF(functF),
+		    .ALUOutM(ALUOutM),
 		    .functE(functE),
-		    .opcodeM(opcodeM),
-		    .byteOffsetM(byteOffsetM),
 		    .opcodeE(opcodeE),
+		    .byteOffsetE(byteOffsetE),
+		    .ALUOutE(ALUOutE),
 		    .rd1E(rd1E),
 		    .rd2E(rd2E),
 		    .rsF(rsF),
@@ -110,7 +111,6 @@ module MIPS150(
 		    .rtE(rtE),
 		    .waM(waM),
 		    .regWriteM(regWriteM),
-		    .ALUOutM(ALUOutM),
 		    .DataInReady(DataInReady),
 		    .DataOutValid(DataOutValid),
 		    .UARTDataOut(UARTDataOut),

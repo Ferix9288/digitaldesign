@@ -2,7 +2,7 @@
 
 module EchoTestbench();
 
-    reg Clock, Reset;
+    reg Clock, Reset, stall;
     wire FPGA_SERIAL_RX, FPGA_SERIAL_TX;
 
     reg   [7:0] DataIn;
@@ -47,7 +47,10 @@ module EchoTestbench();
       Reset = 0;
       DataIn = 8'h7a;
       DataInValid = 0;
-      DataOutReady = 0;
+       DataOutReady = 0;
+       stall = 0;
+       
+       
       #(100*Cycle)
 
       Reset = 1;

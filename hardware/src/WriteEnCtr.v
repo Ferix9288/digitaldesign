@@ -17,7 +17,7 @@ module WriteEnCtr (input [5:0] opcode,
       writeEn = 4'b0;
       
       casez (isInAddrSpace) 
-	4'b0zz1: begin
+	AddrPartition: begin
 	   case (opcode)
 	     `SB: begin
 		case (byteOffset)

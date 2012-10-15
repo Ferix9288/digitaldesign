@@ -6,22 +6,23 @@ module Control(
 	       //Original Control Unit Inputs
 	       input [5:0] opcodeF,
 	       input [5:0] functF,
+	       input [31:0] ALUOutM,
 
 	       //For ALU
 	       input [5:0] functE,
 	       
 	       //Write Ctr Inputs for Data Memory
-	       input [5:0] opcodeM,
-	       input [1:0] byteOffsetM,
-	       //ALUOutM
+	       input [5:0] opcodeE,
+	       input [1:0] byteOffsetE,
+	       input [31:0] ALUOutE,
 
 	       //Write Ctr Inputs for Instr Memory
-	       //opcodeM,
-	       //byteOffsetM,
-	       //ALUOutM
+	       //opcodeE,
+	       //byteOffsetE,
+	       //ALUOutE
 
 	       //Branch Ctr Inputs
-	       input [5:0] opcodeE,
+	       //input [5:0] opcodeE,
 	       input [31:0] rd1E,
 	       input [31:0] rd2E,
 
@@ -34,7 +35,7 @@ module Control(
 	       input regWriteM,
 
 	       //UART Ctr Inputs
-	       input [31:0] ALUOutM,
+	       //input [31:0] ALUOutE,
 	       input DataInReady,
 	       input DataOutValid,
 	       input [7:0] UARTDataOut,
@@ -82,17 +83,17 @@ module Control(
 		     );
 
    //Data Memory
-   WriteEnCtr DataMemWriteEnCtr(.opcode(opcodeM),
-				.byteOffset(byteOffsetM),
+   WriteEnCtr DataMemWriteEnCtr(.opcode(opcodeE),
+				.byteOffset(byteOffsetE),
 				.AddrPartition(4'b0zz1),
-				.ALUOut(ALUOutM),
+				.ALUOut(ALUOutE),
 				.writeEn(dataMemWriteEn));
 
    //Instruction Memory
-   WriteEnCtr InstrMemWriteEnCtr(.opcode(opcodeM),
-				 .byteOffset(byteOffsetM),
+   WriteEnCtr InstrMemWriteEnCtr(.opcode(opcodeE),
+				 .byteOffset(byteOffsetE),
 				 .AddrPartition(4'b0z1z),
-				 .ALUOut(ALUOutM),
+				 .ALUOut(ALUOutE),
 				 .writeEn(instrMemWriteEn));
    
    
@@ -112,11 +113,11 @@ module Control(
 			   .FwdAfromMtoF(FwdAfromMtoF),
 			   .FwdBfromMtoF(FwdBfromMtoF));
 
-   UARTCtr UARTControl(.ALUOut(ALUOutM),
+   UARTCtr UARTControl(.ALUOut(ALUOutE),
 		       .DataInReady(DataInReady),
 		       .DataOutValid(DataOutValid),
 		       .UARTDataOut(UARTDataOut),
-		       .opcode(opcodeM),
+		       .opcode(opcodeE),
 		       .DataInValid(DataInValid),
 		       .DataOutReady(DataOutReady),
 		       .UARTCtrOut(UARTCtrOut),
@@ -126,18 +127,19 @@ module Control(
 
    
    always @(*) begin
-            
+      
+	
       case(opcodeF)
 	`RTYPE: begin
 	   memToReg = 0;
 	   //memWrite = 0;
-	   regWrite = (functF == `JR)? 0:1;
+	   regWrite = (functF === `JR)? 0:1;
 	   extType = 0;
 	   ALUsrc = 0;
 	   regDst = 1;
 	   jump = 0;	      
-	   jr = (functF == `JR | functF == `JALR)? 1:0;
-	   jal = (functF == `JALR)? 1:0;
+	   jr = (functF === `JR | functF === `JALR)? 1:0;
+	   jal = (functF === `JALR)? 1:0;
 	end
 
 	`LB, `LH, `LW, `LBU, `LHU: begin
@@ -256,6 +258,6 @@ module Control(
 	 
       end
        */
-   end  
+   end
 endmodule
 	  
