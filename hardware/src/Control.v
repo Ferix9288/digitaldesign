@@ -25,6 +25,8 @@ module Control(
 	       //input [5:0] opcodeE,
 	       input [31:0] rd1E,
 	       input [31:0] rd2E,
+	       //input [31:0] rd1Fwd,
+	       //input [31:0] rd2Fwd,
 
 	       //Hazard Ctr Inputs
 	       input [4:0] rsF,

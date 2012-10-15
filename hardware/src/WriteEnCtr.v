@@ -10,6 +10,8 @@ module WriteEnCtr (input [5:0] opcode,
    //AddrPartition specifies which address space this memory block holds
    //AddrIn is the top 4 bits of the address
 
+   wire [3:0] 			    isInAddrSpace;
+
    assign isInAddrSpace = ALUOut[31:28];
 		   
    

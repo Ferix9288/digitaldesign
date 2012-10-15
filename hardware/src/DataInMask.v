@@ -5,6 +5,9 @@
 		     input [5:0] opcode,
 		     output reg [31:0] DataInMasked);
 
+   wire [7:0] 			       bottomByte;
+   wire [15:0] 			       bottom2Bytes;
+   
    assign bottomByte = DataMemIn[7:0];
    assign bottom2Bytes = DataMemIn[15:0];
    
