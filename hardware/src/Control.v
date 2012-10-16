@@ -4,9 +4,10 @@
 module Control(
 	      // input reset,
 	       //Original Control Unit Inputs
+	       //input stall,
 	       input [5:0] opcodeF,
 	       input [5:0] functF,
-	       input [31:0] ALUOutM,
+	      // input [31:0] ALUOutM,
 
 	       //For ALU
 	       input [5:0] functE,
@@ -23,8 +24,8 @@ module Control(
 
 	       //Branch Ctr Inputs
 	       //input [5:0] opcodeE,
-	       input [31:0] rd1E,
-	       input [31:0] rd2E,
+	       input [31:0] rd1Fwd,
+	       input [31:0] rd2Fwd,
 	       //input [31:0] rd1Fwd,
 	       //input [31:0] rd2Fwd,
 
@@ -101,8 +102,8 @@ module Control(
    
    
    BranchCtr BranchControl(.opcode(opcodeE),
-			   .rd1(rd1E),
-			   .rd2(rd2E),
+			   .rd1(rd1Fwd),
+			   .rd2(rd2Fwd),
 			   .branchCtr(branchCtr));
 
    HazardCtr HazardControl(.rsF(rsF),
@@ -134,21 +135,21 @@ module Control(
 	`RTYPE: begin
 	   memToReg = 0;
 	   //memWrite = 0;
-	   regWrite = (functF === `JR)? 0:1;
+	   regWrite = (functF == `JR)? 0:1;
 	   extType = 0;
 	   ALUsrc = 0;
 	   regDst = 1;
 	   jump = 0;	      
-	   jr = (functF === `JR)? 1:0;
+	   jr = (functF == `JR)? 1:0;
 	   jal = 0;
-	   jalr = (functF === `JALR)? 1:0;	   
+	   jalr = (functF == `JALR)? 1:0;	   
 	end
 
 	`LB, `LH, `LW, `LBU, `LHU: begin
 	   memToReg = 1;
 	   //memWrite = 0;
 	   //To determine whether or not we have an illegal read access
-	   casez(ALUOutM[31:28])
+	   casez(ALUOutE[31:28])
 	     4'b0zz1, 4'b1000: //Sucessful read in Data Memory or UART
 	       regWrite = 1;
 	     default:

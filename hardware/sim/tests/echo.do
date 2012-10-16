@@ -42,4 +42,6 @@ add wave EchoTestbench/CPU/DataPath/Regfile/rf
 add wave EchoTestbench/CPU/DataPath/UARTModule/*
 add wave EchoTestbench/CPU/Controls/UARTControl/*
 
-run 10us
+add wave EchoTestbench/uart/*
+
+run 1000000us

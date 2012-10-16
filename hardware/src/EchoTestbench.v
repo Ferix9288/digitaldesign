@@ -28,29 +28,28 @@ module EchoTestbench();
 	       .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
 	       .FPGA_SERIAL_TX(FPGA_SERIAL_TX));
    
-
-
-    UART          #( .ClockFreq(       ClockFreq))
-                  uart( .Clock(           Clock),
-                        .Reset(           Reset),
-                        .DataIn(          DataIn),
-                        .DataInValid(     DataInValid),
-                        .DataInReady(     DataInReady),
-                        .DataOut(         DataOut),
-                        .DataOutValid(    DataOutValid),
-                        .DataOutReady(    DataOutReady),
-                        .SIn(             FPGA_SERIAL_TX),
-                        .SOut(            FPGA_SERIAL_RX));
-
-    initial begin
+ 
+   UART  #( .ClockFreq(       ClockFreq))
+	    uart( .Clock(           Clock),
+		  .Reset(           Reset),
+		  .DataIn(          DataIn),
+		  .DataInValid(     DataInValid),
+		  .DataInReady(     DataInReady),
+		  .DataOut(         DataOut),
+		  .DataOutValid(    DataOutValid),
+                  .DataOutReady(    DataOutReady),
+		  .SIn(             FPGA_SERIAL_TX),
+		  .SOut(            FPGA_SERIAL_RX));
+   
+   initial begin
       // Reset. Has to be long enough to not be eaten by the debouncer.
       Reset = 0;
       DataIn = 8'h7a;
       DataInValid = 0;
-       DataOutReady = 0;
-       stall = 0;
-       
-       
+      DataOutReady = 0;
+      stall = 0;
+      
+      
       #(100*Cycle)
 
       Reset = 1;
@@ -72,6 +71,6 @@ module EchoTestbench();
 
 
       $finish();
-  end
+   end
 
 endmodule

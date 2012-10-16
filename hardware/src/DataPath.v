@@ -42,7 +42,7 @@ module DataPath(
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
 		output reg [5:0] functF,
-		output reg [31:0] ALUOutM,
+	//	output reg [31:0] ALUOutM,
 
 		//FOR ALU input 
 		//opcodeE
@@ -60,8 +60,8 @@ module DataPath(
 
 		//Branch Ctr Inputs 
 		//output reg [5:0] opcodeE,
-		output reg [31:0] rd1E,
-		output reg [31:0] rd2E,
+		output reg [31:0] rd1Fwd,
+		output reg [31:0] rd2Fwd,
 
 		//Hazard Ctr Inputs 
 		output reg [4:0] rsF,
@@ -169,7 +169,7 @@ module DataPath(
    reg [4:0] 			 rdF;
    
    wire [4:0] 			 DecShamt;
-   reg [4:0] 			 shamtF;
+  // reg [4:0] 			 shamtF;
    
    wire [15:0] 			 DecImmediate;
    reg [15:0] 			 immediateF;
@@ -222,7 +222,7 @@ module DataPath(
    dmem_blk_ram DataMemory(
 			   //Inputs
 			   .clka(clk),
-			   .ena(!stall),
+			   .ena(1'b1),
 			   .wea(dataMemWriteEn),
 			   .addra(dataMemAddr),
 			   .dina(dataInMasked), //CHANGED
@@ -245,7 +245,7 @@ module DataPath(
    imem_blk_ram InstrMemory(
 			    //Inputs
 			    .clka(clk),
-			    .ena(!stall),
+			    .ena(1'b1),
 			    .wea(instrMemWriteEn),
 			    .addra(instrMemAddr),
 			    .dina(dataInMasked),
@@ -315,9 +315,10 @@ module DataPath(
    reg 				 jalrE;
    reg [31:0] 			 writeBack;
 
- //  reg [31:0] 			 rd1E;
-  // reg [31:0] 			 rd2E;
+   reg [31:0] 			 rd1E;
+   reg [31:0] 			 rd2E;
 
+   reg resetClocked;   
 
    
    //Assign control signals to appropriate registers
@@ -328,17 +329,20 @@ module DataPath(
       //regWriteM = 0;
       //regWriteE = 0;
       
-      //end else begin      
-      memToRegF = memToReg;
-      regWriteF = regWrite;
-      extTypeF = extType;
-      ALUsrcF = ALUsrc;
+      //end else begin  
+      if (!resetClocked & !stall) begin     
+	 memToRegF = memToReg;
+	 regWriteF = regWrite;
+	 extTypeF = extType;
+	 ALUsrcF = ALUsrc;
 
-      regDstF = regDst;
-      jF = jump;	 
-      jrF = jr;
-      jalF = jal;
-      jalrF = jalr;
+	 regDstF = regDst;
+	 jF = jump;	 
+	 jrF = jr;
+	 jalF = jal;
+	 jalrF = jalr;
+      end // if (!resetClocked & !stall)
+      
       //end   
    end
 
@@ -349,7 +353,9 @@ module DataPath(
       //nextPC <= PC;
       //PC <= nextPC;	 
 
-      if (reset) 
+      if (stall)
+	PC <= PC;
+      else if (reset) 
 	PC <= 0;
       else
 	PC <= nextPC;
@@ -357,7 +363,6 @@ module DataPath(
    end // always@ (posedge clk)
 
    
-   reg resetClocked;   
    //Ensure that signals update @ first clock cycle after reset
    //(combinatorially)
    always @(posedge clk)
@@ -412,14 +417,14 @@ module DataPath(
    //Combinatorial logic for sign extension
    always@(*) begin
       //Clock variables to Datapath after reset
-      if (!resetClocked) begin
+      if (!resetClocked & !stall) begin
 
 	 opcodeF = DecOpcode;
 	 functF = DecFunct;
 	 rsF = DecRs;
 	 rtF = DecRt;
 	 rdF = DecRd;
-	 shamtF = DecShamt;
+//	 shamtF = DecShamt;
 	 immediateF = DecImmediate;
 	 //If sign-extended and most significant bit is a 1, sign extend
 	 //Otherwise, just zero-extend
@@ -453,7 +458,7 @@ module DataPath(
 
    //transfering control signals   
    always@(posedge clk) begin
-      if (!reset) begin	 
+      if (!reset & !stall) begin	 
 	 memToRegE <= memToRegF;
 	 regWriteE <= regWriteF;
 	 extTypeE <= extTypeF;
@@ -481,7 +486,7 @@ module DataPath(
    
    //transfering non-control signals
    always@(posedge clk) begin
-      if (!reset) begin
+      if (!reset & !stall) begin
 	 opcodeE <= opcodeF;
 	 functE <= functF;
 	 rsE <= rsF;
@@ -502,10 +507,10 @@ module DataPath(
 
    //Combinatorial logic to ALU inputs
    always@(*) begin
-      rd1E = (FwdAfromMtoE)? ALUOutM: rd1E;
-      ALUinputA = rd1E;     
-      rd2E = (FwdBfromMtoE)? ALUOutM : rd2E;
-      ALUinputB = (ALUsrcE)? immediateESigned : rd2E;
+      rd1Fwd = (FwdAfromMtoE)? ALUOutM: rd1E;
+      ALUinputA = rd1Fwd;     
+      rd2Fwd = (FwdBfromMtoE)? ALUOutM : rd2E;
+      ALUinputB = (ALUsrcE)? immediateESigned : rd2Fwd;
    end
    
    
@@ -534,7 +539,7 @@ module DataPath(
    reg 				 extTypeM;
    reg 				 ALUsrcM;
    reg 				 regDstM;
-   reg 				 jrM;
+  // reg 				 jrM;
    reg 				 jalM;
    reg 				 jalrM;
    reg 				 UARTCtrM;
@@ -544,13 +549,13 @@ module DataPath(
    
    //transfering control signals   
    always@(posedge clk) begin
-      if (!reset) begin
+      if (!reset & !stall) begin
 	 memToRegM <= memToRegE;
 	 regWriteM <= regWriteE;
 	 extTypeM <= extTypeE;
 	 ALUsrcM <= ALUsrcE;
 	 regDstM <= regDstE;
-	 jrM <= jrE;
+	// jrM <= jrE;
 	 jalM <= jalE;
 	 jalrM <= jalrE;
 	 UARTCtrM <= UARTCtrE;
@@ -563,11 +568,11 @@ module DataPath(
    
    //reg [5:0] opcodeM;
    reg [5:0] functM;
-   reg [4:0] rsM;
+  // reg [4:0] rsM;
    reg [4:0] rtM;
    reg [4:0] rdM;
-   reg [31:0] rd1M;
-   reg [31:0] rd2M;
+  // reg [31:0] rd1M;
+  // reg [31:0] rd2M;
    reg [31:0] immediateMSigned;
    reg [31:0] pcM;
 
@@ -577,14 +582,14 @@ module DataPath(
 
    //transfering non-control signals
    always@(posedge clk) begin
-      if (!reset) begin
+      if (!reset & !stall) begin
 	 opcodeM <= opcodeE;
 	 functM <= functE;
-	 rsM <= rsE;
+//	 rsM <= rsE;
 	 rtM <= rtE;
 	 rdM <= rdE;
-	 rd1M <= rd1E;
-	 rd2M <= rd2E;
+//	 rd1M <= rd1E;
+//	 rd2M <= rd2E;
 	 immediateMSigned <= immediateESigned;
 	 ALUOutM <= ALUOutE;
 	 byteOffsetM <= byteOffsetE;
@@ -601,10 +606,8 @@ module DataPath(
 
    //Data Memory inputs (NOT TOO SURE IF CORRECT)
    always@(*) begin
-      if (!reset) begin
-	 dataMemAddr = ALUOutE[13:2];
-	 dataMemIn = rd2E;
-      end
+      dataMemIn = rd2Fwd;
+      dataMemAddr = ALUOutE[13:2];
    end
    
 
@@ -616,13 +619,15 @@ module DataPath(
    end
 
    //Combinatorial logic to connect Instruction Memory ports
-   always@(*) begin
-      instrMemIn = rd2M;
+   /*
+    * always@(*) begin
+      instrMemIn = rd2Fwd; 
    end
+    */
    
    //Combinatorial logic for wires connecting UART Control to UART
    always@(*) begin
-      UARTDataIn = rd2E[7:0];
+      UARTDataIn = rd2Fwd[7:0];
       UARTDataInValid = DataInValid;
       UARTDataOutReady = DataOutReady;
 

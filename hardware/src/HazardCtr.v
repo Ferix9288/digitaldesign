@@ -14,18 +14,18 @@ module HazardCtr (input [4:0] rsF,
 		  );
 
    //Forwarding from Memory to Execution stage in Pipe-Lined Datapath
-   assign FwdAfromMtoE = (waM !== 0) && (waM === rsE) &&
+   assign FwdAfromMtoE = (waM != 0) && (waM == rsE) &&
 			 (regWriteM);
    
-   assign FwdBfromMtoE = (waM !== 0) && (waM === rtE) &&
+   assign FwdBfromMtoE = (waM != 0) && (waM == rtE) &&
 			 (regWriteM) ;
    
 
    //Forwarding from Memory to Fetch stage in Pipe-lined Datapath
-   assign FwdAfromMtoF = (waM !== 0) && (waM === rsF) &&
+   assign FwdAfromMtoF = (waM != 0) && (waM == rsF) &&
 			 (regWriteM) ;
    
-   assign FwdBfromMtoF = (waM !== 0) && (waM === rtF) &&
+   assign FwdBfromMtoF = (waM != 0) && (waM == rtF) &&
 			 (regWriteM) ;
    
 

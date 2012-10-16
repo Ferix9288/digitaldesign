@@ -7,15 +7,18 @@ _start:
 #lw $t1, 0($t0)
 #nop
 
-li $t0, 0x30000101
-li $s7, 0x30000100
-sb $t0, 0($s7)
-
+li $t0, 0x80000004
+lw $t1, 0($t0)
 nop
-	
-lb $t6, 0($s7)
+li $t0, 0x8000000c
+lw $t2, 0($t0)
 nop
+li $t0, 0x80000000
+lw $t3, 0($t0)
+nop
+li $t0, 0x80000008
+li $v0, 0x000000bf
+sw $v0, 0($t0)
 
-#Forwarding works
-#addu $s0, $s7, $s7
-#addu $s0, $s7, $s7
+
+
