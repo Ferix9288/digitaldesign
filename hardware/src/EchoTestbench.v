@@ -44,7 +44,7 @@ module EchoTestbench();
    initial begin
       // Reset. Has to be long enough to not be eaten by the debouncer.
       Reset = 0;
-      DataIn = 8'h7a;
+      DataIn = 8'ha8;
       DataInValid = 0;
       DataOutReady = 0;
       stall = 0;
@@ -66,6 +66,24 @@ module EchoTestbench();
       while (!DataOutValid) #(Cycle);
       $display("Got %d", DataOut);
 
+      DataIn = 8'h18;
+      DataInValid = 0;
+      DataOutReady = 1;
+      stall = 0;
+      #(100*Cycle)
+
+      while (!DataInReady) #(Cycle);
+
+      
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      // Wait for something to come back
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+
+      
       // Add more test cases!
 
 

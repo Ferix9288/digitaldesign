@@ -36,12 +36,17 @@ add wave EchoTestbench/CPU/DataPath/ALUOut*
 add wave EchoTestbench/CPU/DataPath/regWrite*
 add wave EchoTestbench/CPU/DataPath/writeBack
 
+add wave EchoTestbench/CPU/DataPath/DataOutReadyE;
+add wave EchoTestbench/CPU/DataPath/DataOutReadyM;
+
 add wave EchoTestbench/CPU/DataPath/Regfile/*
 add wave EchoTestbench/CPU/DataPath/Regfile/rf
 
 add wave EchoTestbench/CPU/DataPath/UARTModule/*
+add wave EchoTestbench/CPU/DataPath/UARTModule/uatransmit/*
+add wave EchoTestbench/CPU/DataPath/UARTModule/uareceive/*
 add wave EchoTestbench/CPU/Controls/UARTControl/*
 
 add wave EchoTestbench/uart/*
 
-run 1000000us
+run 2000000us

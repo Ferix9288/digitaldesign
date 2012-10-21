@@ -27,7 +27,7 @@ module UARTCtr (input [31:0] ALUOut,
    always @(*) begin
 
       UARTCtrOut = ALUOut;
-      UARTCtr = 0;      
+      UARTCtr = 0;
       DataInValid = 0;
       DataOutReady = 0;
       
@@ -37,7 +37,7 @@ module UARTCtr (input [31:0] ALUOut,
 	   //UART transmitter control
 	   4'b0: begin
 	      if (isLoad) begin
-		 UARTCtrOut = {31'b0, DataInReady};
+		 //UARTCtrOut = {31'b0, DataInReady};
 		 UARTCtr = 1;
 		 DataInValid = 0;
 		 DataOutReady = 0;
@@ -47,7 +47,7 @@ module UARTCtr (input [31:0] ALUOut,
 	   //UART receiver control
 	   4'b0100: begin
 	      if (isLoad) begin
-		 UARTCtrOut = {31'b0, DataOutValid};
+		 //UARTCtrOut = {31'b0, DataOutValid};
 		 UARTCtr = 1;
 		 DataInValid = 0;
 		 DataOutReady = 0;
@@ -55,11 +55,11 @@ module UARTCtr (input [31:0] ALUOut,
 	   end   
 
 	   //UART transmitter data.
-	   //Make sure that DataIn of UART is driven by ALUOut
+	   //Make sure that DataIn of UART is driven by rd2E
 	   //Here, we're just validating that data to be written.
 	   4'b1000: begin
 	      if (isStore) begin
-		 UARTCtrOut = ALUOut;
+		 //UARTCtrOut = ALUOut;
 		 UARTCtr = 0;
 		 DataInValid = 1;
 		 DataOutReady =0;
@@ -69,15 +69,15 @@ module UARTCtr (input [31:0] ALUOut,
 	   //UART receiver data
 	   4'b1100: begin
 	      if (isLoad) begin
-		 UARTCtrOut = {24'b0, UARTDataOut};
+		 //UARTCtrOut = {24'b0, UARTDataOut};
 		 UARTCtr = 1;
-		 DataInValid = 0;	   
+		 DataInValid = 0;
 		 DataOutReady = 1;
 	      end
 	   end
-
+	   
 	   default: begin
-	      UARTCtrOut = ALUOut;
+	      //UARTCtrOut = ALUOut;
 	      UARTCtr = 0;      
 	      DataInValid = 0;
 	      DataOutReady = 0;

@@ -3,22 +3,21 @@
 
 _start:
 
-#addu $t0, $0, $0
-#lw $t1, 0($t0)
-#nop
+addiu $s7, $0, 0x0
+# Test 1
+li
+$s0,
+0x00000020
+addiu $t0, $0, 0x20
+addiu $s7, $s7, 1 # register to hold the test number (in case of failure)
+bne $t0, $s0, Error
+j Done
 
-li $t0, 0x80000004
-lw $t1, 0($t0)
-nop
-li $t0, 0x8000000c
-lw $t2, 0($t0)
-nop
-li $t0, 0x80000000
-lw $t3, 0($t0)
-nop
-li $t0, 0x80000008
-li $v0, 0x000000bf
-sw $v0, 0($t0)
+Error:
+# Perhaps write the test number over serial
+
+Done:
+# Write success over serial
 
 
 

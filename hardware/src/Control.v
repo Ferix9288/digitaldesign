@@ -148,14 +148,7 @@ module Control(
 	`LB, `LH, `LW, `LBU, `LHU: begin
 	   memToReg = 1;
 	   //memWrite = 0;
-	   //To determine whether or not we have an illegal read access
-	   casez(ALUOutE[31:28])
-	     4'b0zz1, 4'b1000: //Sucessful read in Data Memory or UART
-	       regWrite = 1;
-	     default:
-	       regWrite = 0;
-	   endcase // casez (ALUOutM[31:28])
-	   
+	   regWrite = 1;	   
 	   extType = 0;
 	   ALUsrc = 1;
 	   regDst = 0;
