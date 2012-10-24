@@ -208,6 +208,9 @@ module DataPath(
 		   .rd1(rd1),
 		   .rd2(rd2));
 
+   wire alwaysEnable;
+   assign alwaysEnable = 1'b1;
+
    //Instantiating Data Memory In
    DataInMask DataInMasked(
 			   //Inputs
@@ -220,7 +223,7 @@ module DataPath(
    dmem_blk_ram DataMemory(
 			   //Inputs
 			   .clka(clk),
-			   .ena(1'b1),
+			   .ena(alwaysEnable),
 			   .wea(dataMemWriteEn),
 			   .addra(dataMemAddr),
 			   .dina(dataInMasked), //CHANGED
@@ -243,7 +246,7 @@ module DataPath(
    imem_blk_ram InstrMemory(
 			    //Inputs
 			    .clka(clk),
-			    .ena(1'b1),
+			    .ena(alwaysEnable),
 			    .wea(instrMemWriteEn),
 			    .addra(instrMemAddr),
 			    .dina(dataInMasked),
@@ -335,7 +338,7 @@ module DataPath(
       //regWriteM = 0;
       //regWriteE = 0;
       //end else begin  
-      if (!resetClocked & !stall) begin     
+      if (!resetClocked) begin //& !stall) begin     
 	 memToRegF = memToReg;
 	 regWriteF = regWrite;
 	 extTypeF = extType;
@@ -346,7 +349,8 @@ module DataPath(
 	 jrF = jr;
 	 jalF = jal;
 	 jalrF = jalr;
-      end else begin//if (resetClocked) begin
+	 //end else begin//if (resetClocked) begin
+      end else begin
 	 memToRegF = 0;
 	 regWriteF = 0;
 	 extTypeF = 0;
@@ -381,9 +385,9 @@ module DataPath(
       //nextPC <= PC;
       //PC <= nextPC;	 
 
-      if (stall)
-	PC <= PC;
-      else if (reset) 
+      //if (stall)
+      //	PC <= PC;
+      if (reset) 
 	PC <= 0;
       else
 	PC <= nextPC;
@@ -483,7 +487,7 @@ module DataPath(
 
    //transfering control signals   
    always@(posedge clk) begin
-      if (!reset & !stall) begin	 
+      if (!reset) begin //& !stall) begin	 
 	 memToRegE <= memToRegF;
 	 regWriteE <= regWriteF;
 	 extTypeE <= extTypeF;
@@ -496,7 +500,7 @@ module DataPath(
 	 // end else begin 
 	 //	 regWriteE <= 0;	 
 	 //end
-      end else if (reset) begin // if (!reset & !stall)
+      end else begin //if (reset) begin // if (!reset & !stall)
 	 memToRegE <= 0;
 	 regWriteE <= 0;
 	 extTypeE <= 0;
@@ -506,7 +510,9 @@ module DataPath(
 	 jrE <= 0;
 	 jalE <= 0;
 	 jalrE <= 0;
-      end else begin // if (rest)
+      end
+      /*
+* end else begin // if (rest)
       	 memToRegE <= memToRegE;
 	 regWriteE <= regWriteE;
 	 extTypeE <= extTypeE;
@@ -517,6 +523,7 @@ module DataPath(
 	 jalE <= jalE;
 	 jalrE <= jalrE;
       end
+       */
    end
    
    // reg [5:0] opcodeE;
@@ -531,7 +538,7 @@ module DataPath(
    
    //transfering non-control signals
    always@(posedge clk) begin
-      if (!reset & !stall) begin
+      if (!reset) begin //& !stall) begin
 	 opcodeE <= opcodeF;
 	 functE <= functF;
 	 rsE <= rsF;
@@ -542,7 +549,7 @@ module DataPath(
 	 targetE <= targetF;
 	 immediateESigned <= immediateFSigned;
 	 pcE <= pcF;
-      end else if (reset) begin
+      end else begin //if (reset) begin
 	 opcodeE <= 0;
 	 functE <= 0;
 	 rsE <= 0;
@@ -553,7 +560,10 @@ module DataPath(
 	 targetE <= 0;
 	 immediateESigned <= 0;
 	 pcE <= 0;
-      end else begin // if (reset)
+	 
+      end 
+/*
+ * else begin // if (reset)
 	 opcodeE <= opcodeE;
 	 functE <= functE;
 	 rsE <= rsE;
@@ -565,8 +575,9 @@ module DataPath(
 	 immediateESigned <= immediateESigned;
 	 pcE <= pcE;
 	 // ALUOutE <= ALUOut;
+ */
 	 
-      end
+   //   end
    end
    
    //=================Execution==================//
@@ -612,7 +623,7 @@ module DataPath(
     
    
    reg UARTCtrE;
-   reg [31:0] UARTCtrOutE;
+   //reg [31:0] UARTCtrOutE;
    
 
    //Combinatorial logic for dataWriteEn and instrWriteEn and UART
@@ -657,7 +668,7 @@ module DataPath(
    
    //transfering control signals   
    always@(posedge clk) begin
-      if (!reset & !stall) begin
+      if (!reset) begin //& !stall) begin
 	 memToRegM <= memToRegE;
 	 //regWriteM <= regWriteE;
 	 
@@ -674,7 +685,7 @@ module DataPath(
 	 UARTCtrM <= UARTCtrE;
 	 DataOutReadyM <= DataOutReadyE;
 	 //UARTCtrOutM <= UARTCtrOutE;
-      end else if (reset) begin
+      end else begin //if (reset) begin
 	 memToRegM <= 0;
 	 regWriteM <= 0;
 	 regDstM <= 0;
@@ -682,7 +693,9 @@ module DataPath(
 	 jalrM <= 0;
 	 UARTCtrM <= 0;
 	 //UARTCtrOutM <= 0;
-      end else begin
+      end
+/*
+ * else begin
 	 memToRegM <= memToRegM;
 	 regWriteM <= regWriteM;
 	 // extTypeM <= extTypeE;
@@ -695,7 +708,8 @@ module DataPath(
 	// UARTCtrOutM <= UARTCtrOutM;
 	 //end else begin
 	 // regWriteM <= 0;
-      end
+ */
+      //end
    end
    
    //reg [5:0] opcodeM;
@@ -714,7 +728,7 @@ module DataPath(
 
    //transfering non-control signals
    always@(posedge clk) begin
-      if (!reset & !stall) begin
+      if (!reset) begin //& !stall) begin
 	 opcodeM <= opcodeE;
 	 // functM <= functE;
 	 //	 rsM <= rsE;
@@ -728,7 +742,7 @@ module DataPath(
 	 pcM <= pcE;
 	 
 
-      end else if (reset) begin // if (!reset)
+      end else begin //if (reset) begin // if (!reset)
 	 opcodeM <= 0;
 	 // functM <= functE;
 	 //	 rsM <= rsE;
@@ -740,7 +754,9 @@ module DataPath(
 	 ALUOutM <= 0;
 	 byteOffsetM <= 0;
 	 pcM <= 0;
-      end else begin // if (reset)
+      end 
+/*
+ * else begin // if (reset)
 	 opcodeM <= opcodeM;
 	 // functM <= functE;
 	 //	 rsM <= rsE;
@@ -756,6 +772,7 @@ module DataPath(
       //else begin
       // opcodeM <= 0;//makes Opcode an R-type => writeEnables = False
       // end
+ */
       
    end
 
