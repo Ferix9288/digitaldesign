@@ -170,7 +170,7 @@ module DataPath(
    // reg [4:0] 			 shamtF;
    
    wire [15:0] 			 DecImmediate;
-   reg [15:0] 			 immediateF;
+   //reg [15:0] 			 immediateF;
    
    wire [25:0] 			 DecTarget;
    reg [25:0] 			 targetF;
@@ -453,7 +453,7 @@ module DataPath(
       rtF = DecRt;
       rdF = DecRd;
       //	 shamtF = DecShamt;
-      immediateF = DecImmediate;
+      //immediateF = DecImmediate;
       //If sign-extended and most significant bit is a 1, sign extend
       //Otherwise, just zero-extend
       targetF = DecTarget;
@@ -461,8 +461,8 @@ module DataPath(
       
       //end // always@ (posedge clk)
 
-      immediateFSigned = ((extTypeF == 0) && (immediateF[15] == 1'b1))?
-			 {16'hffff, immediateF} : {16'b0, immediateF};
+      immediateFSigned = ((extTypeF == 0) && (DecImmediate[15] == 1'b1))?
+			 {16'hffff, DecImmediate} : {16'b0, DecImmediate};
    end
 
    
@@ -623,7 +623,7 @@ module DataPath(
     
    
    reg UARTCtrE;
-   //reg [31:0] UARTCtrOutE;
+   reg [31:0] UARTCtrOutE;
    
 
    //Combinatorial logic for dataWriteEn and instrWriteEn and UART
@@ -756,7 +756,7 @@ module DataPath(
 	 pcM <= 0;
       end 
 /*
- * else begin // if (reset)
+ * else begin // if (stall)
 	 opcodeM <= opcodeM;
 	 // functM <= functE;
 	 //	 rsM <= rsE;
@@ -769,9 +769,6 @@ module DataPath(
 	 byteOffsetM <= byteOffsetM;
 	 pcM <= pcM;
       end
-      //else begin
-      // opcodeM <= 0;//makes Opcode an R-type => writeEnables = False
-      // end
  */
       
    end
@@ -789,15 +786,6 @@ module DataPath(
    always@(*) begin
       waM = (regDstM)? rdM: rtM;
    end
-
-   //Combinatorial logic to connect Instruction Memory ports
-   /*
-    * always@(*) begin
-    instrMemIn = rd2Fwd; 
-   end
-    */
-   
-
 
    //Combinatorial logic after Data Memory Out to DataMemMask
    always@(*) begin
@@ -830,29 +818,23 @@ module DataPath(
 	   //UART transmitter control
 	   4'b0: begin
 	      if (isLoadM) begin
-		 UARTCtrOutM = {31'b0, DataInReady};
+		 UARTCtrOutM = {31'b0, UARTDataInReady};
 	      end
 	   end
 
 	   //UART receiver control
 	   4'b0100: begin
 	      if (isLoadM) begin
-		 UARTCtrOutM = {31'b0, DataOutValid};
+		 UARTCtrOutM = {31'b0, UARTDataOutValid};
 	      end
 	   end   
 
 	   //UART receiver data
 	   4'b1100: begin
 	      if (isLoadM) begin
-		 UARTCtrOutM = {24'b0, UARTDataOut};
+		 UARTCtrOutM = {24'b0, UARTDOut};
 	      end
 	   end
-	   
-	   /*
-	    * default: begin
-	      UARTCtrOutM = ALUOutM;
-	   end
-	    */
 	   
 	 endcase // case (UARTop)
       end // if (isUART)
@@ -874,83 +856,22 @@ module DataPath(
       regWA = (jalM)? 31 : waM;
    end
 
-   //=========RESET========//
-
-   //If RESET, pipeline registers can retain its original values and even pass it new one
-   //However, nothing will happen if control signals are asserted as so and PC is stored @ 0.
-   /*
-    * always@(*) begin
-    if (reset) begin
-    regWriteF = 0;
-    regWriteM = 0;
-    regWriteE = 0;
-    instrMemWriteEn = 0;
-    dataMemWriteEn = 0;	 
-    UARTCtr = 0;
-      end
-
-    else begin
-    regWriteF = regWriteF;
-    regWriteM = regWriteM;
-    regWriteE = regWriteE;
-    instrMemWriteEn = instrMemWriteEn;
-    
-    */
+  // ChipScope components:
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       ) /* synthesis syn_noprune=1 */;
+   chipscope_ila ila(
+		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
+		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, nextPC, instrMemOut, instrMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, DataInValid, DataOutready, DataInReady, DataOutValid, jal })
+		     ) /* synthesis syn_noprune=1 */;
    
 
-   /*
-    * always@(*) begin
-    if (rst) begin
-    regWriteF = 0;
-    //jrWriteEn = 0;
-    memToRegE = 0;
-    memToRegF = 0;
-    extTypeE = 0;
-    extTypeF = 0;
-    ALUsrcE = 0;
-    ALUsrcF = 0;
-    regDstE = 0;
-    regDstF = 0;
-    jrE = 0;
-    jrF = 0;
-    jalE = 0;
-    jalF = 0;
-    opcodeE = 0;
-    opcodeF = 0;
-    functE = 0;
-    functF = 0;
-    rsE = 0;
-    rtE = 0;
-    rdE = 0;
-    rdF = 0;
-    rd2E = 0;
-    rd2F = 0;
-    immediateESigned = 0;
-    immediateFSigned = 0;
-    
-    memToRegM = 0;
-    regWriteM = 0;
-    extTypeM = 0;
-    ALUsrcM = 0;
-    regDstM = 0;
-    ALUopM = 0;
-    jrM = 0;
-    jalM = 0;
+//, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})
+		     //) /* synthesis syn_noprune=1 */;
 
-    functM = 0;
-    rsM = 0;
-    rtM = 0;
-    rdM = 0;
-    rd1M = 0;
-    rd2M = 0;
-    immediateMSigned = 0;
-    ALUOutM = 0;
-    dataMemAddr = 0;
-    dataMemIn = 0;
-     end
-   end
-    */
    
 endmodule
 
-//memToRegE <= memToRegF
