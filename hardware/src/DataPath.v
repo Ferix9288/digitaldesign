@@ -865,7 +865,7 @@ module DataPath(
 		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, nextPC, instrMemOut, instrMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, DataInValid, DataOutready, DataInReady, DataOutValid, jal })
+		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, nextPC, instrMemOut, instrMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, DataInValid, DataOutReady, DataInReady, DataOutValid})
 		     ) /* synthesis syn_noprune=1 */;
    
 
