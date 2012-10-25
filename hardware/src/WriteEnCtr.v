@@ -77,7 +77,7 @@ module WriteEnCtr (input [5:0] opcode,
 	      endcase // case (byteOffset)
 	   end
 	   `SH: begin
-	      case (byteOffset[0])
+	      case (byteOffset[1])
 		1'b0:
 		  instrMemWriteEn = 4'b1100;
 		1'b1:

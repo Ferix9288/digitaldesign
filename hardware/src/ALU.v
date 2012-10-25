@@ -51,15 +51,15 @@ module ALU(
 	   
 	end
 	`ALU_SLL: begin
-	   Out = B << A[4:0];
+	   Out = B << A;
 	   
 	end
 	`ALU_SRL: begin
-	   Out = $signed(B) >> A[4:0];
+	   Out = B >> A;
 	   
 	end
 	`ALU_SRA: begin
-	   Out = $signed(B) >>> A[4:0];
+	   Out = $signed(B) >>> A;
 	   
 	end
 	`ALU_NOR: begin

@@ -35,7 +35,7 @@ module DataOutMask (input [31:0] DataOutMem,
 	end // case: `LBU
 	
 	`LH: begin
-	   case (byteOffset[0])
+	   case (byteOffset[1])
 	     1'b0:
 	       DataOutMasked = (DataOutMem[31] == 1'b1)? {16'hffff, DataOutMem[31:16]}: {16'b0, DataOutMem[31:16]};
 	     1'b1:
@@ -44,7 +44,7 @@ module DataOutMask (input [31:0] DataOutMem,
 	end // case: `LH
 	
 	`LHU: begin
-	   case (byteOffset[0])
+	   case (byteOffset[1])
 	     1'b0:
 	       DataOutMasked = {16'b0, DataOutMem[31:16]};
 	     1'b1:

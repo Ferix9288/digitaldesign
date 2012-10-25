@@ -142,7 +142,8 @@ module DataPath(
    //--FOR Instruction Memory --
    
    //~Inputs~
-   reg [11:0] 			 instrMemAddr;
+   reg [11:0] 			 instrMemAddr_A;
+   reg [11:0] 			 instrMemAddr_B;
 
 
    //~Outputs~
@@ -250,10 +251,10 @@ module DataPath(
 			    .clka(clk),
 			    .ena(!stall),
 			    .wea(instrMemWriteEn),
-			    .addra(instrMemAddr),
+			    .addra(instrMemAddr_A),
 			    .dina(dataInMasked),
 			    .clkb(clk),
-			    .addrb(instrMemAddr),
+			    .addrb(instrMemAddr_B),
 			    //Output
 			    .doutb(instrMemOut));
 
@@ -400,22 +401,22 @@ module DataPath(
       //CHECK ME
       if (stall) begin
 	 nextPC = nextPC;
-	 instrMemAddr = instrMemAddr;
+	 instrMemAddr_B = instrMemAddr_B;
       end else if (resetClocked) begin
 	 nextPC = 0;
-	 instrMemAddr = 0;
+	 instrMemAddr_B = 0;
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
-	 instrMemAddr = nextPC[13:2];
+	 instrMemAddr_B = nextPC[13:2];
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
-	 instrMemAddr = nextPC[13:2];
+	 instrMemAddr_B = nextPC[13:2];
       end else if (jrE || jalrE) begin
 	 nextPC = rd1E;
-	 instrMemAddr = nextPC[13:2];
+	 instrMemAddr_B = nextPC[13:2];
       end else begin
 	 nextPC = PC + 4;
-	 instrMemAddr = nextPC[13:2];
+	 instrMemAddr_B = nextPC[13:2];
       end
    end
 
@@ -722,6 +723,7 @@ module DataPath(
    always@(*) begin
       dataMemIn = rd2Fwd;
       dataMemAddr = ALUOutE[13:2];
+      instrMemAddr_A = ALUOutE[13:2];
    end
    
 
@@ -805,7 +807,7 @@ module DataPath(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, jE, jalE, shiftE, jalrE})
+		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, jE, jalE, shiftE, jalrE})
 		     ) /* synthesis syn_noprune=1 */;
    
 
