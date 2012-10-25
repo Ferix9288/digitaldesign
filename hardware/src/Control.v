@@ -4,7 +4,7 @@
 module Control(
 	      // input reset,
 	       //Original Control Unit Inputs
-	       //input stall,
+	       input stall,
 	       input [5:0] opcodeF,
 	       input [5:0] functF,
 	      // input [31:0] ALUOutM,
@@ -91,6 +91,7 @@ module Control(
 				.byteOffset(byteOffsetE),
 				//.AddrPartition(4'b0zz1),
 				.ALUOut(ALUOutE),
+				.stall(stall),
 				.dataMemWriteEn(dataMemWriteEn),
 				.instrMemWriteEn(instrMemWriteEn));
 

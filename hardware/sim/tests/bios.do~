@@ -15,7 +15,12 @@ add wave BIOSTestbench/CPU/DataPath/DataMemory/*
 add wave BIOSTestbench/CPU/DataPath/dataMemIn
 add wave BIOSTestbench/CPU/DataPath/dataInMasked
 add wave BIOSTestbench/CPU/DataPath/opcode*
-
+add wave BIOSTestbench/CPU/DataPath/jump
+add wave BIOSTestbench/CPU/DataPath/jE
+add wave BIOSTestbench/CPU/DataPath/jalE
+add wave BIOSTestbench/CPU/DataPath/jrE
+add wave BIOSTestbench/CPU/DataPath/jalrE
+add wave BIOSTestbench/CPU/DataPath/targetE
 
 add wave BIOSTestbench/CPU/DataPath/rd1E
 add wave BIOSTestbench/CPU/DataPath/rd2E
@@ -41,6 +46,8 @@ add wave BIOSTestbench/CPU/DataPath/ALUOut*
 add wave BIOSTestbench/CPU/DataPath/regWrite*
 add wave BIOSTestbench/CPU/DataPath/memToRegM
 add wave BIOSTestbench/CPU/DataPath/UARTCtrM
+add wave BIOSTestbench/CPU/DataPath/UARTCtrOutM
+add wave BIOSTestbench/CPU/DataPath/dataMemMasked
 add wave BIOSTestbench/CPU/DataPath/writeBack
 
 add wave BIOSTestbench/CPU/DataPath/Regfile/*

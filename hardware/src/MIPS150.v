@@ -98,7 +98,8 @@ module MIPS150(
 		     .DataOutValid(DataOutValid),
 		     .UARTDataOut(UARTDataOut));
    
-   Control Controls(.opcodeF(opcodeF),
+   Control Controls(.stall(stall),
+		    .opcodeF(opcodeF),
 		    .functF(functF),
 		   // .ALUOutM(ALUOutM),
 		    .functE(functE),

@@ -43,6 +43,8 @@ add wave EchoTestbench/CPU/DataPath/Regfile/*
 add wave EchoTestbench/CPU/DataPath/Regfile/rf
 
 add wave EchoTestbench/CPU/DataPath/UARTModule/*
+add wave EchoTestbench/CPU/DataPath/UARTModule/uatransmit/*
+add wave EchoTestbench/CPU/DataPath/UARTModule/uareceive/*
 add wave EchoTestbench/CPU/Controls/UARTControl/*
 
 add wave EchoTestbench/uart/*
