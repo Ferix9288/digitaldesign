@@ -296,6 +296,9 @@ module DataPath(
 
    reg [31:0] 			 immediateFSigned;
    reg [31:0] 			 immediateESigned;
+   reg [31:0] 			 shamtF;
+   reg [31:0] 			 shamtE;
+ 			 
    
 
    reg 				 memToRegF;
@@ -424,7 +427,7 @@ module DataPath(
       rsF = DecRs;
       rtF = DecRt;
       rdF = DecRd;
-      //	 shamtF = DecShamt;
+      shamtF = {27'b0, DecShamt};
       //immediateF = DecImmediate;
       //If sign-extended and most significant bit is a 1, sign extend
       //Otherwise, just zero-extend
@@ -520,6 +523,7 @@ module DataPath(
 	 targetE <= targetF;
 	 immediateESigned <= immediateFSigned;
 	 pcE <= pcF;
+	 shamtE <= shamtF;
       end else if (reset) begin
 	 opcodeE <= 0;
 	 functE <= 0;
@@ -531,6 +535,7 @@ module DataPath(
 	 targetE <= 0;
 	 immediateESigned <= 0;
 	 pcE <= 0;
+	 shamtE <= 0;
       end else begin // if (reset)
 	 opcodeE <= opcodeE;
 	 functE <= functE;
@@ -542,6 +547,7 @@ module DataPath(
 	 targetE <= targetE;
 	 immediateESigned <= immediateESigned;
 	 pcE <= pcE;
+	 shamtE <= shamtE;
 	 // ALUOutE <= ALUOut;
       end
    end
