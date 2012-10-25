@@ -857,16 +857,17 @@ module DataPath(
    end
 
   // ChipScope components:
-   wire [35:0] chipscope_control;
-   chipscope_icon icon(
-		       .CONTROL0(chipscope_control)
+   
+  //wire [35:0] chipscope_control;
+  //chipscope_icon icon(
+//		       .CONTROL0(chipscope_control)
 		       ) /* synthesis syn_noprune=1 */;
-   chipscope_ila ila(
-		     .CONTROL(chipscope_control),
-		     .CLK(clk),
+  // chipscope_ila ila(
+//		     .CONTROL(chipscope_control),
+//		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, nextPC, instrMemOut, instrMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, DataInValid, DataOutReady, DataInReady, DataOutValid})
-		     ) /* synthesis syn_noprune=1 */;
+//		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, DataInValid, DataOutReady, DataInReady, DataOutValid})
+//		     ) /* synthesis syn_noprune=1 */;
    
 
 //, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})

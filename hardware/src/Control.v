@@ -89,16 +89,19 @@ module Control(
    //Data Memory
    WriteEnCtr DataMemWriteEnCtr(.opcode(opcodeE),
 				.byteOffset(byteOffsetE),
-				.AddrPartition(4'b0zz1),
+				//.AddrPartition(4'b0zz1),
 				.ALUOut(ALUOutE),
-				.writeEn(dataMemWriteEn));
+				.dataMemWriteEn(dataMemWriteEn),
+				.instrMemWriteEn(instrMemWriteEn));
 
-   //Instruction Memory
+   /*
+    * //Instruction Memory
    WriteEnCtr InstrMemWriteEnCtr(.opcode(opcodeE),
 				 .byteOffset(byteOffsetE),
 				 .AddrPartition(4'b0z1z),
 				 .ALUOut(ALUOutE),
 				 .writeEn(instrMemWriteEn));
+    */
    
    
    BranchCtr BranchControl(.opcode(opcodeE),

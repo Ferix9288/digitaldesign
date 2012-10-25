@@ -54,7 +54,6 @@ module DataOutMask (input [31:0] DataOutMem,
 
 	`LW: begin
 	   DataOutMasked = DataOutMem;
-	   
 	end
 	
 	
