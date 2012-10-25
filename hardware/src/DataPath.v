@@ -861,7 +861,7 @@ module DataPath(
   //wire [35:0] chipscope_control;
   //chipscope_icon icon(
 //		       .CONTROL0(chipscope_control)
-		       ) /* synthesis syn_noprune=1 */;
+//		       ) /* synthesis syn_noprune=1 */;
   // chipscope_ila ila(
 //		     .CONTROL(chipscope_control),
 //		     .CLK(clk),
