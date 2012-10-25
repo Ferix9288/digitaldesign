@@ -20,6 +20,7 @@ module DataPath(
 		input jr,
 		input jal,
 		input jalr,
+		input shift,
 
 		//Write Ctr output 
 		input [3:0] dataMemWriteEn,
@@ -169,7 +170,7 @@ module DataPath(
    wire [4:0] 			 DecRd;
    reg [4:0] 			 rdF;
    
-   // wire [4:0] 			 DecShamt;
+   wire [4:0] 			 DecShamt;
    // reg [4:0] 			 shamtF;
    
    wire [15:0] 			 DecImmediate;
@@ -265,7 +266,7 @@ module DataPath(
 				   .rs(DecRs),
 				   .rt(DecRt),
 				   .rd(DecRd),
-				   .shamt(),
+				   .shamt(DecShamt),
 				   .immediate(DecImmediate),
 				   .target(DecTarget));
 
@@ -310,6 +311,7 @@ module DataPath(
    reg 				 jrF;
    reg 				 jalF;
    reg 				 jalrF;
+   reg 				 shiftF;
    reg [31:0] 			 pcF;
    
    reg 				 regWriteE;
@@ -348,6 +350,7 @@ module DataPath(
 	 jrF = jr;
 	 jalF = jal;
 	 jalrF = jalr;
+	 shiftF = shift;
 	 //end else begin//if (resetClocked) begin
       end else begin
 	 memToRegF = 0;
@@ -359,6 +362,7 @@ module DataPath(
 	 jrF = 0;
 	 jalF = 0;
 	 jalrF = 0;
+	 shiftF = 0;
       end
      // end else begin // if (stall)
 	 /*
@@ -456,6 +460,7 @@ module DataPath(
    reg 				 extTypeE;
    reg 				 ALUsrcE;
    reg 				 regDstE;
+   reg 				 shiftE;
    //reg [3:0] 			 ALUopE;
    
    
@@ -472,6 +477,7 @@ module DataPath(
 	 jrE <= jrF;
 	 jalE <= jalF;	
 	 jalrE <= jalrF;
+	 shiftE <= shiftF;
 	 // end else begin 
 	 //	 regWriteE <= 0;	 
 	 //end
@@ -485,7 +491,7 @@ module DataPath(
 	 jrE <= 0;
 	 jalE <= 0;
 	 jalrE <= 0;
- 
+	 shiftE <= 0;
       end else begin // if (rest)
       	 memToRegE <= memToRegE;
 	 regWriteE <= regWriteE;
@@ -496,6 +502,7 @@ module DataPath(
 	 jrE <= jrE;
 	 jalE <= jalE;
 	 jalrE <= jalrE;
+	 shiftE <= shiftE;
       end
       
    end
@@ -557,7 +564,7 @@ module DataPath(
    //Combinatorial logic to ALU inputs
    always@(*) begin
       rd1Fwd = (FwdAfromMtoE)? ALUOutM: rd1E;
-      ALUinputA = rd1Fwd;     
+      ALUinputA = (shiftE)? shamtE : rd1Fwd;     
       rd2Fwd = (FwdBfromMtoE)? ALUOutM : rd2E;
       ALUinputB = (ALUsrcE)? immediateESigned : rd2Fwd;
    end
@@ -618,7 +625,7 @@ module DataPath(
    //Combinatorial logic for wires connecting UART Control to UART
    always@(*) begin
       UARTDataIn = rd2Fwd[7:0];
-      UARTDataInValid = DataInValid;
+      UARTDataInValid = (stall)? 0: DataInValid;
       DataOutReadyE = DataOutReady;
    end
 
@@ -724,7 +731,7 @@ module DataPath(
    //Combinatorial logic after Data Memory Out to DataMemMask
    always@(*) begin
       dataMemOutM = dataMemOut;
-      UARTDataOutReadyM = DataOutReadyM;
+      UARTDataOutReadyM = (stall)? 0: DataOutReadyM;
    end
 
    //Determining UART Control Out
@@ -794,7 +801,7 @@ module DataPath(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, jE, jalE, jrE, jalrE})
+		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, UARTDataOut, PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, jE, jalE, shiftE, jalrE})
 		     ) /* synthesis syn_noprune=1 */;
    
 

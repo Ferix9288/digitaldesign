@@ -55,6 +55,7 @@ module Control(
 	       output reg jr,
 	       output reg jal,
 	       output reg jalr,
+	       output reg shift,
 
 	       //Write Ctr Output for Data Memory
 	       output [3:0] dataMemWriteEn,
@@ -146,7 +147,13 @@ module Control(
 	   jump = 0;	      
 	   jr = (functF == `JR)? 1:0;
 	   jal = 0;
-	   jalr = (functF == `JALR)? 1:0;	   
+	   jalr = (functF == `JALR)? 1:0;
+	   case(functF)
+	     `SLL, `SRL, `SRA:
+	       shift = 1;
+	     default:
+	       shift = 0;
+	   endcase
 	end
 
 	`LB, `LH, `LW, `LBU, `LHU: begin
@@ -160,6 +167,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `LB, `LH, `LW, `LBU, `LHU
 
 	`SB, `SH, `SW: begin
@@ -173,6 +181,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `SB, `SH, `SW
 	
 	 `ADDIU, `SLTI, `SLTIU: begin
@@ -186,6 +195,7 @@ module Control(
 	    jr = 0;
 	    jal = 0;
 	    jalr = 0;
+	    shift = 0;
 	 end
 	    
 	   
@@ -200,6 +210,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `ANDI, `ORI, `XORI
 
 	`LUI: begin
@@ -213,6 +224,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `LUI
 
 	`J: begin
@@ -226,6 +238,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `J
 
 	`JAL: begin
@@ -239,6 +252,7 @@ module Control(
 	   jr = 0;
 	   jal = 1;
 	   jalr = 0;
+	   shift = 0;
 	end // case: `JAL
 
 	`BEQ, `BNE, `BLEZ, `BGTZ, `BLTZ, `BGEZ: begin
@@ -252,6 +266,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end
 
 	default: begin
@@ -264,6 +279,7 @@ module Control(
 	   jr = 0;
 	   jal = 0;
 	   jalr = 0;
+	   shift = 0;
 	end
 	
       endcase // case (opcodeF)

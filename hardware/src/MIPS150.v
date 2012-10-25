@@ -19,6 +19,7 @@ module MIPS150(
    wire       jr;
    wire       jal;
    wire       jalr;
+   wire       shift;
    wire [3:0] dataMemWriteEn;
    wire [3:0] instrMemWriteEn;
    wire       branchCtr;
@@ -68,6 +69,7 @@ module MIPS150(
 		     .jr(jr),
 		     .jal(jal),
 		     .jalr(jalr),
+		     .shift(shift),
 		     .dataMemWriteEn(dataMemWriteEn),
 		     .instrMemWriteEn(instrMemWriteEn),
 		     .branchCtr(branchCtr),
@@ -127,6 +129,7 @@ module MIPS150(
 		    .jr(jr),
 		    .jal(jal),
 		    .jalr(jalr),
+		    .shift(shift),
 		    .dataMemWriteEn(dataMemWriteEn),
 		    .instrMemWriteEn(instrMemWriteEn),
 		    .branchCtr(branchCtr),
