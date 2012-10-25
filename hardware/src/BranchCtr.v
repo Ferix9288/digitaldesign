@@ -4,6 +4,7 @@
 module BranchCtr (input [5:0] opcode,
 		  input [31:0] rd1,
 		  input [31:0] rd2,
+		  input [4:0] rtE,
 		  output reg  branchCtr);
 
    always @(*) begin
@@ -21,12 +22,13 @@ module BranchCtr (input [5:0] opcode,
 	  branchCtr = ($signed(rd1) > 0)? 1:0;
 
 	`BLTZ, `BGEZ: begin
-	   //Determine which one of the two instr by rd2 value
-	   //  (data from rt register)
-	   if (rd2  == 1) 
-	     branchCtr = ($signed(rd1) < 0)? 1:0;
-	   else
+	   //Determine which one of the two instr by rt register value
+	   if (rtE  == 1)
+	     //BGEZ
 	     branchCtr = ($signed(rd1) >= 0)? 1:0;
+	   else
+	     //BLTZ
+	     branchCtr = ($signed(rd1) < 0)? 1:0;
 	end
 
 	default:

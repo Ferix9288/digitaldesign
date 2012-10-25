@@ -109,6 +109,7 @@ module Control(
    BranchCtr BranchControl(.opcode(opcodeE),
 			   .rd1(rd1Fwd),
 			   .rd2(rd2Fwd),
+			   .rtE(rtE),
 			   .branchCtr(branchCtr));
 
    HazardCtr HazardControl(.rsF(rsF),

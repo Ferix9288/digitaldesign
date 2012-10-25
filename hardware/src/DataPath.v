@@ -397,7 +397,11 @@ module DataPath(
 
    //Combinatorial logic determining nextPC
    always@(*) begin
-      if (resetClocked) begin
+      //CHECK ME
+      if (stall) begin
+	 nextPC = nextPC;
+	 instrMemAddr = instrMemAddr;
+      end else if (resetClocked) begin
 	 nextPC = 0;
 	 instrMemAddr = 0;
       end else if (branchCtr) begin
