@@ -221,12 +221,12 @@ module DataPath(
 			   .byteOffset(byteOffsetE),
 			   //Output
 			   .DataInMasked(dataInMasked));
-   
+
    //Instantiating Data Memory
    dmem_blk_ram DataMemory(
 			   //Inputs
 			   .clka(clk),
-			   .ena(!stall),
+			   .ena(~stall),
 			   .wea(dataMemWriteEn),
 			   .addra(dataMemAddr),
 			   .dina(dataInMasked), //CHANGED
@@ -249,7 +249,7 @@ module DataPath(
    imem_blk_ram InstrMemory(
 			    //Inputs
 			    .clka(clk),
-			    .ena(!stall),
+			    .ena(~stall),
 			    .wea(instrMemWriteEn),
 			    .addra(instrMemAddr_A),
 			    .dina(dataInMasked),
@@ -385,7 +385,7 @@ module DataPath(
       
    //The Logic/Muxes/Clk Driving the Program Counter and Instruction Memory
    always@(posedge clk) begin
-       if (stall)
+      if (stall)
       	PC <= PC;
       else if (reset) 
 	PC <= 0;
@@ -393,15 +393,16 @@ module DataPath(
 	PC <= nextPC;
       
    end // always@ (posedge clk)
-
    
-
+   
    //Combinatorial logic determining nextPC
    always@(*) begin
       //CHECK ME
       if (stall) begin
 	 nextPC = nextPC;
-	 instrMemAddr_B = instrMemAddr_B;
+	 instrMemAddr_B = PC[13:2];
+	 //instrMemAddr_B = instrMemAddr_B;
+	 
       end else if (resetClocked) begin
 	 nextPC = 0;
 	 instrMemAddr_B = 0;
@@ -630,7 +631,7 @@ module DataPath(
    //Combinatorial logic for wires connecting UART Control to UART
    always@(*) begin
       UARTDataIn = rd2Fwd[7:0];
-      UARTDataInValid = (stall)? 0: DataInValid;
+      UARTDataInValid = DataInValid;
       DataOutReadyE = DataOutReady;
    end
 
@@ -737,7 +738,7 @@ module DataPath(
    //Combinatorial logic after Data Memory Out to DataMemMask
    always@(*) begin
       dataMemOutM = dataMemOut;
-      UARTDataOutReadyM = (stall)? 0: DataOutReadyM;
+      UARTDataOutReadyM = DataOutReadyM;
    end
 
    //Determining UART Control Out
@@ -807,7 +808,7 @@ module DataPath(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, jE, jalE, shiftE, jalrE})
+		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, UARTDataOutReady, UARTDataInValid, shiftE, jalrE})
 		     ) /* synthesis syn_noprune=1 */;
    
 

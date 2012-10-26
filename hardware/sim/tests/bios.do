@@ -7,6 +7,7 @@ add wave BIOSTestbench/*
 add wave BIOSTestbench/CPU/
 add wave BIOSTestbench/CPU/DataPath/clk
 add wave BIOSTestbench/CPU/DataPath/reset
+add wave BIOSTestbench/CPU/DataPath/stall
 add wave BIOSTestbench/CPU/DataPath/PC
 add wave BIOSTestbench/CPU/DataPath/nextPC
 add wave BIOSTestbench/CPU/DataPath/instrMemAddr

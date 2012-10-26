@@ -21,6 +21,7 @@ add wave BIOSTestbench/CPU/DataPath/jalE
 add wave BIOSTestbench/CPU/DataPath/jrE
 add wave BIOSTestbench/CPU/DataPath/jalrE
 add wave BIOSTestbench/CPU/DataPath/targetE
+add wave BIOSTestbench/CPU/DataPath/InstructionDecoder/*
 
 add wave BIOSTestbench/CPU/DataPath/rd1E
 add wave BIOSTestbench/CPU/DataPath/rd2E

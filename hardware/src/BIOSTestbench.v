@@ -21,10 +21,15 @@ module BIOSTestbench();
 
     // Instantiate your CPU here and connect the FPGA_SERIAL_TX wires
     // to the UART we use for testing
+   
+   reg 		stallClocked;
 
+   always@(posedge Clock)
+     stallClocked <= stall;
+   
    MIPS150 CPU(.clk(Clock),
 	       .rst(Reset),
-	       .stall(stall),
+	       .stall(stallClocked),
 	       .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
 	       .FPGA_SERIAL_TX(FPGA_SERIAL_TX));
    
@@ -40,6 +45,11 @@ module BIOSTestbench();
                   .DataOutReady(    DataOutReady),
 		  .SIn(             FPGA_SERIAL_TX),
 		  .SOut(            FPGA_SERIAL_RX));
+
+
+
+   integer 	i;
+   localparam loops = 100;
    
    initial begin
       // Reset. Has to be long enough to not be eaten by the debouncer.
@@ -166,6 +176,96 @@ module BIOSTestbench();
       #Cycle;
       DataOutReady = 0;
 
+      
+      DataIn = 8'hff;
+      
+
+	             
+      //Wait until transmit is ready
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      // Wait for something to come back
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+      DataOutReady = 1;
+      #Cycle;
+      DataOutReady = 0;
+
+      #Cycle;	       
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+      stall = 1;
+      #Cycle;
+      stall = 0;
+      #Cycle;
+
+      for(i = 0; i< loops; i = i +1)
+	begin
+	   stall = ~stall;
+	   #Cycle;
+	end
+   
 
 
 
