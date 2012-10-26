@@ -65,9 +65,11 @@ module MIPS150(
    wire        DataInReady;
    wire        DataOutValid;
    wire [7:0]  UARTDataOut;
+   wire        isLoadE;  
+   wire        isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS;
    
-   
-   
+
+    
    DataPath DataPath(
 		     .clk(clk),
 		     .stall(stall),
@@ -96,6 +98,11 @@ module MIPS150(
 		     .UARTCtrOut(UARTCtrOut),
 		     .DataInValid(DataInValid),
 		     .DataOutReady(DataOutReady),
+		     .isLoadE(isLoadE),
+		     .isBIOS_Data(isBIOS_Data),
+		     .instrSrc(instrSrc),
+		     .enPC_BIOS(enPC_BIOS),
+		     .enData_BIOS(enData_BIOS),
 		     .opcodeF(opcodeF),
 		     .functF(functF),
 		    // .ALUOutM(ALUOutM),
@@ -155,7 +162,12 @@ module MIPS150(
 		    .UARTCtr(UARTCtr),
 		    .UARTCtrOut(UARTCtrOut),
 		    .DataInValid(DataInValid),
-		    .DataOutReady(DataOutReady));
+		    .DataOutReady(DataOutReady),
+		    .isLoadE(isLoadE),
+		    .isBIOS_Data(isBIOS_Data),
+		    .instrSrc(instrSrc),
+		    .enPC_BIOS(enPC_BIOS),
+		    .enData_BIOS(enData_BIOS));
    
 		    
 

@@ -44,6 +44,10 @@ module Control(
 	       input [7:0] UARTDataOut,
 	       //opcodeM
 
+	       //Needed for BIOS/Instr$
+	       //ALUOutE  
+	       input [31:0] PC,
+
 	       //Original Control unit outputs
 	       output reg memToReg,
 	       output reg regWrite,
@@ -76,7 +80,13 @@ module Control(
 	       output UARTCtr,
 	       output [31:0] UARTCtrOut,
 	       output DataInValid,
-	       output DataOutReady
+	       output DataOutReady,
+
+	       //isLoad Signal
+	       output isLoadE,
+
+	       //BIOS + instr$ outputs
+	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS
 
 
 	       );
@@ -133,7 +143,7 @@ module Control(
 		       .UARTCtrOut(UARTCtrOut),
 		       .UARTCtr(UARTCtr));
    
-        
+      
    always @(*) begin
       
 	
@@ -294,6 +304,19 @@ module Control(
 	 
       end
        */
-   end
+   end // always @ (*)
+
+   assign isLoadE =  (opcodeE == `LB) || (opcodeE == `LH) ||
+		     (opcodeE == `LW) || (opcodeE == `LBU) ||
+		     (opcodeE == `LHU);
+   
+   //Assigning BIOS/I$ Control Signals
+   assign enPC_BIOS = (PC[31:28] == 4'b0100);
+   assign enData_BIOS = (ALUOutE[31:28] == 4'b0100);
+   assign isBIOS_Data = enData_BIOS && (isLoadE);
+   assign instrSrc = enPC_BIOS;
+ 
+   
+     
 endmodule
 	  

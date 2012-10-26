@@ -43,6 +43,12 @@ module DataPath(
 		input DataInValid,
 		input DataOutReady,
 
+		//isLoad Output
+		input isLoadE,
+		
+		//BIOS+Instr$ outputs
+		input isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
+
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
 		output reg [5:0] functF,
@@ -149,6 +155,15 @@ module DataPath(
    //~Outputs~
    wire [31:0] 			 instrMemOut;
 
+   //--FOR BIOS Memory --
+
+   //~Inputs~
+   //wire 			 enPC_BIOS, enData_BIOS;
+   reg [11:0] 			 addrPC_BIOS, addrData_BIOS;
+
+   //~Outputs~
+   wire [31:0] 			 PC_BIOSOut, Data_BIOSOut;
+   
 
    //-- FOR Instr Decoder--
 
@@ -258,6 +273,21 @@ module DataPath(
 			    //Output
 			    .doutb(instrMemOut));
 
+
+   //Instantiating BIOS Memory
+   bios_mem BIOS(//inputs
+		 .clka(clk),
+		 .ena(enPC_BIOS),
+		 .addra(addrPC_BIOS),
+		 //output
+		 .douta(PC_BIOSOut),
+		 //inputs
+		 .clkb(clk),
+		 .enb(enData_BIOS),
+		 .addrb(addrData_BIOS),
+		 //output
+		 .doutb(Data_BIOSOut));
+
    InstrDecoder InstructionDecoder(
 				   //Inputs
 				   .instruction(DecIn),
@@ -345,7 +375,6 @@ module DataPath(
 	 regWriteF = regWrite;
 	 extTypeF = extType;
 	 ALUsrcF = ALUsrc;
-
 	 regDstF = regDst;
 	 jF = jump;	 
 	 jrF = jr;
@@ -365,22 +394,6 @@ module DataPath(
 	 jalrF = 0;
 	 shiftF = 0;
       end
-     // end else begin // if (stall)
-	 /*
-	  * memToRegF = memToRegF;
-	 regWriteF = regWriteF;
-	 extTypeF = extTypeF;
-	 ALUsrcF = ALUsrcF;
-	 regDstF = regDstF;
-	 jF = jF;
-	 jrF = jrF;
-	 jalF = jalF;
-	 jalrF = jalrF;
-	  */
-	 // if (!resetClocked & !stall)
-	 
-	 //end   
-      //end
    end
       
    //The Logic/Muxes/Clk Driving the Program Counter and Instruction Memory
@@ -396,13 +409,11 @@ module DataPath(
    
    
    //Combinatorial logic determining nextPC
+   //CHANGE STALLING TO FEEDBACK
    always@(*) begin
-      //CHECK ME
       if (stall) begin
 	 nextPC = nextPC;
 	 instrMemAddr_B = PC[13:2];
-	 //instrMemAddr_B = instrMemAddr_B;
-	 
       end else if (resetClocked) begin
 	 nextPC = 0;
 	 instrMemAddr_B = 0;
@@ -419,33 +430,32 @@ module DataPath(
 	 nextPC = PC + 4;
 	 instrMemAddr_B = nextPC[13:2];
       end
-   end
+   end // always@ (*)
 
-   //Combinatorial logic linking Instruction Memory to Decoder
+   //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
-      DecIn = instrMemOut;
+      addrPC_BIOS = PC[13:2];
+      addrData_BIOS = ALUOutE[13:2];
+   end
+   
+   //Combinatorial logic linking BIOS/Instruction Memory to Decoder
+   always@(*) begin
+      DecIn = (instrSrc)? PC_BIOSOut : instrMemOut;
    end   
    
    //Combinatorial logic for sign extension
    always@(*) begin
-      //Clock variables to Datapath after reset
-      //if (!resetClocked & !stall) begin
-      // if (!resetClocked)
-      //if (!resetClocked) begin
       opcodeF = DecOpcode;
       functF = DecFunct;
       rsF = DecRs;
       rtF = DecRt;
       rdF = DecRd;
       shamtF = {27'b0, DecShamt};
-      //immediateF = DecImmediate;
+   
       //If sign-extended and most significant bit is a 1, sign extend
       //Otherwise, just zero-extend
       targetF = DecTarget;
       pcF = PC;
-      //end
-      //end // always@ (posedge clk)
-
       immediateFSigned = ((extTypeF == 0) && (DecImmediate[15] == 1'b1))?
 			 {16'hffff, DecImmediate} : {16'b0, DecImmediate};
    end
@@ -581,10 +591,6 @@ module DataPath(
       ALUOutE = ALUOut;
    end
    
-   assign isLoadE =  (opcodeE == `LB) || (opcodeE == `LH) ||
-		     (opcodeE == `LW) || (opcodeE == `LBU) ||
-		     (opcodeE == `LHU);
-
    reg legalRead ;
    
    
@@ -639,19 +645,14 @@ module DataPath(
    //===============PipeLineEM==================//
    
    reg 				 memToRegM;
-   //reg 				 regWriteM;
-   // reg 				 extTypeM;
-   // reg 				 ALUsrcM;
    reg 				 regDstM;
-   // reg 				 jrM;
    reg 				 jalM;
    reg 				 jalrM;
    reg 				 UARTCtrM;
    reg [31:0] 			 UARTCtrOutM;
-
-
-   
-   
+   reg 				 isLoadM;
+   reg 				 isBIOS_DataM;
+				    
    //transfering control signals   
    always@(posedge clk) begin
       if (!reset && !stall) begin
@@ -662,6 +663,9 @@ module DataPath(
 	 jalrM <= jalrE;
 	 UARTCtrM <= UARTCtrE;
 	 DataOutReadyM <= DataOutReadyE;
+	 isLoadM <= isLoadE;
+	 isBIOS_DataM <= isBIOS_Data;
+ 
       end else if (reset) begin
 	 memToRegM <= 0;
 	 regWriteM <= 0;
@@ -669,7 +673,9 @@ module DataPath(
 	 jalM <= 0;
 	 jalrM <= 0;
 	 UARTCtrM <= 0;
-	 //UARTCtrOutM <= 0;
+	 isLoadM <= 0;
+	 isBIOS_DataM <= 0;
+
       end else begin
 	 memToRegM <= memToRegM;
 	 regWriteM <= regWriteM;
@@ -677,22 +683,15 @@ module DataPath(
 	 jalM <= jalM;
 	 jalrM <= jalrM;
 	 UARTCtrM <= UARTCtrM;
+	 isLoadM <= isLoadM;
+	 isBIOS_DataM <= isBIOS_DataM;
+
       end
    end
    
-   //reg [5:0] opcodeM;
-   // reg [5:0] functM;
-   // reg [4:0] rsM;
    reg [4:0] rtM;
    reg [4:0] rdM;
-   // reg [31:0] rd1M;
-   // reg [31:0] rd2M;
-   // reg [31:0] immediateMSigned;
    reg [31:0] pcM;
-
-   
-   //   reg [31:0] ALUOutM;   
-   //   reg [1:0]  byteOffsetM;
 
    //transfering non-control signals
    always@(posedge clk) begin
@@ -720,7 +719,7 @@ module DataPath(
       end     
    end
 
-   //Data Memory inputs (NOT TOO SURE IF CORRECT)
+   //Data Memory inputs 
    always@(*) begin
       dataMemIn = rd2Fwd;
       dataMemAddr = ALUOutE[13:2];
@@ -744,13 +743,14 @@ module DataPath(
    //Determining UART Control Out
    wire 				 isUARTM;
    wire [3:0] 				 UARTopM;
-   wire 				 isLoadM;
    
    assign isUARTM = (ALUOutM[31:28] == 4'b1000);
    assign UARTopM = ALUOutM[3:0];
-   assign isLoadM =  (opcodeM == `LB) || (opcodeM == `LH) ||
-		     (opcodeM == `LW) || (opcodeM == `LBU) ||
-		     (opcodeM == `LHU);
+   
+   //assign isLoadM =  (opcodeM == `LB) || (opcodeM == `LH) ||
+//		     (opcodeM == `LW) || (opcodeM == `LBU) ||
+//		     (opcodeM == `LHU);
+   
    always@(*) begin
       UARTCtrOutM = ALUOutM;
       
@@ -781,14 +781,16 @@ module DataPath(
 	 endcase // case (UARTop)
       end // if (isUART)
    end // always@ (*)
-   
+
    //Write-back value to RegFile
    always@(*) begin
-      if (!memToRegM) 
+      if (isBIOS_DataM)
+	writeBack = Data_BIOSOut;
+      else if (!memToRegM) 
 	writeBack = ALUOutM;
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
-      else
+      else 
 	writeBack = dataMemMasked;
    end
 
