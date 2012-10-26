@@ -7,6 +7,20 @@ module DataPath(
 		input reset,
 		input SIn,
 		output SOut,
+
+		//Cache Outputs
+		output reg [31:0] dcache_addr,
+		output reg [31:0] icache_addr,
+		output reg [3:0] dcache_we,
+		output reg [3:0] icache_we,
+		output reg icache_re, dcache_re,
+		output reg [31:0] dcache_din,
+		output reg [31:0] icache_din,
+
+		//Cache Inputs
+		input [31:0] dcache_dout,
+		input [31:0] instruction,
+		
 		//All the outputs from Control
 
 		//Original Control unit Outputs 
@@ -49,6 +63,7 @@ module DataPath(
 		
 		//BIOS+Instr$ outputs
 		input isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
+		input dcache_re_Ctr, icache_re_Ctr,
 
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
@@ -122,7 +137,13 @@ module DataPath(
    reg [31:0] 			 rd2F;
    
 
-   //--FOR Data Memory--
+   //--FOR Data In Mask --
+
+   //~Inputs~
+   reg [31:0] 			 dataMemIn_toMask;
+   
+   /*
+    * //--FOR Data Memory--
 
    //~Inputs~
    reg [11:0] 			 dataMemAddr;
@@ -131,6 +152,7 @@ module DataPath(
    //~Outputs~
    wire [31:0] 			 dataMemOut;
    reg [31:0] 			 dataMemOutM;
+    */
 
    //--FOR Data Memory Mask (IN)--
    //~Inputs~
@@ -139,19 +161,30 @@ module DataPath(
    wire [31:0] 			 dataInMasked;
 
    //--FOR BIOS Memory Out Mask --
-   wire [31:0] 			 Data_BIOSOut_Masked;
-
    
-   //--FOR Data Memory Mask (OUT)--
-
    //~Inputs~
    reg [5:0] 			 opcodeM;
    reg [1:0] 			 byteOffsetM;
+   
+
+   //~Output~				 
+   wire [31:0] 			 Data_BIOSOut_Masked;
+
+
+   //--FOR D$ Memory Out Mask --
+   wire [31:0] 			 dcache_dout_Masked;
+   
+       
+   /*
+    * //--FOR Data Memory Mask (OUT)--
+
+ ;
    
    
    //~Output~
    wire [31:0] 			 dataMemMasked;
    //reg [31:0] 			 dataMemMaskedM;
+    */
    
    //--FOR Instruction Memory --
    
@@ -239,13 +272,15 @@ module DataPath(
    //Instantiating Data Memory In
    DataInMask DataInMasked(
 			   //Inputs
-			   .DataMemIn(dataMemIn),
+			   .DataMemIn(dataMemIn_toMask),
 			   .opcode(opcodeE),
 			   .byteOffset(byteOffsetE),
 			   //Output
 			   .DataInMasked(dataInMasked));
 
-   //Instantiating Data Memory
+   
+   /*
+    * //Instantiating Data Memory
    dmem_blk_ram DataMemory(
 			   //Inputs
 			   .clka(clk),
@@ -255,6 +290,8 @@ module DataPath(
 			   .dina(dataInMasked), //CHANGED
 			   //Output
 			   .douta(dataMemOut));
+    */
+    
 
    
    //Instantiating DataOutMask for BIOS Data
@@ -265,7 +302,16 @@ module DataPath(
 			   .byteOffset(byteOffsetM),
 			   .DataOutMasked(Data_BIOSOut_Masked));
    
-   //Instantiating Data Memory Out Mask
+   //Instantiating Data $ Out Mask
+   DataOutMask DataCacheMask(//Inputs
+			     .DataOutMem(dcache_dout),
+			     .opcode(opcodeM),
+			     .byteOffset(byteOffsetM),
+			     .DataOutMasked(dcache_dout_Masked));
+   
+   
+   /*
+    * //Instantiating Data Memory Out Mask
    DataOutMask DataMemMask(
 			   //Inputs
 			   .DataOutMem(dataMemOutM),
@@ -273,7 +319,9 @@ module DataPath(
 			   .byteOffset(byteOffsetM),
 			   //Output
 			   .DataOutMasked(dataMemMasked));
-   
+    */
+
+
    //Instantiating Instruction Memory
    imem_blk_ram InstrMemory(
 			    //Inputs
@@ -711,11 +759,28 @@ module DataPath(
       end     
    end
 
-   //Data Memory inputs 
+   //Data Memory inputs for DCache + ICache 
    always@(*) begin
-      dataMemIn = rd2Fwd;
-      dataMemAddr = ALUOutE[13:2];
-      instrMemAddr_A = ALUOutE[13:2];
+      dataMemIn_toMask = rd2Fwd;
+      //dataMemAddr = ALUOutE[13:2];
+
+      //D$
+      dcache_addr = ALUOutE;
+      dcache_we = dataMemWriteEn;
+      dcache_re = dcache_re_Ctr;
+      dcache_din =  dataInMasked;
+      
+      //instrMemAddr_A = ALUOutE[13:2];
+
+      //I$
+      /*
+       * icache_addr = ALUOutE;
+      icache_we = instrMemWriteEn; //make sure PC[30] == 1
+      icache_re = icache_re_Ctr;
+      icache_din = dataInMasked
+       */
+      
+      
    end
    
 
@@ -728,7 +793,7 @@ module DataPath(
 
    //Combinatorial logic after Data Memory Out to DataMemMask
    always@(*) begin
-      dataMemOutM = dataMemOut;
+      //dataMemOutM = dataMemOut;
       UARTDataOutReadyM = DataOutReadyM;
    end
 
@@ -783,7 +848,7 @@ module DataPath(
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
       else 
-	writeBack = dataMemMasked;
+	writeBack = dcache_dout_Masked;
    end
 
    //Connecting write-back value to RegFile Write Port
@@ -794,16 +859,16 @@ module DataPath(
 
   // ChipScope components:
    
-   wire [35:0] chipscope_control;
-   chipscope_icon icon(
-		       .CONTROL0(chipscope_control)
-		       ) /* synthesis syn_noprune=1 */;
-   chipscope_ila ila(
-   		     .CONTROL(chipscope_control),
-		     .CLK(clk),
+ //  wire [35:0] chipscope_control;
+ //  chipscope_icon icon(
+		      // .CONTROL0(chipscope_control)
+//		       ) /* synthesis syn_noprune=1 */;
+//   chipscope_ila ila(
+//   		     .CONTROL(chipscope_control),
+//		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, UARTDataOutReady, UARTDataInValid, shiftE, jalrE})
-		     ) /* synthesis syn_noprune=1 */;
+//		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, UARTDataOutReady, UARTDataInValid, shiftE, jalrE})
+//		     ) /* synthesis syn_noprune=1 */;
    
 
 //, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})

@@ -68,15 +68,31 @@ module MIPS150(
    wire        isLoadE, legalReadE;  
    wire        isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS;
    wire [31:0] PC;
+
+   wire        dcache_re_Ctr, icache_re_Ctr;
+   
    
 
     
-   DataPath DataPath(
+   DataPath DataPath(//Inputs
 		     .clk(clk),
 		     .stall(stall),
 		     .reset(rst),
 		     .SIn(FPGA_SERIAL_RX),
+		     //Outputs
 		     .SOut(FPGA_SERIAL_TX),
+		     .dcache_addr(dcache_addr),
+		     .icache_addr(icache_addr),
+		     .dcache_we(dcache_we),
+		     .icache_we(icache_we),
+		     .dcache_re(dcache_re),
+		     .icache_re(icache_re),
+		     .dcache_din(dcache_din),
+		     .icache_din(icache_din),
+		     //Inputs
+		     .dcache_dout(dcache_dout),
+		     .instruction(instruction),
+	
 		     .memToReg(memToReg),
 		     .regWrite(regWrite),
 		     .extType(extType),
@@ -105,6 +121,8 @@ module MIPS150(
 		     .instrSrc(instrSrc),
 		     .enPC_BIOS(enPC_BIOS),
 		     .enData_BIOS(enData_BIOS),
+		     .dcache_re_Ctr(dcache_re_Ctr),
+		     .icache_re_Ctr(icache_re_Ctr),
 		     .opcodeF(opcodeF),
 		     .functF(functF),
 		    // .ALUOutM(ALUOutM),
@@ -172,7 +190,9 @@ module MIPS150(
 		    .isBIOS_Data(isBIOS_Data),
 		    .instrSrc(instrSrc),
 		    .enPC_BIOS(enPC_BIOS),
-		    .enData_BIOS(enData_BIOS));
+		    .enData_BIOS(enData_BIOS),
+		    .dcache_re_Ctr(dcache_re_Ctr),
+		    .icache_re_Ctr(icache_re_Ctr));
    
 		    
 

@@ -18,7 +18,7 @@ module WriteEnCtr (input [5:0] opcode,
    
    
    assign topNibble = ALUOut[31:28];
-   assign isDataMem = (topNibble[3] == 1'b0) && (topNibble[0] == 1'b1);
+   assign isDataMem = (topNibble[3] == 1'b0) && (topNibble[2] == 1'b0) && (topNibble[0] == 1'b1);
    assign isInstrMem = (topNibble[3] == 1'b0) && (topNibble[1] == 1'b1);
    
    always @(*) begin

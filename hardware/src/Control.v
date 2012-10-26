@@ -87,7 +87,8 @@ module Control(
 	       output reg legalReadE,
 
 	       //BIOS + instr$ outputs
-	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS
+	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
+	       output dcache_re_Ctr, icache_re_Ctr
 	       
 
 
@@ -336,7 +337,11 @@ module Control(
 	 endcase // casez (ALUOutM[31:28])
       end
 
-   end
+   end // always@ (*)
+
+   assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) && (ALUOutE[30] == 1'b0) &&
+			  (ALUOutE[28] == 1'b1);
+   
     
 endmodule
 	  
