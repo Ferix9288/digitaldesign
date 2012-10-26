@@ -1,4 +1,5 @@
 start BIOSTestbench
+file copy -force ../../../software/bios150v3/bios150v3.mif bios_mem.mif
 file copy -force ../../../software/bios150v3/bios150v3.mif imem_blk_ram.mif
 file copy -force ../../../software/bios150v3/bios150v3.mif dmem_blk_ram.mif
 
@@ -10,6 +11,9 @@ add wave BIOSTestbench/CPU/DataPath/reset
 add wave BIOSTestbench/CPU/DataPath/stall
 add wave BIOSTestbench/CPU/DataPath/PC
 add wave BIOSTestbench/CPU/DataPath/nextPC
+add wave BIOSTestbench/CPU/DataPath/instrSrc
+add wave BIOSTestbench/CPU/DataPath/DecIn
+
 add wave BIOSTestbench/CPU/DataPath/instrMemAddr
 add wave BIOSTestbench/CPU/DataPath/instrMemOut
 add wave BIOSTestbench/CPU/DataPath/DataMemory/*
@@ -50,6 +54,9 @@ add wave BIOSTestbench/CPU/DataPath/memToRegM
 add wave BIOSTestbench/CPU/DataPath/UARTCtrM
 add wave BIOSTestbench/CPU/DataPath/UARTCtrOutM
 add wave BIOSTestbench/CPU/DataPath/dataMemMasked
+
+add wave BIOSTestbench/CPU/DataPath/isBIOS_Data
+add wave BIOSTestbench/CPU/DataPath/Data_BIOSOut
 add wave BIOSTestbench/CPU/DataPath/writeBack
 
 add wave BIOSTestbench/CPU/DataPath/Regfile/*

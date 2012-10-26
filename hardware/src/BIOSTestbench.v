@@ -26,12 +26,34 @@ module BIOSTestbench();
 
    always@(posedge Clock)
      stallClocked <= stall;
-   
+
+   wire [31:0] 	dcache_addr;
+   wire [31:0] 	icache_addr;
+   wire [3:0] 	dcache_we;
+   wire [3:0] 	icache_we;
+   wire         dcache_re;
+   wire         icache_re;
+   wire [31:0] 	dcache_din;
+   wire [31:0] 	icache_din;
+   wire [31:0] 	dcache_dout;
+   wire [31:0] 	instruction;
+
    MIPS150 CPU(.clk(Clock),
 	       .rst(Reset),
-	       .stall(stallClocked),
 	       .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
-	       .FPGA_SERIAL_TX(FPGA_SERIAL_TX));
+	       .FPGA_SERIAL_TX(FPGA_SERIAL_TX),
+	       .dcache_addr (dcache_addr ),
+               .icache_addr (icache_addr ),
+               .dcache_we   (dcache_we   ),
+               .icache_we   (icache_we   ),
+               .dcache_re   (dcache_re   ),
+               .icache_re   (icache_re   ),
+               .dcache_din  (dcache_din  ),
+               .icache_din  (icache_din  ),
+               .dcache_dout (dcache_dout ),
+               .instruction (instruction ),
+               .stall(stallClocked)
+	       );
    
  
    UART  #( .ClockFreq(       ClockFreq))

@@ -84,9 +84,11 @@ module Control(
 
 	       //isLoad Signal
 	       output isLoadE,
+	       output reg legalReadE,
 
 	       //BIOS + instr$ outputs
 	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS
+	       
 
 
 	       );
@@ -317,6 +319,24 @@ module Control(
    assign instrSrc = enPC_BIOS;
  
    
-     
+   //To determine whether or not we have an illegal read access
+   always@(*) begin
+
+      legalReadE = 0;
+      
+      if (isLoadE) begin
+	 case(ALUOutE[31:28])
+	   //Sucessful read in Data Memory or UART
+	   4'b0001, 4'b0011, 4'b0101, 4'b0111, 4'b1000, 4'b0100:
+	     legalReadE = 1;
+	   /*
+	    * default:
+	    illegalRead= 0;
+	    */
+	 endcase // casez (ALUOutM[31:28])
+      end
+
+   end
+    
 endmodule
 	  

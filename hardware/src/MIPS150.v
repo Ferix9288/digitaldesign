@@ -65,8 +65,9 @@ module MIPS150(
    wire        DataInReady;
    wire        DataOutValid;
    wire [7:0]  UARTDataOut;
-   wire        isLoadE;  
+   wire        isLoadE, legalReadE;  
    wire        isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS;
+   wire [31:0] PC;
    
 
     
@@ -99,6 +100,7 @@ module MIPS150(
 		     .DataInValid(DataInValid),
 		     .DataOutReady(DataOutReady),
 		     .isLoadE(isLoadE),
+		     .legalReadE(legalReadE),
 		     .isBIOS_Data(isBIOS_Data),
 		     .instrSrc(instrSrc),
 		     .enPC_BIOS(enPC_BIOS),
@@ -120,7 +122,8 @@ module MIPS150(
 		     .regWriteM(regWriteM),
 		     .DataInReady(DataInReady),
 		     .DataOutValid(DataOutValid),
-		     .UARTDataOut(UARTDataOut));
+		     .UARTDataOut(UARTDataOut),
+		     .PC(PC));
    
    Control Controls(.stall(stall),
 		    .opcodeF(opcodeF),
@@ -141,6 +144,7 @@ module MIPS150(
 		    .DataInReady(DataInReady),
 		    .DataOutValid(DataOutValid),
 		    .UARTDataOut(UARTDataOut),
+		    .PC(PC),
 		    .memToReg(memToReg),
 		    .regWrite(regWrite),
 		    .extType(extType),
@@ -164,6 +168,7 @@ module MIPS150(
 		    .DataInValid(DataInValid),
 		    .DataOutReady(DataOutReady),
 		    .isLoadE(isLoadE),
+		    .legalReadE(legalReadE),
 		    .isBIOS_Data(isBIOS_Data),
 		    .instrSrc(instrSrc),
 		    .enPC_BIOS(enPC_BIOS),

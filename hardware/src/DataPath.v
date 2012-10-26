@@ -45,6 +45,7 @@ module DataPath(
 
 		//isLoad Output
 		input isLoadE,
+		input legalReadE,
 		
 		//BIOS+Instr$ outputs
 		input isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
@@ -85,7 +86,10 @@ module DataPath(
 		//output reg [31:0] ALUOutE,
 		output reg DataInReady,
 		output reg DataOutValid,
-		output reg [7:0] UARTDataOut
+		output reg [7:0] UARTDataOut,
+
+		//Needed for BIOS/Instr$
+		output reg [31:0] PC
 		//opcodeM
 		);
 
@@ -133,6 +137,10 @@ module DataPath(
    // reg [31:0] 			 ALUOutE;
    // reg [5:0] 			 opcodeE;
    wire [31:0] 			 dataInMasked;
+
+   //--FOR BIOS Memory Out Mask --
+   wire [31:0] 			 Data_BIOSOut_Masked;
+
    
    //--FOR Data Memory Mask (OUT)--
 
@@ -249,7 +257,13 @@ module DataPath(
 			   .douta(dataMemOut));
 
    
-   
+   //Instantiating DataOutMask for BIOS Data
+   DataOutMask BIOSMemMask(
+			   //Inputs
+			   .DataOutMem(Data_BIOSOut),
+			   .opcode(opcodeM), //An output into an input?
+			   .byteOffset(byteOffsetM),
+			   .DataOutMasked(Data_BIOSOut_Masked));
    
    //Instantiating Data Memory Out Mask
    DataOutMask DataMemMask(
@@ -320,7 +334,7 @@ module DataPath(
    
    
    
-   reg [31:0] 			 PC;
+   //reg [31:0] 			 PC;
    reg [31:0] 			 nextPC;
    
 
@@ -401,7 +415,7 @@ module DataPath(
       if (stall)
       	PC <= PC;
       else if (reset) 
-	PC <= 0;
+	PC <= 32'h40000000;
       else
 	PC <= nextPC;
       
@@ -415,7 +429,7 @@ module DataPath(
 	 nextPC = nextPC;
 	 instrMemAddr_B = PC[13:2];
       end else if (resetClocked) begin
-	 nextPC = 0;
+	 nextPC = 32'h40000000;
 	 instrMemAddr_B = 0;
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
@@ -434,7 +448,7 @@ module DataPath(
 
    //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
-      addrPC_BIOS = PC[13:2];
+      addrPC_BIOS = nextPC[13:2];
       addrData_BIOS = ALUOutE[13:2];
    end
    
@@ -590,29 +604,7 @@ module DataPath(
    always@(*) begin
       ALUOutE = ALUOut;
    end
-   
-   reg legalRead ;
-   
-   
-   //To determine whether or not we have an illegal read access
-   always@(*) begin
-
-      legalRead = 0;
       
-      if (isLoadE) begin
-	 case(ALUOutE[31:28])
-	   //Sucessful read in Data Memory or UART
-	   4'b0001, 4'b0011, 4'b0101, 4'b0111, 4'b1000:
-	     legalRead = 1;
-	   /*
-	    * default:
-	     illegalRead= 0;
-	    */
-	 endcase // casez (ALUOutM[31:28])
-      end
-
-   end
-    
    
    reg UARTCtrE;
    reg [31:0] UARTCtrOutE;
@@ -657,7 +649,7 @@ module DataPath(
    always@(posedge clk) begin
       if (!reset && !stall) begin
 	 memToRegM <= memToRegE;	 
-	 regWriteM <= (!legalRead && isLoadE)? 0: regWriteE;
+	 regWriteM <= (!legalReadE && isLoadE)? 0: regWriteE;
 	 regDstM <= regDstE;
 	 jalM <= jalE;
 	 jalrM <= jalrE;
@@ -785,7 +777,7 @@ module DataPath(
    //Write-back value to RegFile
    always@(*) begin
       if (isBIOS_DataM)
-	writeBack = Data_BIOSOut;
+	writeBack = Data_BIOSOut_Masked;
       else if (!memToRegM) 
 	writeBack = ALUOutM;
       else if (UARTCtrM)
