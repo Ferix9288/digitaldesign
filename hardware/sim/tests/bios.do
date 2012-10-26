@@ -16,7 +16,16 @@ add wave BIOSTestbench/CPU/DataPath/DecIn
 
 add wave BIOSTestbench/CPU/DataPath/instrMemAddr
 add wave BIOSTestbench/CPU/DataPath/instrMemOut
-add wave BIOSTestbench/CPU/DataPath/DataMemory/*
+
+add wave BIOSTestbench/CPU/DataPath/dataMemWriteEn
+add wave BIOSTestbench/CPU/DataPath/dcache_addr
+add wave BIOSTestbench/CPU/DataPath/dcache_din
+add wave BIOSTestbench/CPU/DataPath/dcache_re_Ctr
+
+add wave BIOSTestbench/CPU/DataPath/dcache_dout
+add wave BIOSTestbench/CPU/DataPath/dcache_dout_Masked
+
+
 add wave BIOSTestbench/CPU/DataPath/dataMemIn
 add wave BIOSTestbench/CPU/DataPath/dataInMasked
 add wave BIOSTestbench/CPU/DataPath/opcode*
@@ -61,6 +70,7 @@ add wave BIOSTestbench/CPU/DataPath/writeBack
 
 add wave BIOSTestbench/CPU/DataPath/Regfile/*
 add wave BIOSTestbench/CPU/DataPath/Regfile/rf
+
 
 add wave BIOSTestbench/CPU/DataPath/UARTModule/*
 add wave BIOSTestbench/CPU/Controls/UARTControl/*

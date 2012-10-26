@@ -384,6 +384,7 @@ module DataPath(
    
    //reg [31:0] 			 PC;
    reg [31:0] 			 nextPC;
+   reg [31:0] pcE;
    
 
    //=================FETCH==================//
@@ -473,30 +474,43 @@ module DataPath(
    //Combinatorial logic determining nextPC
    //CHANGE STALLING TO FEEDBACK
    always@(*) begin
-      if (stall) begin
-	 nextPC = nextPC;
-	 instrMemAddr_B = PC[13:2];
-      end else if (resetClocked) begin
+    
+
+      if (resetClocked) begin
 	 nextPC = 32'h40000000;
 	 instrMemAddr_B = 0;
+	 addrPC_BIOS = 0;
+
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
 	 instrMemAddr_B = nextPC[13:2];
+	 addrPC_BIOS = nextPC[13:2];
+
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
 	 instrMemAddr_B = nextPC[13:2];
+	 addrPC_BIOS = nextPC[13:2];
+
       end else if (jrE || jalrE) begin
 	 nextPC = rd1E;
 	 instrMemAddr_B = nextPC[13:2];
+	 addrPC_BIOS = nextPC[13:2];
+
       end else begin
 	 nextPC = PC + 4;
 	 instrMemAddr_B = nextPC[13:2];
+	 addrPC_BIOS = nextPC[13:2];
+
       end
    end // always@ (*)
 
+   reg [31:0] nextPC_E;
+   
    //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
       addrPC_BIOS = nextPC[13:2];
+      
+		    //(stall)? nextPC_E[13:2] : nextPC[13:2];
       addrData_BIOS = ALUOutE[13:2];
    end
    
@@ -556,6 +570,7 @@ module DataPath(
 	 jalE <= jalF;	
 	 jalrE <= jalrF;
 	 shiftE <= shiftF;
+	 
 	 // end else begin 
 	 //	 regWriteE <= 0;	 
 	 //end
@@ -590,7 +605,6 @@ module DataPath(
    // reg [4:0] rsE;
    // reg [4:0] rtE;
    reg [4:0] rdE;
-   reg [31:0] pcE;
    //reg [31:0] rd1Fwd;
    //reg [31:0] rd2Fwd;
    
@@ -608,6 +622,7 @@ module DataPath(
 	 targetE <= targetF;
 	 immediateESigned <= immediateFSigned;
 	 pcE <= pcF;
+	 nextPC_E <= nextPC;
 	 shamtE <= shamtF;
       end else if (reset) begin
 	 opcodeE <= 0;
@@ -620,9 +635,12 @@ module DataPath(
 	 targetE <= 0;
 	 immediateESigned <= 0;
 	 pcE <= 0;
+	 nextPC_E <= 0;
 	 shamtE <= 0;
-      end else begin // if (reset)
-	 opcodeE <= opcodeE;
+      end else begin // if (stall asserted)
+	 opcodeE <= opcodeM;
+	 ALUOutE <= ALUOutM;
+	 
 	 functE <= functE;
 	 rsE <= rsE;
 	 rtE <= rtE;
@@ -632,6 +650,7 @@ module DataPath(
 	 targetE <= targetE;
 	 immediateESigned <= immediateESigned;
 	 pcE <= pcE;
+	 nextPC_E <= nextPC_E;
 	 shamtE <= shamtE;
 	 // ALUOutE <= ALUOut;
       end

@@ -315,6 +315,7 @@ module Control(
    
    //Assigning BIOS/I$ Control Signals
    assign enPC_BIOS = (PC[31:28] == 4'b0100);
+ //&& (~stall);
    assign enData_BIOS = (ALUOutE[31:28] == 4'b0100);
    assign isBIOS_Data = enData_BIOS && (isLoadE);
    assign instrSrc = enPC_BIOS;
@@ -339,8 +340,8 @@ module Control(
 
    end // always@ (*)
 
-   assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) && (ALUOutE[30] == 1'b0) &&
-			  (ALUOutE[28] == 1'b1);
+   assign dcache_re_Ctr = (~stall) && (ALUOutE[31] == 1'b0) &&
+			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1) ;
    
     
 endmodule
