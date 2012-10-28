@@ -77,4 +77,4 @@ add wave BIOSTestbench/CPU/Controls/UARTControl/*
 
 add wave BIOSTestbench/uart/*
 
-run 1000us
+run 100us

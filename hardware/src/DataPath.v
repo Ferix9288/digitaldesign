@@ -508,7 +508,7 @@ module DataPath(
    
    //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
-      addrPC_BIOS = nextPC[13:2];
+      addrPC_BIOS = (stall)? nextPC_E[13:2] : addrPC_BIOS;
       
 		    //(stall)? nextPC_E[13:2] : nextPC[13:2];
       addrData_BIOS = ALUOutE[13:2];
