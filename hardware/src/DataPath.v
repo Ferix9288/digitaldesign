@@ -36,7 +36,7 @@ module DataPath(
 		input jalr,
 		input shift,
 
-		//Write Ctr output 
+		//Write Ctr output
 		input [3:0] dataMemWriteEn,
 
 		//Write Ctr output 
@@ -104,7 +104,8 @@ module DataPath(
 		output reg [7:0] UARTDataOut,
 
 		//Needed for BIOS/Instr$
-		output reg [31:0] PC
+		output reg [31:0] PC,
+		output reg [31:0] pcE
 		//opcodeM
 		);
 
@@ -384,7 +385,7 @@ module DataPath(
    
    //reg [31:0] 			 PC;
    reg [31:0] 			 nextPC;
-   reg [31:0] pcE;
+   //reg [31:0] pcE;
    
 
    //=================FETCH==================//
@@ -423,11 +424,15 @@ module DataPath(
 
    
 
-   reg 				 resetClocked;   
+   reg 				 resetClocked; 
+   reg 				 stallClocked;
+				 
    //Ensure that signals update @ first clock cycle after reset
    //(combinatorially)
-   always @(posedge clk)
-     resetClocked <= reset;
+   always @(posedge clk) begin
+      resetClocked <= reset;
+      stallClocked <= stall;
+   end
    
    
    //Assign control signals to appropriate registers
@@ -473,29 +478,29 @@ module DataPath(
    
    //Combinatorial logic determining nextPC
    //CHANGE STALLING TO FEEDBACK
-   always@(*) begin
-    
 
+   reg [31:0] nextPC_E;
+
+   
+   always@(*) begin
       if (resetClocked) begin
 	 nextPC = 32'h40000000;
 	 instrMemAddr_B = 0;
 	 addrPC_BIOS = 0;
-
+      end else if (stall) begin
+	 addrPC_BIOS = nextPC_E[13:2];
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
 	 instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
-
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
 	 instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
-
       end else if (jrE || jalrE) begin
 	 nextPC = rd1E;
 	 instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
-
       end else begin
 	 nextPC = PC + 4;
 	 instrMemAddr_B = nextPC[13:2];
@@ -503,14 +508,12 @@ module DataPath(
 
       end
    end // always@ (*)
+   
 
-   reg [31:0] nextPC_E;
    
    //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
-      addrPC_BIOS = (stall)? nextPC_E[13:2] : addrPC_BIOS;
-      
-		    //(stall)? nextPC_E[13:2] : nextPC[13:2];
+      //addrPC_BIOS = (stall)? nextPC_E[13:2] : addrPC_BIOS;      
       addrData_BIOS = ALUOutE[13:2];
    end
    
@@ -638,8 +641,10 @@ module DataPath(
 	 nextPC_E <= 0;
 	 shamtE <= 0;
       end else begin // if (stall asserted)
-	 opcodeE <= opcodeM;
-	 ALUOutE <= ALUOutM;
+	 opcodeE <= opcodeE;
+
+	 //opcodeE <= opcodeM;
+	 //ALUOutE <= ALUOutM;
 	 
 	 functE <= functE;
 	 rsE <= rsE;
@@ -751,6 +756,8 @@ module DataPath(
    reg [4:0] rtM;
    reg [4:0] rdM;
    reg [31:0] pcM;
+   reg [31:0] dcache_dout_Masked_M;
+   
 
    //transfering non-control signals
    always@(posedge clk) begin
@@ -761,6 +768,7 @@ module DataPath(
 	 ALUOutM <= ALUOutE;
 	 byteOffsetM <= byteOffsetE;
 	 pcM <= pcE;
+	 
       end else if (reset) begin // if (!reset)
 	 opcodeM <= 0;
 	 rtM <= 0;
@@ -768,6 +776,7 @@ module DataPath(
 	 ALUOutM <= 0;
 	 byteOffsetM <= 0;
 	 pcM <= 0;
+	 
       end else begin // if (stall)
 	 opcodeM <= opcodeM;
 	 rtM <= rtM;
@@ -775,6 +784,7 @@ module DataPath(
 	 ALUOutM <= ALUOutM;
 	 byteOffsetM <= byteOffsetM;
 	 pcM <= pcM;
+	 
       end     
    end
 
@@ -792,14 +802,12 @@ module DataPath(
       //instrMemAddr_A = ALUOutE[13:2];
 
       //I$
-      /*
-       * icache_addr = ALUOutE;
+
+      icache_addr = (icache_re_Ctr)? PC: ALUOutE;
       icache_we = instrMemWriteEn; //make sure PC[30] == 1
       icache_re = icache_re_Ctr;
-      icache_din = dataInMasked
-       */
-      
-      
+      icache_din = dataInMasked;
+
    end
    
 
@@ -858,6 +866,10 @@ module DataPath(
       end // if (isUART)
    end // always@ (*)
 
+   always@(*) begin
+      dcache_dout_Masked_M = (stall)? dcache_dout_Masked: dcache_dout_Masked_M;
+   end
+      
    //Write-back value to RegFile
    always@(*) begin
       if (isBIOS_DataM)
@@ -867,7 +879,7 @@ module DataPath(
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
       else 
-	writeBack = dcache_dout_Masked;
+	writeBack = (stallClocked)? dcache_dout_Masked_M : dcache_dout_Masked;
    end
 
    //Connecting write-back value to RegFile Write Port

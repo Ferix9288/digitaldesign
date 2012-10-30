@@ -170,10 +170,12 @@ module BIOSTestbench();
         .locked     (pll_lock),
         .dcache_addr(dcache_addr),
         .icache_addr(icache_addr),
-        .dcache_we  (dcache_we  ),
-        .icache_we  (icache_we  ),
+	.dcache_we  (dcache_we  ),
+	.icache_we(1'b0),
+					  
+        //.icache_we  (icache_we  ),
         .dcache_re  (dcache_re  ),
-        .icache_re  (icache_re  ),
+        .icache_re  (1'b0  ),
         .dcache_din (dcache_din ),
         .icache_din (icache_din ),
         .dcache_dout(dcache_dout),
@@ -287,8 +289,7 @@ module BIOSTestbench();
       // Add more test cases!
 
 
-      /*
-       * 
+ 
       // Wait for something to come back
       while (!DataOutValid) #(Cycle);
       $display("Got %d", DataOut);
@@ -396,7 +397,6 @@ module BIOSTestbench();
       DataOutReady = 1;
       #Cycle;
       DataOutReady = 0;
-       */
 
       /*
        * #Cycle;	       

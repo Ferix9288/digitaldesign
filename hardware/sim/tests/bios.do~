@@ -12,10 +12,11 @@ add wave BIOSTestbench/CPU/DataPath/stall
 add wave BIOSTestbench/CPU/DataPath/PC
 add wave BIOSTestbench/CPU/DataPath/nextPC
 add wave BIOSTestbench/CPU/DataPath/instrSrc
-add wave BIOSTestbench/CPU/DataPath/DecIn
 
-add wave BIOSTestbench/CPU/DataPath/instrMemAddr
-add wave BIOSTestbench/CPU/DataPath/instrMemOut
+add wave BIOSTestbench/CPU/DataPath/addrPC_BIOS
+add wave BIOSTestbench/CPU/DataPath/nextPC_E
+add wave BIOSTestbench/CPU/DataPath/PC_BIOSOut
+add wave BIOSTestbench/CPU/DataPath/DecIn
 
 add wave BIOSTestbench/CPU/DataPath/dataMemWriteEn
 add wave BIOSTestbench/CPU/DataPath/dcache_addr
@@ -77,4 +78,4 @@ add wave BIOSTestbench/CPU/Controls/UARTControl/*
 
 add wave BIOSTestbench/uart/*
 
-run 100us
+run 1000000us

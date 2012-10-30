@@ -5,6 +5,8 @@ module WriteEnCtr (input [5:0] opcode,
 		   input [1:0] byteOffset,
 		   input [31:0] ALUOut,
 		   input stall,
+		   input [31:0] PC,
+		   input [31:0] pcE,
 		   output reg [3:0] dataMemWriteEn,
 		   output reg [3:0] instrMemWriteEn);
 
@@ -18,8 +20,10 @@ module WriteEnCtr (input [5:0] opcode,
    
    
    assign topNibble = ALUOut[31:28];
-   assign isDataMem = (topNibble[3] == 1'b0) && (topNibble[2] == 1'b0) && (topNibble[0] == 1'b1);
-   assign isInstrMem = (topNibble[3] == 1'b0) && (topNibble[1] == 1'b1);
+   assign isDataMem = (topNibble[3] == 1'b0) && (topNibble[2] == 1'b0) && 
+		      (topNibble[0] == 1'b1);
+   assign isInstrMem = (topNibble[3] == 1'b0) && (topNibble[2] == 1'b0) && 
+		       (topNibble[1] == 1'b1);
    
    always @(*) begin
       if (stall) 
@@ -62,7 +66,7 @@ module WriteEnCtr (input [5:0] opcode,
    always @(*) begin
       if (stall)
 	instrMemWriteEn = 4'b0;
-      else if (isInstrMem) begin
+      else if (isInstrMem && pcE[30] == 1'b1) begin
 	 case (opcode)
 	   `SB: begin
 	      case (byteOffset)

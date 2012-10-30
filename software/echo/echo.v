@@ -8,7 +8,7 @@ always @(*)
 begin
 case(addr_r)
 30'h00000000: inst = 32'h3c1d1000;
-30'h00000001: inst = 32'h0c000c03;
+30'h00000001: inst = 32'h0c000003;
 30'h00000002: inst = 32'h37bd4000;
 30'h00000003: inst = 32'h27bdffe8;
 30'h00000004: inst = 32'hafa00010;
@@ -36,7 +36,7 @@ case(addr_r)
 30'h0000001a: inst = 32'h00000000;
 30'h0000001b: inst = 32'h34420008;
 30'h0000001c: inst = 32'hac430000;
-30'h0000001d: inst = 32'h08000c05;
+30'h0000001d: inst = 32'h08000005;
 30'h0000001e: inst = 32'h00000000;
 default:      inst = 32'h00000000;
 endcase

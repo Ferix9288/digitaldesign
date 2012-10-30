@@ -47,6 +47,7 @@ module Control(
 	       //Needed for BIOS/Instr$
 	       //ALUOutE  
 	       input [31:0] PC,
+	       input [31:0] pcE,
 
 	       //Original Control unit outputs
 	       output reg memToReg,
@@ -106,6 +107,8 @@ module Control(
 				//.AddrPartition(4'b0zz1),
 				.ALUOut(ALUOutE),
 				.stall(stall),
+				.PC(PC),
+				.pcE(pcE),
 				.dataMemWriteEn(dataMemWriteEn),
 				.instrMemWriteEn(instrMemWriteEn));
 
@@ -340,8 +343,11 @@ module Control(
 
    end // always@ (*)
 
-   assign dcache_re_Ctr = (~stall) && (ALUOutE[31] == 1'b0) &&
-			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1) ;
+   assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) &&
+			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1);
+
+   assign icache_re_Ctr = (ALUOutE[31:28] == 4'b0001);
+   
    
     
 endmodule
