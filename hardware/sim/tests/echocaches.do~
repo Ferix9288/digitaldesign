@@ -1,5 +1,7 @@
 start EchoTestbenchCaches
-file copy -force ../../../software/echo/echo.mif bios_mem.mif
+file copy -force ../../../software/echo/echo.mif bios_mem.mif 
+file copy -force ../../../software/echo/echo.mif imem_blk_ram.mif 
+
 add wave EchoTestbenchCaches/*
 add wave EchoTestbenchCaches/mem_arch/*
 add wave EchoTestbenchCaches/mem_arch/dcache/*
@@ -19,6 +21,9 @@ add wave EchoTestbenchCaches/DUT/DataPath/nextPC_E
 add wave EchoTestbenchCaches/DUT/DataPath/PC_BIOSOut
 add wave EchoTestbenchCaches/DUT/DataPath/DecIn
 
+add wave EchoTestbenchCaches/DUT/DataPath/instrMemWriteEn
+add wave EchoTestbenchCaches/DUT/DataPath/icache_re_Ctr
+
 add wave EchoTestbenchCaches/DUT/DataPath/dataMemWriteEn
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_addr
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_din
@@ -26,6 +31,7 @@ add wave EchoTestbenchCaches/DUT/DataPath/dcache_re_Ctr
 
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout_Masked
+add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout_Masked_M
 
 
 add wave EchoTestbenchCaches/DUT/DataPath/dataMemIn

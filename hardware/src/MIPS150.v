@@ -43,17 +43,19 @@ module MIPS150(
    wire       FwdAfromMtoF;
    wire       FwdBfromMtoF;
    wire       UARTCtr;
-   wire [31:0] UARTCtrOut;
+   wire [31:0] UARTCtrOutM;
    wire        DataInValid;
    wire        DataOutReady;
    wire [5:0]  opcodeF;
    wire [5:0]  functF;
- //  wire [31:0] ALUOutM;
    wire [5:0]  functE;
    wire [31:0] ALUOutE;
+   wire [31:0] ALUOutM;
+   
    wire [5:0]  opcodeE;
+   wire [5:0]  opcodeM;
+   
    wire [1:0]  byteOffsetE;
-   //wire [5:0]  opcodeE;
    wire [31:0] rd1Fwd;
    wire [31:0] rd2Fwd;
    wire [4:0]  rsF;
@@ -114,7 +116,7 @@ module MIPS150(
 		     .FwdAfromMtoF(FwdAfromMtoF),
 		     .FwdBfromMtoF(FwdBfromMtoF),
 		     .UARTCtr(UARTCtr),
-		     .UARTCtrOut(UARTCtrOut),
+		     .UARTCtrOutM(UARTCtrOutM),
 		     .DataInValid(DataInValid),
 		     .DataOutReady(DataOutReady),
 		     .isLoadE(isLoadE),
@@ -143,6 +145,8 @@ module MIPS150(
 		     .DataInReady(DataInReady),
 		     .DataOutValid(DataOutValid),
 		     .UARTDataOut(UARTDataOut),
+		     .ALUOutM(ALUOutM),
+		     .opcodeM(opcodeM),
 		     .PC(PC),
 		     .pcE(pcE));
    
@@ -165,6 +169,8 @@ module MIPS150(
 		    .DataInReady(DataInReady),
 		    .DataOutValid(DataOutValid),
 		    .UARTDataOut(UARTDataOut),
+		    .ALUOutM(ALUOutM),
+		    .opcodeM(opcodeM),
 		    .PC(PC),
 		    .pcE(pcE),
 		    .memToReg(memToReg),
@@ -186,7 +192,7 @@ module MIPS150(
 		    .FwdAfromMtoF(FwdAfromMtoF),
 		    .FwdBfromMtoF(FwdBfromMtoF),
 		    .UARTCtr(UARTCtr),
-		    .UARTCtrOut(UARTCtrOut),
+		    .UARTCtrOutM(UARTCtrOutM),
 		    .DataInValid(DataInValid),
 		    .DataOutReady(DataOutReady),
 		    .isLoadE(isLoadE),

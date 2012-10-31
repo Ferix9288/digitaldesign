@@ -37,13 +37,16 @@ module Control(
 	       input [4:0] waM,
 	       input regWriteM,
 
-	       //UART Ctr Inputs
+	       //UART CtrE Inputs
 	       //input [31:0] ALUOutE,
 	       input DataInReady,
 	       input DataOutValid,
 	       input [7:0] UARTDataOut,
-	       //opcodeM
 
+	       //UART CtrM Inputs
+	       input [31:0] ALUOutM,
+	       input [5:0] opcodeM,
+	       
 	       //Needed for BIOS/Instr$
 	       //ALUOutE  
 	       input [31:0] PC,
@@ -79,7 +82,7 @@ module Control(
 
 	       //UART Ctr outputs
 	       output UARTCtr,
-	       output [31:0] UARTCtrOut,
+	       output [31:0] UARTCtrOutM,
 	       output DataInValid,
 	       output DataOutReady,
 
@@ -139,17 +142,31 @@ module Control(
 			   .FwdAfromMtoF(FwdAfromMtoF),
 			   .FwdBfromMtoF(FwdBfromMtoF));
 
-   UARTCtr UARTControl(.ALUOut(ALUOutE),
-		       .DataInReady(DataInReady),
-		       .DataOutValid(DataOutValid),
-		       .UARTDataOut(UARTDataOut),
-		       .opcode(opcodeE),
-		       .DataInValid(DataInValid),
-		       .DataOutReady(DataOutReady),
-		       .UARTCtrOut(UARTCtrOut),
-		       .UARTCtr(UARTCtr));
+   UARTCtr UARTControlE(//Inputs
+			.ALUOut(ALUOutE),
+			.opcode(opcodeE),
+			.DataInReady(DataInReady),
+			.DataOutValid(DataOutValid),
+			.UARTDataOut(UARTDataOut),
+			//Outputs
+			.DataInValid(DataInValid),
+			.DataOutReady(DataOutReady),
+			.UARTCtr(UARTCtr),
+			.UARTCtrOut());
+
+   UARTCtr UARTControlM(//Inputs
+			.ALUOut(ALUOutM),
+			.opcode(opcodeM),
+			.DataInReady(DataInReady),
+			.DataOutValid(DataOutValid),
+			.UARTDataOut(UARTDataOut),
+			//Outputs
+			.DataInValid(),
+			.DataOutReady(),
+			.UARTCtr(),
+			.UARTCtrOut(UARTCtrOutM));
    
-      
+
    always @(*) begin
       
 	
@@ -319,8 +336,8 @@ module Control(
    //Assigning BIOS/I$ Control Signals
    assign enPC_BIOS = (PC[31:28] == 4'b0100);
  //&& (~stall);
-   assign enData_BIOS = (ALUOutE[31:28] == 4'b0100);
-   assign isBIOS_Data = enData_BIOS && (isLoadE);
+   assign enData_BIOS = (ALUOutE[31:28] == 4'b0100) && (isLoadE);
+   assign isBIOS_Data = enData_BIOS;
    assign instrSrc = enPC_BIOS;
  
    
@@ -343,7 +360,7 @@ module Control(
 
    end // always@ (*)
 
-   assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) &&
+   assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) && (isLoadE) && 
 			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1);
 
    assign icache_re_Ctr = (PC[31:28] == 4'b0001);

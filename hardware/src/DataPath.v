@@ -53,7 +53,7 @@ module DataPath(
 
 		//UART Ctr outputs 
 		input UARTCtr,
-		input [31:0] UARTCtrOut,
+		input [31:0] UARTCtrOutM,
 		input DataInValid,
 		input DataOutReady,
 
@@ -97,11 +97,15 @@ module DataPath(
 		output reg [4:0] waM,
 		output reg regWriteM,
 
-		//UART Ctr Inputs 
+		//UART CtrE Inputs 
 		//output reg [31:0] ALUOutE,
 		output reg DataInReady,
 		output reg DataOutValid,
 		output reg [7:0] UARTDataOut,
+
+		//UART CtrM Inputs
+		output reg [31:0] ALUOutM,
+		output reg [5:0] opcodeM,
 
 		//Needed for BIOS/Instr$
 		output reg [31:0] PC,
@@ -118,10 +122,7 @@ module DataPath(
 
    //~Outputs~
    wire [31:0] 			 ALUOut;
-   //reg [31:0] 			 ALUOutE;
-   //reg [31:0] 			 ALUOutM;
    
-
    //--FOR RegFile--
    
    //~Inputs~
@@ -143,28 +144,14 @@ module DataPath(
    //~Inputs~
    reg [31:0] 			 dataMemIn_toMask;
    
-   /*
-    * //--FOR Data Memory--
-
-   //~Inputs~
-   reg [11:0] 			 dataMemAddr;
-   reg [31:0] 			 dataMemIn; //also for Instr Mem
-
-   //~Outputs~
-   wire [31:0] 			 dataMemOut;
-   reg [31:0] 			 dataMemOutM;
-    */
-
    //--FOR Data Memory Mask (IN)--
    //~Inputs~
-   // reg [31:0] 			 ALUOutE;
-   // reg [5:0] 			 opcodeE;
    wire [31:0] 			 dataInMasked;
 
    //--FOR BIOS Memory Out Mask --
    
    //~Inputs~
-   reg [5:0] 			 opcodeM;
+   //reg [5:0] 			 opcodeM;
    reg [1:0] 			 byteOffsetM;
    
 
@@ -176,26 +163,15 @@ module DataPath(
    wire [31:0] 			 dcache_dout_Masked;
    
        
-   /*
-    * //--FOR Data Memory Mask (OUT)--
-
- ;
-   
-   
-   //~Output~
-   wire [31:0] 			 dataMemMasked;
-   //reg [31:0] 			 dataMemMaskedM;
-    */
-   
    //--FOR Instruction Memory --
    
    //~Inputs~
-   reg [11:0] 			 instrMemAddr_A;
-   reg [11:0] 			 instrMemAddr_B;
+   //reg [11:0] 			 instrMemAddr_A;
+   //reg [11:0] 			 instrMemAddr_B;
 
 
    //~Outputs~
-   wire [31:0] 			 instrMemOut;
+   //wire [31:0] 			 instrMemOut;
 
    //--FOR BIOS Memory --
 
@@ -323,7 +299,8 @@ module DataPath(
     */
 
 
-   //Instantiating Instruction Memory
+   /*
+    * //Instantiating Instruction Memory
    imem_blk_ram InstrMemory(
 			    //Inputs
 			    .clka(clk),
@@ -336,6 +313,7 @@ module DataPath(
 			    //Output
 			    .doutb(instrMemOut));
 
+    */
 
    //Instantiating BIOS Memory
    bios_mem BIOS(//inputs
@@ -419,11 +397,7 @@ module DataPath(
 
    reg [31:0] 			 rd1E;
    reg [31:0] 			 rd2E;
-
-   reg [31:0] 			 ALUOutM;
-
    
-
    reg 				 resetClocked; 
    reg 				 stallClocked;
 				 
@@ -485,25 +459,25 @@ module DataPath(
    always@(*) begin
       if (resetClocked) begin
 	 nextPC = 32'h40000000;
-	 instrMemAddr_B = 0;
+	 //instrMemAddr_B = 0;
 	 addrPC_BIOS = 0;
       end else if (stall) begin
 	 addrPC_BIOS = nextPC_E[13:2];
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
-	 instrMemAddr_B = nextPC[13:2];
+	 //instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
-	 instrMemAddr_B = nextPC[13:2];
+	 //instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
       end else if (jrE || jalrE) begin
 	 nextPC = rd1E;
-	 instrMemAddr_B = nextPC[13:2];
+	 //instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
       end else begin
 	 nextPC = PC + 4;
-	 instrMemAddr_B = nextPC[13:2];
+	 //instrMemAddr_B = nextPC[13:2];
 	 addrPC_BIOS = nextPC[13:2];
 
       end
@@ -519,7 +493,7 @@ module DataPath(
    
    //Combinatorial logic linking BIOS/Instruction Memory to Decoder
    always@(*) begin
-      DecIn = (instrSrc)? PC_BIOSOut : instrMemOut;
+      DecIn = (instrSrc)? PC_BIOSOut : instruction;
    end   
    
    //Combinatorial logic for sign extension
@@ -679,16 +653,13 @@ module DataPath(
       
    
    reg UARTCtrE;
-   reg [31:0] UARTCtrOutE;
    
 
    //Combinatorial logic for dataWriteEn and instrWriteEn and UART
    always@(*) begin
       byteOffsetE = ALUOutE[1:0];
       UARTCtrE = UARTCtr;
-      //UARTCtrOutE = UARTCtrOut;
       
-
       DataInReady = UARTDataInReady;
       DataOutValid = UARTDataOutValid;
       UARTDataOut = UARTDOut;
@@ -731,11 +702,11 @@ module DataPath(
    reg 				 jalM;
    reg 				 jalrM;
    reg 				 UARTCtrM;
-   reg [31:0] 			 UARTCtrOutM;
-   reg 				 isLoadM;
    reg 				 isBIOS_DataM;
    reg 				 dcache_re_Ctr_M;
    reg 				 icache_re_Ctr_M;
+   reg 				 isLoadM;
+   
    
 				    
    //transfering control signals   
@@ -839,46 +810,7 @@ module DataPath(
    end
 
    //Determining UART Control Out
-   wire 				 isUARTM;
-   wire [3:0] 				 UARTopM;
-   
-   assign isUARTM = (ALUOutM[31:28] == 4'b1000);
-   assign UARTopM = ALUOutM[3:0];
-   
-   //assign isLoadM =  (opcodeM == `LB) || (opcodeM == `LH) ||
-//		     (opcodeM == `LW) || (opcodeM == `LBU) ||
-//		     (opcodeM == `LHU);
-   
-   always@(*) begin
-      UARTCtrOutM = ALUOutM;
-      
-      if (isUARTM) begin
-	 case (UARTopM)
-
-	   //UART transmitter control
-	   4'b0: begin
-	      if (isLoadM) begin
-		 UARTCtrOutM = {31'b0, UARTDataInReady};
-	      end
-	   end
-
-	   //UART receiver control
-	   4'b0100: begin
-	      if (isLoadM) begin
-		 UARTCtrOutM = {31'b0, UARTDataOutValid};
-	      end
-	   end   
-
-	   //UART receiver data
-	   4'b1100: begin
-	      if (isLoadM) begin
-		 UARTCtrOutM = {24'b0, UARTDOut};
-	      end
-	   end
-	   
-	 endcase // case (UARTop)
-      end // if (isUART)
-   end // always@ (*)
+   //Passed in by Control Module
          
    //Write-back value to RegFile
    always@(*) begin
