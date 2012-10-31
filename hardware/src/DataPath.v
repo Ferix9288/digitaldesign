@@ -704,7 +704,25 @@ module DataPath(
       UARTDataInValid = DataInValid;
       DataOutReadyE = DataOutReady;
    end
+   
+   //Data Memory inputs for DCache + ICache 
+   always@(*) begin
+      dataMemIn_toMask = rd2Fwd;
+      //dataMemAddr = ALUOutE[13:2];
 
+      //D$
+      dcache_we = dataMemWriteEn;
+      dcache_din =  dataInMasked;
+      
+      //instrMemAddr_A = ALUOutE[13:2];
+
+      //I$
+
+      icache_we = instrMemWriteEn; //make sure PC[30] == 1
+      icache_din = dataInMasked;
+
+   end
+   
 
    //===============PipeLineEM==================//
    
@@ -716,6 +734,9 @@ module DataPath(
    reg [31:0] 			 UARTCtrOutM;
    reg 				 isLoadM;
    reg 				 isBIOS_DataM;
+   reg 				 dcache_re_Ctr_M;
+   reg 				 icache_re_Ctr_M;
+   
 				    
    //transfering control signals   
    always@(posedge clk) begin
@@ -729,6 +750,9 @@ module DataPath(
 	 DataOutReadyM <= DataOutReadyE;
 	 isLoadM <= isLoadE;
 	 isBIOS_DataM <= isBIOS_Data;
+	 dcache_re_Ctr_M <= dcache_re_Ctr;
+	 icache_re_Ctr_M <= icache_re_Ctr;
+	 
  
       end else if (reset) begin
 	 memToRegM <= 0;
@@ -739,6 +763,8 @@ module DataPath(
 	 UARTCtrM <= 0;
 	 isLoadM <= 0;
 	 isBIOS_DataM <= 0;
+	 dcache_re_Ctr_M <= 0;
+	 icache_re_Ctr_M <= 0;
 
       end else begin
 	 memToRegM <= memToRegM;
@@ -749,6 +775,8 @@ module DataPath(
 	 UARTCtrM <= UARTCtrM;
 	 isLoadM <= isLoadM;
 	 isBIOS_DataM <= isBIOS_DataM;
+	 dcache_re_Ctr_M <= dcache_re_Ctr_M;
+	 icache_re_Ctr_M <= icache_re_Ctr_M;
 
       end
    end
@@ -756,9 +784,7 @@ module DataPath(
    reg [4:0] rtM;
    reg [4:0] rdM;
    reg [31:0] pcM;
-   reg [31:0] dcache_dout_Masked_M;
    
-
    //transfering non-control signals
    always@(posedge clk) begin
       if (!reset && !stall) begin
@@ -788,31 +814,19 @@ module DataPath(
       end     
    end
 
-   //Data Memory inputs for DCache + ICache 
-   always@(*) begin
-      dataMemIn_toMask = rd2Fwd;
-      //dataMemAddr = ALUOutE[13:2];
 
-      //D$
-      dcache_addr = ALUOutE;
-      dcache_we = dataMemWriteEn;
-      dcache_re = dcache_re_Ctr;
-      dcache_din =  dataInMasked;
-      
-      //instrMemAddr_A = ALUOutE[13:2];
-
-      //I$
-
-      icache_addr = (icache_re_Ctr)? PC: ALUOutE;
-      icache_we = instrMemWriteEn; //make sure PC[30] == 1
-      icache_re = icache_re_Ctr;
-      icache_din = dataInMasked;
-
-   end
-   
 
    //=================Memory==================//
 
+   //Determine which read enable /address to take to account for stall
+   always@(*) begin
+      dcache_addr = (stall)? ALUOutM: ALUOutE;
+      icache_addr = (icache_re_Ctr)? PC: (stall)? ALUOutM: ALUOutE;
+
+      dcache_re = (stall)? dcache_re_Ctr_M: dcache_re_Ctr;
+      icache_re = (stall)? icache_re_Ctr_M: icache_re_Ctr;
+   end
+   
    //Combinatorial logic for all wires after Data Memory
    always@(*) begin
       waM = (regDstM)? rdM: rtM;
@@ -865,11 +879,7 @@ module DataPath(
 	 endcase // case (UARTop)
       end // if (isUART)
    end // always@ (*)
-
-   always@(*) begin
-      dcache_dout_Masked_M = (stall)? dcache_dout_Masked: dcache_dout_Masked_M;
-   end
-      
+         
    //Write-back value to RegFile
    always@(*) begin
       if (isBIOS_DataM)
@@ -879,7 +889,7 @@ module DataPath(
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
       else 
-	writeBack = (stallClocked)? dcache_dout_Masked_M : dcache_dout_Masked;
+	writeBack = dcache_dout_Masked;
    end
 
    //Connecting write-back value to RegFile Write Port

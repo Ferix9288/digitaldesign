@@ -346,7 +346,7 @@ module Control(
    assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) &&
 			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1);
 
-   assign icache_re_Ctr = (ALUOutE[31:28] == 4'b0001);
+   assign icache_re_Ctr = (PC[31:28] == 4'b0001);
    
    
     
