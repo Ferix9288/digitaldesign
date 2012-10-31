@@ -74,6 +74,9 @@ module MIPS150(
    
 
    wire        dcache_re_Ctr, icache_re_Ctr;
+
+   wire        readCycleCount, readInstrCount, resetCounters;
+   
    
    
 
@@ -127,6 +130,11 @@ module MIPS150(
 		     .enData_BIOS(enData_BIOS),
 		     .dcache_re_Ctr(dcache_re_Ctr),
 		     .icache_re_Ctr(icache_re_Ctr),
+		     .readCycleCount(readCycleCount),
+		     .readInstrCount(readInstrCount),
+		     .resetCounters(resetCounters),
+
+		     
 		     .opcodeF(opcodeF),
 		     .functF(functF),
 		    // .ALUOutM(ALUOutM),
@@ -202,7 +210,10 @@ module MIPS150(
 		    .enPC_BIOS(enPC_BIOS),
 		    .enData_BIOS(enData_BIOS),
 		    .dcache_re_Ctr(dcache_re_Ctr),
-		    .icache_re_Ctr(icache_re_Ctr));
+		    .icache_re_Ctr(icache_re_Ctr),
+		    .readCycleCount(readCycleCount),
+		    .readInstrCount(readInstrCount),
+		    .resetCounters(resetCounters));
    
 		    
 

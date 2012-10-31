@@ -65,6 +65,9 @@ module DataPath(
 		input isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
 		input dcache_re_Ctr, icache_re_Ctr,
 
+		//MEM I/O Counters Control Signals
+		input readCycleCount, readInstrCount, resetCounters,
+		
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
 		output reg [5:0] functF,
@@ -163,16 +166,6 @@ module DataPath(
    wire [31:0] 			 dcache_dout_Masked;
    
        
-   //--FOR Instruction Memory --
-   
-   //~Inputs~
-   //reg [11:0] 			 instrMemAddr_A;
-   //reg [11:0] 			 instrMemAddr_B;
-
-
-   //~Outputs~
-   //wire [31:0] 			 instrMemOut;
-
    //--FOR BIOS Memory --
 
    //~Inputs~
@@ -286,35 +279,6 @@ module DataPath(
 			     .byteOffset(byteOffsetM),
 			     .DataOutMasked(dcache_dout_Masked));
    
-   
-   /*
-    * //Instantiating Data Memory Out Mask
-   DataOutMask DataMemMask(
-			   //Inputs
-			   .DataOutMem(dataMemOutM),
-			   .opcode(opcodeM), //An output into an input?
-			   .byteOffset(byteOffsetM),
-			   //Output
-			   .DataOutMasked(dataMemMasked));
-    */
-
-
-   /*
-    * //Instantiating Instruction Memory
-   imem_blk_ram InstrMemory(
-			    //Inputs
-			    .clka(clk),
-			    .ena(~stall),
-			    .wea(instrMemWriteEn),
-			    .addra(instrMemAddr_A),
-			    .dina(dataInMasked),
-			    .clkb(clk),
-			    .addrb(instrMemAddr_B),
-			    //Output
-			    .doutb(instrMemOut));
-
-    */
-
    //Instantiating BIOS Memory
    bios_mem BIOS(//inputs
 		 .clka(clk),
@@ -359,6 +323,8 @@ module DataPath(
 		   .SOut(SOut)
 		   );
    
+   //FOR MEMORY-MAPPED I/O Counters
+   reg [31:0] 			 CycleCounter, InstrCounter;
    
    
    //reg [31:0] 			 PC;
@@ -440,14 +406,26 @@ module DataPath(
       
    //The Logic/Muxes/Clk Driving the Program Counter and Instruction Memory
    always@(posedge clk) begin
-      if (stall)
-      	PC <= PC;
-      else if (reset) 
-	PC <= 32'h40000000;
-      else
-	PC <= nextPC;
+      if (stall) begin
+      	 PC <= PC;
+	 InstrCounter <= InstrCounter;
+       end else if (reset) begin
+	  PC <= 32'h40000000;
+	  InstrCounter <= 0;
+       end else begin 
+	 PC <= nextPC;
+	 InstrCounter <= InstrCounter + 1;
+       end	 
       
    end // always@ (posedge clk)
+
+   //For Cycle Counter
+   always@(posedge clk) begin
+      if (reset)
+	CycleCounter <= 0;
+      else
+	CycleCounter <= CycleCounter + 1;
+   end
    
    
    //Combinatorial logic determining nextPC
@@ -531,6 +509,7 @@ module DataPath(
    reg 				 regDstE;
    reg 				 shiftE;
    //reg [3:0] 			 ALUopE;
+   reg 				 icache_re_Ctr_E;
    
    
 
@@ -547,6 +526,8 @@ module DataPath(
 	 jalE <= jalF;	
 	 jalrE <= jalrF;
 	 shiftE <= shiftF;
+	 icache_re_Ctr_E <= icache_re_Ctr;
+	 
 	 
 	 // end else begin 
 	 //	 regWriteE <= 0;	 
@@ -562,6 +543,8 @@ module DataPath(
 	 jalE <= 0;
 	 jalrE <= 0;
 	 shiftE <= 0;
+	 icache_re_Ctr_E <= 0;
+	 
       end else begin // if (rest)
       	 memToRegE <= memToRegE;
 	 regWriteE <= regWriteE;
@@ -573,6 +556,8 @@ module DataPath(
 	 jalE <= jalE;
 	 jalrE <= jalrE;
 	 shiftE <= shiftE;
+	 icache_re_Ctr_E <= icache_re_Ctr_E;
+	 
       end
       
    end
@@ -704,8 +689,11 @@ module DataPath(
    reg 				 UARTCtrM;
    reg 				 isBIOS_DataM;
    reg 				 dcache_re_Ctr_M;
-   reg 				 icache_re_Ctr_M;
    reg 				 isLoadM;
+   reg 				 readCycleCount_M;
+   reg 				 readInstrCount_M;
+   reg 				 resetCounters_M;
+   
    
    
 				    
@@ -722,9 +710,10 @@ module DataPath(
 	 isLoadM <= isLoadE;
 	 isBIOS_DataM <= isBIOS_Data;
 	 dcache_re_Ctr_M <= dcache_re_Ctr;
-	 icache_re_Ctr_M <= icache_re_Ctr;
+	 readCycleCount_M <= readCycleCount;
+	 readInstrCount_M <=  readInstrCount;
+	 resetCounters_M <= resetCounters;
 	 
- 
       end else if (reset) begin
 	 memToRegM <= 0;
 	 regWriteM <= 0;
@@ -735,8 +724,11 @@ module DataPath(
 	 isLoadM <= 0;
 	 isBIOS_DataM <= 0;
 	 dcache_re_Ctr_M <= 0;
-	 icache_re_Ctr_M <= 0;
-
+	 readCycleCount_M <= 0;
+	 readInstrCount_M <= 0;
+	 resetCounters_M <= 0;
+	 
+	 
       end else begin
 	 memToRegM <= memToRegM;
 	 regWriteM <= regWriteM;
@@ -747,8 +739,10 @@ module DataPath(
 	 isLoadM <= isLoadM;
 	 isBIOS_DataM <= isBIOS_DataM;
 	 dcache_re_Ctr_M <= dcache_re_Ctr_M;
-	 icache_re_Ctr_M <= icache_re_Ctr_M;
-
+	 readCycleCount_M <= readCycleCount_M;
+	 readInstrCount_M <=  readInstrCount_M;
+	 resetCounters_M <= resetCounters_M;
+	 
       end
    end
    
@@ -791,11 +785,13 @@ module DataPath(
 
    //Determine which read enable /address to take to account for stall
    always@(*) begin
-      dcache_addr = (stall)? ALUOutM: ALUOutE;
-      icache_addr = (icache_re_Ctr)? PC: (stall)? ALUOutM: ALUOutE;
-
       dcache_re = (stall)? dcache_re_Ctr_M: dcache_re_Ctr;
-      icache_re = (stall)? icache_re_Ctr_M: icache_re_Ctr;
+      dcache_addr = (stall)? ALUOutM: ALUOutE;
+
+      
+      icache_re = (stall)? icache_re_Ctr_E: icache_re_Ctr;
+      icache_addr = (icache_re)? PC: (stall)? ALUOutM: ALUOutE;
+
    end
    
    //Combinatorial logic for all wires after Data Memory
@@ -809,6 +805,14 @@ module DataPath(
       UARTDataOutReadyM = DataOutReadyM;
    end
 
+   //RESET Counter
+   always@(posedge clk) begin
+      if (resetCounters_M) begin
+	 CycleCounter <= 0;
+	 InstrCounter <= 0;
+      end
+   end
+	
    //Determining UART Control Out
    //Passed in by Control Module
          
@@ -820,6 +824,10 @@ module DataPath(
 	writeBack = ALUOutM;
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
+      else if (readCycleCount_M)
+	writeBack = CycleCounter;
+      else if (readInstrCount_M)
+	writeBack = InstrCounter;
       else 
 	writeBack = dcache_dout_Masked;
    end
@@ -830,17 +838,17 @@ module DataPath(
       regWA = (jalM)? 31 : waM;
    end
 
-  // ChipScope components:
+   //ChipScope components:
    
  //  wire [35:0] chipscope_control;
  //  chipscope_icon icon(
-		      // .CONTROL0(chipscope_control)
+//		       .CONTROL0(chipscope_control)
 //		       ) /* synthesis syn_noprune=1 */;
-//   chipscope_ila ila(
-//   		     .CONTROL(chipscope_control),
+  // chipscope_ila ila(
+  // 		     .CONTROL(chipscope_control),
 //		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-//		     .TRIG0({reset, stall, UARTDataInReady, UARTDataOutValid, SIn, SOut, UARTDOut, ALUop, instrMemWriteEn,  PC, dataMemOut, dataMemMasked, dataMemWriteEn, rd1Fwd, rd2Fwd, ALUOutE, writeBack, regWriteM, branchCtr, UARTDataOutReady, UARTDataInValid, shiftE, jalrE})
+//		     .TRIG0({reset, stall, DataInValid, DataOutReady, instruction, instrMemWriteEn, icache_re, icache_addr, PC, DecIn, dataMemWriteEn, dataInMasked, dcache_re, ALUOutE, writeBack, regWriteM})
 //		     ) /* synthesis syn_noprune=1 */;
    
 

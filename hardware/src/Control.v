@@ -92,7 +92,10 @@ module Control(
 
 	       //BIOS + instr$ outputs
 	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
-	       output dcache_re_Ctr, icache_re_Ctr
+	       output dcache_re_Ctr, icache_re_Ctr,
+
+	       //Mem I/O Counters
+	       output readCycleCount, readInstrCount, resetCounters
 	       
 
 
@@ -348,8 +351,8 @@ module Control(
       
       if (isLoadE) begin
 	 case(ALUOutE[31:28])
-	   //Sucessful read in Data Memory or UART
-	   4'b0001, 4'b0011, 4'b0101, 4'b0111, 4'b1000, 4'b0100:
+	   //Sucessful read in D$ or BIOS or UART
+	   4'b0001, 4'b0011, 4'b0100, 4'b1000:
 	     legalReadE = 1;
 	   /*
 	    * default:
@@ -364,6 +367,10 @@ module Control(
 			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1);
 
    assign icache_re_Ctr = (PC[31:28] == 4'b0001);
+
+   assign readCycleCount = (ALUOutE == 32'h80000010);
+   assign readInstrCount = (ALUOutE == 32'h80000014);
+   assign resetCounters = (ALUOutE == 32'h80000018);
    
    
     

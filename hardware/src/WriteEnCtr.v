@@ -66,7 +66,7 @@ module WriteEnCtr (input [5:0] opcode,
    always @(*) begin
       if (stall)
 	instrMemWriteEn = 4'b0;
-      else if (isInstrMem && pcE[30] == 1'b1) begin
+      else if (isInstrMem && PC[30] == 1'b1) begin
 	 case (opcode)
 	   `SB: begin
 	      case (byteOffset)
