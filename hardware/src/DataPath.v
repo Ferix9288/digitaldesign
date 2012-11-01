@@ -402,28 +402,33 @@ module DataPath(
 	 jalrF = 0;
 	 shiftF = 0;
       end
-   end
-      
+   end // always@ (*)
+   
+   reg 				 resetCounters_M;
+
+	
    //The Logic/Muxes/Clk Driving the Program Counter and Instruction Memory
    always@(posedge clk) begin
       if (stall) begin
       	 PC <= PC;
 	 InstrCounter <= InstrCounter;
-       end else if (reset) begin
-	  PC <= 32'h40000000;
-	  InstrCounter <= 0;
-       end else begin 
+      end else if (reset) begin
+	 PC <= 32'h40000000;
+	 InstrCounter <= 0;
+      end else if (resetCounters_M) begin 
+	 PC <= nextPC;
+	 InstrCounter <= 0;
+      end else begin
 	 PC <= nextPC;
 	 InstrCounter <= InstrCounter + 1;
-       end	 
+      end
+   end	 
       
-   end // always@ (posedge clk)
-
    //For Cycle Counter
    always@(posedge clk) begin
-      if (reset)
+      if (reset || resetCounters_M)
 	CycleCounter <= 0;
-      else
+      else 
 	CycleCounter <= CycleCounter + 1;
    end
    
@@ -692,7 +697,6 @@ module DataPath(
    reg 				 isLoadM;
    reg 				 readCycleCount_M;
    reg 				 readInstrCount_M;
-   reg 				 resetCounters_M;
    
    
    
@@ -790,7 +794,10 @@ module DataPath(
 
       
       icache_re = (stall)? icache_re_Ctr_E: icache_re_Ctr;
-      icache_addr = (icache_re)? PC: (stall)? ALUOutM: ALUOutE;
+      if (icache_re) 
+	icache_addr = (stall)? nextPC_E: nextPC;
+      else
+	icache_addr = (stall)? ALUOutM: ALUOutE;
 
    end
    
@@ -805,14 +812,6 @@ module DataPath(
       UARTDataOutReadyM = DataOutReadyM;
    end
 
-   //RESET Counter
-   always@(posedge clk) begin
-      if (resetCounters_M) begin
-	 CycleCounter <= 0;
-	 InstrCounter <= 0;
-      end
-   end
-	
    //Determining UART Control Out
    //Passed in by Control Module
          
@@ -840,16 +839,16 @@ module DataPath(
 
    //ChipScope components:
    
- //  wire [35:0] chipscope_control;
- //  chipscope_icon icon(
-//		       .CONTROL0(chipscope_control)
-//		       ) /* synthesis syn_noprune=1 */;
-  // chipscope_ila ila(
-  // 		     .CONTROL(chipscope_control),
-//		     .CLK(clk),
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       ) /* synthesis syn_noprune=1 */;
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-//		     .TRIG0({reset, stall, DataInValid, DataOutReady, instruction, instrMemWriteEn, icache_re, icache_addr, PC, DecIn, dataMemWriteEn, dataInMasked, dcache_re, ALUOutE, writeBack, regWriteM})
-//		     ) /* synthesis syn_noprune=1 */;
+		     .TRIG0({reset, stall, DataInValid, DataOutReady, instruction, instrMemWriteEn, icache_re, icache_addr, PC, DecIn, dataMemWriteEn, dataInMasked, dcache_re, ALUOutE, writeBack, regWriteM, readCycleCount_M, readInstrCount_M, resetCounters_M})
+		     ) /* synthesis syn_noprune=1 */;
    
 
 //, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})
