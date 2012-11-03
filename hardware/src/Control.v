@@ -95,9 +95,11 @@ module Control(
 	       output dcache_re_Ctr, icache_re_Ctr,
 
 	       //Mem I/O Counters
-	       output readCycleCount, readInstrCount, resetCounters
+	       output readCycleCount, readInstrCount, resetCounters,
 	       
+	       //FOR CP0
 
+	       output mtc0, mtf0
 
 	       );
 

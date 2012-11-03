@@ -76,6 +76,8 @@ module MIPS150(
    wire        dcache_re_Ctr, icache_re_Ctr;
 
    wire        readCycleCount, readInstrCount, resetCounters;
+   wire        mtc0, mtf0;
+   
    
    
    
@@ -124,15 +126,26 @@ module MIPS150(
 		     .DataOutReady(DataOutReady),
 		     .isLoadE(isLoadE),
 		     .legalReadE(legalReadE),
+
+		     //FOR BIOS MEM
 		     .isBIOS_Data(isBIOS_Data),
 		     .instrSrc(instrSrc),
 		     .enPC_BIOS(enPC_BIOS),
 		     .enData_BIOS(enData_BIOS),
 		     .dcache_re_Ctr(dcache_re_Ctr),
 		     .icache_re_Ctr(icache_re_Ctr),
+
+		     //FOR Memory Mapped I/O Count
 		     .readCycleCount(readCycleCount),
 		     .readInstrCount(readInstrCount),
 		     .resetCounters(resetCounters),
+
+		     //FOR CP0
+
+		     .mtc0(mtc0),
+		     .mtf0(mtf0),
+		     
+		     //OUTPUTS
 
 		     
 		     .opcodeF(opcodeF),
@@ -213,7 +226,9 @@ module MIPS150(
 		    .icache_re_Ctr(icache_re_Ctr),
 		    .readCycleCount(readCycleCount),
 		    .readInstrCount(readInstrCount),
-		    .resetCounters(resetCounters));
+		    .resetCounters(resetCounters),
+		    .mtc0(mtc0),
+		    .mfc0(mfc0));
    
 		    
 

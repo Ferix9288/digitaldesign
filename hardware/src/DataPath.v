@@ -67,6 +67,10 @@ module DataPath(
 
 		//MEM I/O Counters Control Signals
 		input readCycleCount, readInstrCount, resetCounters,
+
+		//FOR CP0
+
+		input mtc0, mtf0,
 		
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
@@ -215,6 +219,13 @@ module DataPath(
    wire [7:0] 			 UARTDOut;
    wire 			 UARTDataOutValid;
    reg 				 UARTDataOutReadyM;
+
+   //-- FOR CP0 --
+
+   //~Inputs~
+   
+   wire [31:0] 			 COP_Dout;
+   
    
    
    //Instantiating ALU
@@ -322,6 +333,26 @@ module DataPath(
 		   //Output
 		   .SOut(SOut)
 		   );
+
+   COP0150 Coprocessor(//Inputs
+		       .Clock(clk),
+		       .Enable(),
+		       .Reset(reset),
+		       .DataAddress(rdF),
+		       //Output
+		       .DataOut(COP_Dout),
+		       //Inputs
+		       .DataInEnable(mtc0_E),
+		       .DataIn(),
+		       .InterruptedPC(),
+		       .InterruptHandled(),
+		       //Ouput
+		       .InterruptRequest(),
+		       //Inputs
+		       .UART0Request(),
+		       .UART1Request()
+		       );
+   
    
    //FOR MEMORY-MAPPED I/O Counters
    reg [31:0] 			 CycleCounter, InstrCounter;
