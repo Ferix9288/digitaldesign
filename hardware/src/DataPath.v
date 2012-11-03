@@ -569,6 +569,9 @@ module DataPath(
       if (resetClocked) begin
 	 addrPC_BIOS = 0;
 	 ISR_ReadAddr = 0;
+      end else if (InterruptHandled) begin
+	 ISR_ReadAddr = ISR_address[13:2];
+	 addrPC_BIOS = nextPC[13:2];	 
       end else if (stall) begin
 	 addrPC_BIOS = nextPC_E[13:2];
 	 ISR_ReadAddr = nextPC_E[13:2];

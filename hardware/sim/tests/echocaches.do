@@ -1,6 +1,6 @@
 start EchoTestbenchCaches
 file copy -force ../../../software/asmtest/asmtest.mif bios_mem.mif
-file copy -force ../../../software/echo/echo.mif isr_mem.mif
+file copy -force ../../../software/isr/isr.mif isr_mem.mif
 
 add wave EchoTestbenchCaches/*
 add wave EchoTestbenchCaches/mem_arch/*

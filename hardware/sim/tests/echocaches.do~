@@ -18,8 +18,10 @@ add wave EchoTestbenchCaches/DUT/DataPath/stall
 add wave EchoTestbenchCaches/DUT/DataPath/PC
 add wave EchoTestbenchCaches/DUT/DataPath/nextPC
 add wave EchoTestbenchCaches/DUT/DataPath/instrSrc
-add wave EchoTestbenchCaches/DUT/DataPath/COP_Out
+add wave EchoTestbenchCaches/DUT/DataPath/mtc0*
+add wave EchoTestbenchCaches/DUT/DataPath/mfc0*
 
+add wave EchoTestbenchCaches/DUT/DataPath/COP_Out
 add wave EchoTestbenchCaches/DUT/DataPath/addrPC_BIOS
 add wave EchoTestbenchCaches/DUT/DataPath/nextPC_E
 add wave EchoTestbenchCaches/DUT/DataPath/PC_BIOSOut
