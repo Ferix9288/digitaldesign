@@ -71,6 +71,9 @@ module Control(
 	       //Write Ctr Output for Instr Memory
 	       output [3:0] instrMemWriteEn,
 
+	       //Write Ctr Output for ISR
+	       output [3:0] ISR_MemWriteEn,
+
 	       //Branch Ctr Outputs
 	       output branchCtr,
 	       
@@ -91,7 +94,8 @@ module Control(
 	       output reg legalReadE,
 
 	       //BIOS + instr$ outputs
-	       output isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
+	       output isBIOS_Data,  enPC_BIOS, enData_BIOS,
+	       output reg [1:0] instrSrc,
 	       output dcache_re_Ctr, icache_re_Ctr,
 
 	       //Mem I/O Counters
@@ -99,7 +103,8 @@ module Control(
 	       
 	       //FOR CP0
 
-	       output mtc0, mtf0
+	       output mtc0, mfc0, causeDelaySlot
+	       
 
 	       );
 
@@ -110,25 +115,16 @@ module Control(
 		     );
 
    //Data Memory
-   WriteEnCtr DataMemWriteEnCtr(.opcode(opcodeE),
-				.byteOffset(byteOffsetE),
-				//.AddrPartition(4'b0zz1),
-				.ALUOut(ALUOutE),
-				.stall(stall),
-				.PC(PC),
-				.pcE(pcE),
-				.dataMemWriteEn(dataMemWriteEn),
-				.instrMemWriteEn(instrMemWriteEn));
-
-   /*
-    * //Instruction Memory
-   WriteEnCtr InstrMemWriteEnCtr(.opcode(opcodeE),
-				 .byteOffset(byteOffsetE),
-				 .AddrPartition(4'b0z1z),
-				 .ALUOut(ALUOutE),
-				 .writeEn(instrMemWriteEn));
-    */
-   
+   WriteEnCtr MemWriteEnCtr(.opcode(opcodeE),
+			    .byteOffset(byteOffsetE),
+			    //.AddrPartition(4'b0zz1),
+			    .ALUOut(ALUOutE),
+			    .stall(stall),
+			    .PC(PC),
+			    .pcE(pcE),
+			    .dataMemWriteEn(dataMemWriteEn),
+			    .instrMemWriteEn(instrMemWriteEn),
+			    .ISR_MemWriteEn(ISR_MemWriteEn));
    
    BranchCtr BranchControl(.opcode(opcodeE),
 			   .rd1(rd1Fwd),
@@ -170,7 +166,7 @@ module Control(
 			.DataOutReady(),
 			.UARTCtr(),
 			.UARTCtrOut(UARTCtrOutM));
-   
+			    
 
    always @(*) begin
       
@@ -306,6 +302,33 @@ module Control(
 	   jal = 0;
 	   jalr = 0;
 	   shift = 0;
+	   
+	end // case: `BEQ, `BNE, `BLEZ, `BGTZ, `BLTZ, `BGEZ
+
+	`mtc0, `mfc0: begin
+	   if (rsF == 5'b0) begin //mfc0
+	      memToReg = 0;
+	      regWrite = 1;
+	      extType = 0;
+	      ALUsrc = 0;
+	      regDst = 0;
+	      jump = 0;
+	      jr = 0;
+	      jal = 0;
+	      jalr = 0;
+	      shift = 0;
+	   end else begin //mtc0
+	      memToReg = 0;
+	      regWrite = 0;
+	      extType = 0;
+	      ALUsrc = 0;
+	      regDst = 0;
+	      jump = 0;
+	      jr = 0;
+	      jal = 0;
+	      jalr = 0;
+	      shift = 0;
+	   end // else: !if(rsF == 5'b0)
 	end
 
 	default: begin
@@ -323,15 +346,6 @@ module Control(
 	
       endcase // case (opcodeF)
       
-      /*
-       * if (reset) begin
-	 ALUsrc = x;
-	 jump = x;
-	 jr = x;
-	 jal = x;
-	 
-      end
-       */
    end // always @ (*)
 
    assign isLoadE =  (opcodeE == `LB) || (opcodeE == `LH) ||
@@ -343,8 +357,23 @@ module Control(
  //&& (~stall);
    assign enData_BIOS = (ALUOutE[31:28] == 4'b0100) && (isLoadE);
    assign isBIOS_Data = enData_BIOS;
-   assign instrSrc = enPC_BIOS;
- 
+   
+   always@(*) begin
+      case (PC[31:28])
+	4'b0001: //Instruction
+	  instrSrc = 2'b00;
+
+	4'b0100: //BIOS
+	  instrSrc = 2'b01;
+
+	4'b1100: //ISR
+	  instrSrc = 2'b10;
+
+	default: //is BIOS
+	  instrSrc = 2'b01;
+	
+      endcase // case (PC[31:28])
+   end
    
    //To determine whether or not we have an illegal read access
    always@(*) begin
@@ -374,7 +403,24 @@ module Control(
    assign readInstrCount = (ALUOutE == 32'h80000014);
    assign resetCounters = (ALUOutE == 32'h80000018);
    
+   //Logic for mtc0 and mfc0
+
+   assign mfc0 = (opcodeF == `mfc0) & (rsF == 5'b0);
+   assign mtc0 = (opcodeF == `mtc0) & (rsF == 5'b00100);
+
+   assign causeDelaySlot = (opcodeF == `BEQ) ||
+			   (opcodeF == `BNE) ||
+			   (opcodeF == `BLEZ) ||
+			   (opcodeF == `BGTZ) ||
+			   (opcodeF == `BLTZ) ||
+			   (opcodeF == `BGEZ) ||
+			   (opcodeF == `J) ||
+			   (opcodeF == `JAL) ||
+			   (opcodeF == `JR) ||
+			   (opcodeF == `JALR);
+
    
+
     
 endmodule
 	  

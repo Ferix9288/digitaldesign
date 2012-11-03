@@ -53,4 +53,8 @@
 `define BLTZ	6'b000001
 `define BGEZ	6'b000001
 
+//OPCODE for mfc0/mtc0
+`define mfc0 6'b010000
+`define mtc0 6'b010000
+
 `endif //OPCODE
