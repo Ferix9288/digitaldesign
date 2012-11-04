@@ -45,11 +45,6 @@ UART_ISR:
 	nop
 	beq  $k0, 100, d_input
 	beq  $k0, 101, e_input
-	beq  $k0, 114, r_input
-	beq  $k0, 118, v_input
-	beq  $k0, 82, R_input
-	beq  $k0, 86, V_input
-	beq  $k0, 
 	j    done
 	nop
 
@@ -57,21 +52,17 @@ d_input:
 	j    done
 e_input:
 	j    done
-r_input:
-	j    done
-v_input:
-	j    done
-R_input:
-	j    done
-v_input:
-	j    done
 
 done:
 	mfc0 $k1, $12 #Status
 	ori  $k1, $k1, 1
 	mfc0 $k0, $14 #EPC
+<<<<<<< HEAD
 	j    $k0
+=======
+>>>>>>> a365af3bf75027fe329cdff26393b19a3e9cd10e
 	mtc0 $k1, $12 #Status
+	j $k0
 	
 
 

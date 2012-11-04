@@ -1,0 +1,25 @@
+#define BUFFER_SIZE 2048
+
+//software FIFO in a basic C program
+char buffer[BUFFER_SIZE];
+int inIdx, outIdx;
+inIdx = 0;
+outIdx = 0;
+
+//enqueue first character from char *string
+buffer[inIdx] = *string; //copy character
+inIdx++;
+inIdx %= BUFFER_SIZE;string++;
+
+//Writes into FIFO will be done by application
+//enqueue
+
+//IF buffer empty, then directly send first char to UART 
+//Reason: DataInReady high so need to directly send first char
+//to UART (32'h80000008)
+
+
+
+
+
+//Reads from FIFO will be done by ISR
