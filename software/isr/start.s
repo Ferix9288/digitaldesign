@@ -12,8 +12,8 @@ done:
 	mfc0 $k1, $12 #Status
 	ori $k1, $k1, 1
 	mfc0 $k0, $14 #EPC
-	j $k0
 	mtc0 $k1, $12 #Status
+	j $k0
 	
 
 

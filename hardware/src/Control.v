@@ -417,7 +417,9 @@ module Control(
 			   (opcodeF == `J) ||
 			   (opcodeF == `JAL) ||
 			   (opcodeF == `JR) ||
-			   (opcodeF == `JALR);
+			   (opcodeF == `JALR) ||
+			   (mfc0) || (mtc0)
+			   ;
 
    
 
