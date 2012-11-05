@@ -140,7 +140,7 @@ module WriteEnCtr (input [5:0] opcode,
 	     ISR_MemWriteEn = 4'b0;
 	 endcase // case (opcode)
 	 
-      end else   // if (isInAddrSpace)
+      end else  
 	ISR_MemWriteEn = 4'b0;
       
    end // always @ (*)

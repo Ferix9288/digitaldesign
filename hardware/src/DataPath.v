@@ -817,6 +817,7 @@ module DataPath(
       icache_we = instrMemWriteEn; //make sure PC[30] == 1
       icache_din = dataInMasked;
 
+      ISR_DataAddr = (stall)? ALUOutM[13:2]: ALUOutE[13:2];
       ISR_din = dataInMasked;
       
 
@@ -986,18 +987,18 @@ module DataPath(
       regWA = (jalM)? 31 : waM;
    end
 
-   //ChipScope components:
+  // ChipScope components:
    
-//   wire [35:0] chipscope_control;
-//   chipscope_icon icon(
-//		       .CONTROL0(chipscope_control)
-//		       ) /* synthesis syn_noprune=1 */;
-//   chipscope_ila ila(
-  // 		     .CONTROL(chipscope_control),
-//		     .CLK(clk),
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       ) /* synthesis syn_noprune=1 */;
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-//		     .TRIG0({reset, stall, DataInValid, DataOutReady, instruction, instrMemWriteEn, icache_re, icache_addr, PC, DecIn, dataMemWriteEn, dataInMasked, dcache_re, ALUOutE, writeBack, regWriteM, readCycleCount_M, readInstrCount_M, resetCounters_M})
-//		     ) /* synthesis syn_noprune=1 */;
+		     .TRIG0({reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
+		     ) /* synthesis syn_noprune=1 */;
    
 
 //, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})

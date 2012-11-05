@@ -208,7 +208,7 @@ module EchoTestbenchCaches();
       repeat (100) @( posedge cpu_clk_g );
 
       Reset = 1;
-      repeat (30) @( posedge cpu_clk_g );
+      repeat (5) @( posedge cpu_clk_g );
       Reset = 0;
 
       // Wait until transmit is ready

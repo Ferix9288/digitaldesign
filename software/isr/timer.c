@@ -2,7 +2,7 @@
 #include "uart.h"
 #include "ascii.h"
 
-#define CLK_FREQUENCY 50,000,000
+#define CLK_FREQUENCY 50000000
 
 void fmin_sec(char * target, char* buffer, int min, int sec) {
   int in = 0; int out = 0;
@@ -45,13 +45,35 @@ void fmin_sec(char * target, char* buffer, int min, int sec) {
 //Arguments: SW_RTC
 void ptimer(int sw_rtc, int Count) {
   //Create the string array for timer
-  int min, sec, secModded;
-  char* string;
-  min = sw_rtc;
-  sec = Count/CLK_FREQUENCY;
-  secModded = sec % 60;
+  int min, sec, Count2;
+  int multSum;
+  char string[100];
 
-  fmin_sec(string, "%d:%d\n\r", min, secModded);
+  min = 0;
+  multSum = 0;
+
+  for (int i = 0; i < sw_rtc; i++) {
+    multSum = multSum + 86;
+  }
+
+  while ( multSum >= 60) {
+    multSum = multSum - 60;
+    min += 1;
+  }
+
+  Count2 = Count;
+  sec = 0;
+
+  while (Count2 >= 50000000) {
+    Count2 = Count2 - 50000000;
+    sec += 1;
+  }	
+
+  if (sec >= 60) {
+    sec = sec - 60;
+  }
+
+  fmin_sec(string, "%d:%d\n\r", min, sec);
   FIFOWrite(string);
 
   //Then call FIFOwrite(s)
