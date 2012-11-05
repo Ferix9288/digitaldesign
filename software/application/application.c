@@ -59,6 +59,50 @@ void r100M() {
   asm("nop");
 }
 
+void R100M() {
+  asm("addiu t0, $0, 0");
+  asm("la t1, 0x05f5e100");
+  asm("loop:");
+  asm("jal addFunctionR");
+  asm("bne $t0, $t1, loop");
+  asm("nop");
+}
+
+void addFunctionR() {
+  asm("addiu $t0, $t0, 1");
+  asm("jr $ra");
+  asm("nop");
+}
+
+void v100M() {
+  asm("la $t1, 0x05f5e100");
+  asm("sw $0, 0x1fff0038");
+  asm("loop:");
+  asm("lw $t0, 0x1fff0038");
+  asm("addiu $t0, $t0, 1");
+  asm("sw $t0, 0x1fff0038");
+  asm("bne $t0, $t1, loop");
+  asm("nop");
+}
+
+void V100M() {
+  asm("la $t1, 0x05f5e100");
+  asm("sw $0, 0x1fff003c");
+  asm("loop:");
+  asm("jal addFunctionV");
+  asm("bne $t0, $t1, loop");
+  asm("nop");
+}
+
+void addFunctionV() {
+  asm("lw $t0, 0x1fff003c");
+  asm("addiu $t0, $t0, 1");
+  asm("sw $t0, 0x1fff003c");
+  asm("jr $ra");
+  asm("nop");
+}
+  
+
 int main(void) {
 
   int tstart, tend, time;
@@ -68,63 +112,56 @@ int main(void) {
   
   for ( ; ; ) { 
     
-      switch(STATE) 
-	{			
-	case 'r':		
-	  // register variable addi
-	  /* tstart = COUNT; */
-	  /* r100M(); */
-	  /* tend = COUNT; */
-	  /* time = tend - tstart; */
-	  /* //fmode_cycles(s, "%c: %d\n\r\0", time, 'r'); */
+    switch(STATE) 
+      {			
+      case 'r':		
+	tstart = COUNT;
+	r100M();
+	tend = COUNT;
+	time = tend - tstart;
+	//fmode_cycles(s, "%c: %d\n\r\0", time, 'r');
+	asm("sw $sp, 0x10006000");
 
+	//Saving Registers
+	asm("addiu $sp, $sp, -28");
+	asm("sw $v0, 0($sp)");
+	asm("sw $v1, 4($sp)");
+	asm("sw $a0, 8($sp)");
+	asm("sw $a1, 12($sp)");
+	asm("sw $a2, 16($sp)");
+	asm("sw $a3, 20($sp)");
+	asm("sw $ra, 24($sp)");
 
-	  /* asm("sw $sp, 0x10006000"); */
+	asm("lw $a0, 0x1fff0028"); //SW_RTC
+	asm("mfc0 $a1, $9");
+	asm("jal 0xc0001040") ; //Calling FIFOWrite
 
-	  /* //Saving Registers */
-	  /* asm("addiu $sp, $sp, -28"); */
-	  /* asm("sw $v0, 0($sp)"); */
-	  /* asm("sw $v1, 4($sp)"); */
-	  /* asm("sw $a0, 8($sp)"); */
-	  /* asm("sw $a1, 12($sp)"); */
-	  /* asm("sw $a2, 16($sp)"); */
-	  /* asm("sw $a3, 20($sp)"); */
-	  /* asm("sw $ra, 24($sp)"); */
+	asm("lw $v0, 0($sp)");
+	asm("lw $v1, 4($sp)");
+	asm("lw $a0, 8($sp)");
+	asm("lw $a1, 12($sp)");
+	asm("lw $a2, 16($sp)");
+	asm("lw $a3, 20($sp)");
+	asm("lw $ra, 24($sp)");
+	asm("addiu $sp, $sp, 28");
 
-	  /* asm("lw $a0, 0x1fff0028"); //SW_RTC */
-	  /* asm("mfc0 $a1, $9"); */
-	  /* asm("jal 0xc0001040") ; //Calling FIFOWrite */
+	asm("lw $sp, 0x10006000");
+	break;
 
-	  /* asm("lw $v0, 0($sp)"); */
-	  /* asm("lw $v1, 4($sp)"); */
-	  /* asm("lw $a0, 8($sp)"); */
-	  /* asm("lw $a1, 12($sp)"); */
-	  /* asm("lw $a2, 16($sp)"); */
-	  /* asm("lw $a3, 20($sp)"); */
-	  /* asm("lw $ra, 24($sp)"); */
-	  /* asm("addiu $sp, $sp, 28"); */
+      case 'R':
+	// register variable, plusone function call
+	break;
 
-	  /* asm("lw $sp, 0x10006000"); */
+      case 'v':
+	// volatile variable, addi
+	break;
+      case 'V':
+	// volatile variable, plusone function call
+	break;
 
-	  
-	  //sprint(s,”r: %d”,tstart-tend);
-	  //out(s);
-	  break;
-
-	case 'R':
-	  // register variable, plusone function call
-	  break;
-
-	case 'v':
-	  // volatile variable, addi
-	  break;
-	case 'V':
-	  // volatile variable, plusone function call
-	  break;
-
-	default:
-	  // print error? (optional)
-	  ;}
+      default:
+	// print error? (optional)
+	;}
   }
   return 0;
 }
