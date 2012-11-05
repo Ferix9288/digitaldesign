@@ -16,6 +16,7 @@
 #define SW_RTC *((volatile unsigned int*) 0x1fff0028)
 #define PRINT_EN *((volatile unsigned int*) 0x1fff002c)
 #define SEC ((volatile unsigned int*) 0x1fff0030)
+#define MIN ((volatile unsigned int*) 0x1fff0034)
 
 
 void FIFOWrite(char* s);

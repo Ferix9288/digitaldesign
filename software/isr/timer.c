@@ -44,27 +44,32 @@
 
 //Arguments: SW_RTC
 void ptimer(unsigned int sw_rtc, unsigned int Count) {
+
   //Create the string array for timer
   unsigned int min, secLocal, Count2;
   unsigned int multSum;
   char string[100];
 
-  min = 0;
-  multSum = 0;
+  /* min = 0; */
+  /* multSum = 0; */
  
-  for (int i = 0; i < sw_rtc; i++) {
-    multSum = multSum + 86;
-  }
+  /* for (int i = 0; i < sw_rtc; i++) { */
+  /*   multSum = multSum + 86; */
+  /* } */
 
-  while ( multSum >= 60) {
-    multSum = multSum - 60;
-    min += 1;
-  }
+  /* while ( multSum >= 60) { */
+  /*   multSum = multSum - 60; */
+  /*   min += 1; */
+  /* } */
 
+  if (*MIN == 60) {
+    *MIN = 0;
+  }
 
   unsigned int min1, min2;
-  min1 = min;
+  min1 = *MIN;
   min2 = 0;
+
   while (min1 >= 10) {
     min1 = min1 - 10;
     min2 += 1;
@@ -74,16 +79,12 @@ void ptimer(unsigned int sw_rtc, unsigned int Count) {
   min1_ASCII = min1 + 48;
   min2_ASCII = min2 + 48;
 
-  /* Count2 = Count; */
-  /* sec = 0; */
-
-  /* while (Count2 >= 50000000) { */
-  /*   Count2 = Count2 - 50000000; */
-  /*   sec += 1; */
-  /* }	 */
-
   if (*SEC == 60) {
     //Increment Minute by one
+    
+    asm("lw $k0, 0x1fff0034");
+    asm("addiu $k0, $k0, 1");
+    asm("sw $k0, 0x1fff0034");
     *SEC = 0;
   }
 
@@ -100,8 +101,8 @@ void ptimer(unsigned int sw_rtc, unsigned int Count) {
   sec1_ASCII = sec1 + 48;
   sec2_ASCII = sec2 + 48;
   
-  string[0] = min1_ASCII;
-  string[1] = min2_ASCII;
+  string[0] = min2_ASCII;
+  string[1] = min1_ASCII;
   string[2] = ':';
   string[3] = sec2_ASCII;
   string[4] = sec1_ASCII;

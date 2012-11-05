@@ -10,15 +10,13 @@ _start:
 	sw $0, 0x1fff0028 #Reset SW_RTC
 	addiu $t1, $0, 1
 	sw $t1, 0x1fff002c #PRINT_EN = 1
-	sw $0, 0x1fff0030 #SEC = 0 
-	
-	la $t0, 0x0000fc01
-	#la $t1, 0x02faf000
-	la $t2, 0x02faf080
-	#mtc0 $t1, $9 #Count
-	mtc0 $t2, $11 #Compare
+	sw $0, 0x1fff0030 #SEC = 0
+	sw $0, 0x1fff0034 #MIN = 0
 
-
-	mtc0 $t0, $12 #Status
+	mtc0 $0, $9 #Count = 0	
+	la $t0, 0x02faf080
+	mtc0 $t0, $11 #Compare = 50 * 10 ^6
+	la $t1, 0x0000fc01 #Status = Enabled
+	mtc0 $t1, $12 #Status
 	jal main
 	
