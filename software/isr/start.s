@@ -21,12 +21,12 @@ _start:
 	j    done
 
 timer_ISR:
-	mfc0 $k1, $11 #Compare
-	la   $k0, 0x02faf080 #1_second
-	addu $k0, $k0, $k1
-	mtc0 $k0, $11 #Compare
-	nop
 
+	#Increment SEC
+	lw $k0, 0x1fff0030
+	addiu $k0, $k0, 1
+	sw $k0, 0x1fff0030
+	
 	#if print enabled, then print timer
 	#otherwise, do nothing
 	lw $k0, 0x1fff002c #PRINT_EN
@@ -76,11 +76,16 @@ timer_ISR:
 	addiu $sp, $sp, 28
 		
 
-timer_ISR_Done:	
-	mfc0 $k1, $13 #Cause
-	andi $k1, $k1, 0x7c00 #Resets Cause[15] to 0
-	mtc0 $k1, $13 #Cause
+timer_ISR_Done:
+	mfc0 $k1, $11 #Compare
+	la   $k0, 0x02faf080 #1_second
+	addu $k0, $k0, $k1
+	mtc0 $k0, $11 #Compare
 	nop
+	#mfc0 $k1, $13 #Cause
+	#andi $k1, $k1, 0x7c00 #Resets Cause[15] to 0
+	#mtc0 $k1, $13 #Cause
+	#nop
 	j    done
 
 RTC_ISR:

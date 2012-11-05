@@ -1,4 +1,5 @@
 #include "fifo.h"
+#include "uart.h"
 
 void FIFOWrite(char* s) {
   int strIndex;
@@ -6,8 +7,9 @@ void FIFOWrite(char* s) {
  
   //If DataInReady is high, then 
   //send the first char directly over to UART
-  if (TRAN_CTRL) { 
-    TRAN_DATA = s[strIndex];
+  if (UTRAN_CTRL) { 
+    UTRAN_DATA = s[strIndex];
+    strIndex ++;
   }
   
   //Write the rest of the string into the FIFO, as long as it's not full
@@ -28,7 +30,7 @@ void FIFORead() {
   //transmitting the queued up data in FIFO to the UART 
   if (inIndex != outIndex) { //FIFO is not empty
     data = BUFFER[outIndex];
-    TRAN_DATA = data;
+    UTRAN_DATA = data;
     if (outIndex == BUFFER_SIZE) {
       outIndex = 0;
     } else {
