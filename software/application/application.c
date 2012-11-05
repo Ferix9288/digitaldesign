@@ -47,6 +47,9 @@
 /*   return; */
 /* } */
 
+void pTimeDifference() {
+}
+
 void r100M() {
   asm("addiu $t0, $0, 0");
   asm("la $t1, 0x05f5e100");
