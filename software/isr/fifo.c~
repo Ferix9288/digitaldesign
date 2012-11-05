@@ -10,7 +10,7 @@
 #define inIndex (*((volatile unsigned int*) 0x1fff001c))
 #define outIndex (*((volatile unsigned int*) 0x1fff0020))
 #define STATE (*((volatile unsigned char*)) 0x1fff0024)
-#define SW_RTC (*((volatile unsigned int*)) ox1fff0028)
+#define SW_RTC (*((volatile unsigned int*)) 0x1fff0028)
 
 
 void FIFOWrite(char* s) {

@@ -1,3 +1,4 @@
 TARGET := fifo
 
-include ../Makefile.gcc.in
+include ../Makefile.llvm.in
+#include ../Makefile.gcc.in

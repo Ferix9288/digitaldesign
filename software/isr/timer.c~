@@ -1,0 +1,6 @@
+#include "fifo.c"
+
+//Arguments: SW_RTC
+void ptimer( SW_RTC) {
+  //Create the string array for timer
+  //Then call FIFOwrite(s)
