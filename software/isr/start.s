@@ -27,8 +27,6 @@ timer_ISR:
 	addiu $k0, $k0, 1
 	sw $k0, 0x1fff0030
 	
-
-
 	#Save registers
 	addiu $sp, $sp, -28
 	sw $v0, 0($sp)
@@ -98,7 +96,7 @@ UART_Transmit:
 	
 UART_Receive:
 	lw $k0, 0x8000000c #Grabbing UART DataOut
-	sw $k0, 0x1fff0024 #Store UART Rx Data Byte to 'STATE'
+	sw $k0, 0x1beef000 #Store UART Rx Data Byte to 'STATE'
 	sw $k0, 0x80000008 #Print it to the screen
 
 	li $k1, 100

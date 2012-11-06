@@ -25,11 +25,14 @@ add wave EchoTestbenchCaches/DUT/DataPath/COP_Out
 add wave EchoTestbenchCaches/DUT/DataPath/addrPC_BIOS
 add wave EchoTestbenchCaches/DUT/DataPath/nextPC_E
 add wave EchoTestbenchCaches/DUT/DataPath/PC_BIOSOut
+add wave EchoTestbenchCaches/DUT/DataPath/dataMemWriteEn
 add wave EchoTestbenchCaches/DUT/DataPath/instruction
 add wave EchoTestbenchCaches/DUT/DataPath/DecIn
-
+add wave EchoTestbenchCaches/DUT/DataPath/writeBack
+add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout_Masked
 add wave EchoTestbenchCaches/DUT/DataPath/dataInMasked
 add wave EchoTestbenchCaches/DUT/DataPath/opcode*
+add wave EchoTestbenchCaches/DUT/DataPath/isBIOS_DataM
 
 add wave EchoTestbenchCaches/DUT/DataPath/InstructionDecoder/*
 
@@ -54,7 +57,7 @@ add wave EchoTestbenchCaches/DUT/DataPath/UARTCtrOutM
 
 add wave EchoTestbenchCaches/DUT/DataPath/isBIOS_Data
 add wave EchoTestbenchCaches/DUT/DataPath/Data_BIOSOut
-add wave EchoTestbenchCaches/DUT/DataPath/writeBack
+
 
 add wave EchoTestbenchCaches/DUT/DataPath/Regfile/*
 add wave EchoTestbenchCaches/DUT/DataPath/Regfile/rf
