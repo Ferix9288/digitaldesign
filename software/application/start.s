@@ -14,7 +14,7 @@ _start:
 	sw $0, 0x1fff0034 #MIN = 0
 
 	la $t0, 0x02faf000
-	mtc0 $t0, $9 #Count = 0	
+	mtc0 $t0, $9 #Count = almost @ 1 second instantly	
 	la $t1, 0x02faf080
 	mtc0 $t1, $11 #Compare = 50 * 10 ^6
 	la $t2, 0x00007c01 #Status = Enabled

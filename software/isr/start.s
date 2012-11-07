@@ -95,15 +95,21 @@ UART_Transmit:
 
 	
 UART_Receive:
-	lw $k0, 0x8000000c #Grabbing UART DataOut
-	sw $k0, 0x1beef000 #Store UART Rx Data Byte to 'STATE'
+	lw $k0, 0x8000000c
 	sw $k0, 0x80000008 #Print it to the screen
 
 	li $k1, 100
 	beq  $k0, $k1, d_input
 	li $k1, 101
 	beq  $k0, $k1, e_input
-	
+	li $k1, 114
+	beq $k0, $k1, r_input
+	li $k1, 82
+	beq $k0, $k1, R_input
+	li $k1, 118
+	beq $k0, $k1, v_input
+	li $k1, 86
+	beq $k0, $k1, V_input
 	j    UART_Receive_Done
 	
 d_input:
@@ -115,6 +121,23 @@ e_input:
 	#Enable print of Timer
 	addiu $k0, $0, 1
 	sw $k1, 0x1fff002c
+	j UART_Receive_Done
+	
+r_input:
+	sw $k0, 0x1beef000
+	j UART_Receive_Done
+
+R_input:
+	sw $k0, 0x1beef000
+	j UART_Receive_Done
+
+v_input:
+	sw $k0, 0x1beef000
+	j UART_Receive_Done
+
+V_input:
+	sw $k0, 0x1beef000
+	
 
 UART_Receive_Done:
 	mfc0 $k1, $13 #Cause
