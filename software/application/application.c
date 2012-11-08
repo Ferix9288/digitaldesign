@@ -116,16 +116,15 @@ void pTimeDifference(unsigned int time, char currentState) {
 
 void addFunctionR() {
   asm("addiu $t0, $t0, 1");
-  asm("jr $ra");
   asm("nop");
 }
 
 
 void addFunctionV() {
   asm("lw $t0, 0x1fff003c");
+  asm("nop");
   asm("addiu $t0, $t0, 1");
   asm("sw $t0, 0x1fff003c");
-  asm("jr $ra");
   asm("nop");
 }
   
@@ -158,6 +157,7 @@ int main(void) {
 	asm("la $t1, 0x05f5e100");
 	asm("loop1:");
 	asm("jal addFunctionR");
+	asm("nop");
 	asm("bne $t0, $t1, loop1");
 	asm("nop");
 	tend = COUNT;
@@ -170,6 +170,7 @@ int main(void) {
 	asm("sw $0, 0x1fff0038");
 	asm("loop2:");
 	asm("lw $t0, 0x1fff0038");
+	asm("nop");
 	asm("addiu $t0, $t0, 1");
 	asm("sw $t0, 0x1fff0038");
 	asm("bne $t0, $t1, loop2");
@@ -184,7 +185,10 @@ int main(void) {
 	asm("sw $0, 0x1fff003c");
 	asm("loop3:");
 	asm("jal addFunctionV");
-	asm("bne $t0, $t1, loop3");
+	asm("nop");
+	asm("lw $t0, 0x1fff003c");
+	asm("nop");
+	asm("bne $t1, $t0, loop3");
 	asm("nop");
 	tend = COUNT;
 	break;
