@@ -158,7 +158,7 @@ int main(void) {
 	asm("loop1:");
 	asm("jal addFunctionR");
 	asm("nop");
-	asm("bne $t0, $t1, loop1");
+	asm("bne $t1, $t0, loop1");
 	asm("nop");
 	tend = COUNT;
 	break;
@@ -166,8 +166,9 @@ int main(void) {
       case 'v':
 	// volatile variable, addi
 	tstart = COUNT;
-	asm("la $t1, 0x05f5e100");
 	asm("sw $0, 0x1fff0038");
+	asm("la $t1, 0x05f5e100");
+	asm("nop");
 	asm("loop2:");
 	asm("lw $t0, 0x1fff0038");
 	asm("nop");
@@ -181,8 +182,8 @@ int main(void) {
       // volatile variable, plusone function call
       case 'V':
 	tstart = COUNT;
-	asm("la $t1, 0x05f5e100");
 	asm("sw $0, 0x1fff003c");
+	asm("la $t1, 0x05f5e100");
 	asm("loop3:");
 	asm("jal addFunctionV");
 	asm("nop");
@@ -193,9 +194,6 @@ int main(void) {
 	tend = COUNT;
 	break;
 
-      default:
-	// print error? (optional)
-	break;
 	;}
     time = tend - tstart;
     pTimeDifference(time, currentState);

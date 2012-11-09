@@ -268,6 +268,8 @@ module DataPath(
    reg [4:0] 			 rdE;
 
    wire [31:0] 			 ISR_address;
+   reg [31:0] 			 InterruptedPC;
+   
    assign ISR_address = 32'hc0000000;
    
    
@@ -388,6 +390,8 @@ module DataPath(
 		   .SOut(SOut)
 		   );
 
+   wire 			 globalEnable;
+   
    COP0150 Coprocessor(//Inputs
 		       .Clock(clk),
 		       .Enable(1'b1),
@@ -398,13 +402,14 @@ module DataPath(
 		       //Inputs
 		       .DataInEnable(mtc0_E),
 		       .DataIn(rd2Fwd),
-		       .InterruptedPC(nextPC),
+		       .InterruptedPC(InterruptedPC),
 		       .InterruptHandled(InterruptHandled),
 		       //Ouput
 		       .InterruptRequest(InterruptRequest),
 		       //Inputs
 		       .UART0Request(UART0Request),
-		       .UART1Request(UART1Request)
+		       .UART1Request(UART1Request),
+		       .globalEnable(globalEnable)
 		       );
 
  
@@ -635,8 +640,13 @@ module DataPath(
    //Combinatorial logic fed into and out of COP
    //Think of it as in parallel with RegFile
    always@(*) begin
-      COP_addr = (mtc0_E)? rdE : rdF;
-      InterruptHandled = InterruptRequest & (!causeDelaySlot);
+      COP_addr = (mtc0_E)? rdE : rdF;      
+   end
+
+   //Clock logic for Interrupt Handled (needs to stay high through stall!)
+   always@(*) begin
+      InterruptHandled = (stall)? 0 : InterruptRequest & (!causeDelaySlot);
+      InterruptedPC = (stall)? nextPC_E : nextPC;
       
    end
       
@@ -997,7 +1007,7 @@ module DataPath(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
+		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
 		     ) /* synthesis syn_noprune=1 */;
    
 

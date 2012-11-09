@@ -416,8 +416,8 @@ module Control(
 			   (opcodeF == `BGEZ) ||
 			   (opcodeF == `J) ||
 			   (opcodeF == `JAL) ||
-			   (opcodeF == `JR) ||
-			   (opcodeF == `JALR) ||
+			   (opcodeF == `RTYPE && functF == `JR) ||
+			   (opcodeF == `RTYPE && functF == `JALR) ||
 			   (mfc0) || (mtc0)
 			   ;
 

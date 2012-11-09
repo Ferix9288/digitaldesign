@@ -13,7 +13,8 @@ module COP0150(
     InterruptRequest,
 
     UART0Request,
-    UART1Request
+    UART1Request,
+    globalEnable
 );
 
 input                           Clock;
@@ -28,6 +29,8 @@ input       [31:0]              DataIn;
 input       [31:0]              InterruptedPC;
 input                           InterruptHandled;
 output                          InterruptRequest;
+   output 			globalEnable;
+   
 
 input                           UART0Request;
 input                           UART1Request;
@@ -52,6 +55,8 @@ wire                            ie;
 wire        [5:0]               next_ip;
 
 
+   
+
 assign DataOut          = dataout;
 assign InterruptRequest = ie & |(im & ip);
 
@@ -62,6 +67,7 @@ assign interrupts       = {firetimer, firertc, 2'b00, UART1Request, UART0Request
 assign ip               = cause[15:10];
 assign im               = status[15:10];
 assign ie               = status[0];
+assign globalEnable = ie;
 
 assign next_ip          = ip | interrupts;
 

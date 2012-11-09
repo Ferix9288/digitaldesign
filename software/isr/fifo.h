@@ -1,8 +1,8 @@
 #ifndef FIFO_H_
 #define FIFO_H_
 
-#define BUFFER ((volatile unsigned char*) 0x1fff0000)
-#define BUFFER_SIZE 27 //length of Buffer = 27 characters
+#define BUFFER ((volatile unsigned char*) 0x1ffff000)
+#define BUFFER_SIZE 100 //length of Buffer = 27 characters
 
 
 //DataInReady

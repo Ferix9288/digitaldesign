@@ -6,7 +6,7 @@ _start:
 	sw $0, 0x1fff001c #Reset InIndex
 	sw $0, 0x1fff0020 #Reset OutIndex
 	addiu $t0, $0, 82
-	sw $t0,0x1beef000 #Setting State = 'r'
+	sw $t0,0x1beef000 #Setting State = 'R'
 	sw $0, 0x1fff0028 #Reset SW_RTC
 	addiu $t1, $0, 1
 	sw $t1, 0x1fff002c #PRINT_EN = 1
