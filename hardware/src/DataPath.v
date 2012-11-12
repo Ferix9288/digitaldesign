@@ -120,7 +120,8 @@ module DataPath(
 
 		//Needed for BIOS/Instr$
 		output reg [31:0] PC,
-		output reg [31:0] pcE
+		output reg [31:0] pcE,
+		output reg [31:0] nextPC
 		//opcodeM
 		);
 
@@ -264,7 +265,7 @@ module DataPath(
    //FOR COP
    reg 				 mtc0_E;
    reg 				 mfc0_E;
-   reg [31:0] 			 nextPC;
+   //reg [31:0] 			 nextPC;
    reg [4:0] 			 rdE;
 
    wire [31:0] 			 ISR_address;

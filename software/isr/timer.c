@@ -1,6 +1,5 @@
 #include "fifo.h"
 #include "uart.h"
-#include "ascii.h"
 
 #define CLK_FREQUENCY 50000000
 

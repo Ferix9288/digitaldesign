@@ -2,6 +2,8 @@
 .global     _start
 
 _start:
+	la $k0, 0x1ff00004 #Save Assembler Temporary @ this address
+	sw $at, 0($k0) 
 	sw $sp, 0x1ff00000 #Save Architectural Stackpointer @ this address
 	la $k0, 0x1f000000
 	addu $sp, $0, $k0 # $sp now points to ISR sp address
@@ -147,6 +149,10 @@ UART_Receive_Done:
 done:
 	#Restore Stackpointer
 	lw $sp, 0x1ff00000
+	#Restore Assembler Temporary Register
+	la $k0, 0x1ff00004
+	lw $at, 0($k0)
+	
 	
 	mfc0 $k1, $12 #Status
 	ori  $k1, $k1, 1

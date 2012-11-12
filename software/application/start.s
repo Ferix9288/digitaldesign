@@ -17,7 +17,7 @@ _start:
 	mtc0 $t0, $9 #Count = almost @ 1 second instantly	
 	la $t1, 0x02faf080
 	mtc0 $t1, $11 #Compare = 50 * 10 ^6
-	la $t2, 0x00007c01 #Status = Enabled
+	la $t2, 0x0000fc01 #Status = Enabled
 	mtc0 $t2, $12 #Status
 	jal main
 	

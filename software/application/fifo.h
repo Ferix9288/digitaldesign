@@ -12,6 +12,7 @@
 #define MIN ((volatile unsigned int*) 0x1fff0034)
 //38 and 3c taken
 
+
 void FIFOWrite(char* s);
 
 void FIFORead();

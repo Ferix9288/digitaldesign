@@ -51,6 +51,7 @@ module Control(
 	       //ALUOutE  
 	       input [31:0] PC,
 	       input [31:0] pcE,
+	       input [31:0] nextPC,
 
 	       //Original Control unit outputs
 	       output reg memToReg,
@@ -397,7 +398,7 @@ module Control(
    assign dcache_re_Ctr = (ALUOutE[31] == 1'b0) && (isLoadE) && 
 			  (ALUOutE[30] == 1'b0) && (ALUOutE[28] == 1'b1);
 
-   assign icache_re_Ctr = (PC[31:28] == 4'b0001);
+   assign icache_re_Ctr = (PC[31:28] == 4'b0001) || (nextPC[31:28] == 4'b0001);
 
    assign readCycleCount = (ALUOutE == 32'h80000010);
    assign readInstrCount = (ALUOutE == 32'h80000014);

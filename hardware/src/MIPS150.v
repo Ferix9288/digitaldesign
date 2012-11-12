@@ -72,6 +72,8 @@ module MIPS150(
    
    wire [31:0] PC;
    wire [31:0] pcE;
+   wire [31:0] nextPC;
+   
    
 
    wire        dcache_re_Ctr, icache_re_Ctr;
@@ -181,7 +183,8 @@ module MIPS150(
 		     .ALUOutM(ALUOutM),
 		     .opcodeM(opcodeM),
 		     .PC(PC),
-		     .pcE(pcE));
+		     .pcE(pcE),
+		     .nextPC(nextPC));
    
    Control Controls(.stall(stall),
 		    .opcodeF(opcodeF),
@@ -206,6 +209,7 @@ module MIPS150(
 		    .opcodeM(opcodeM),
 		    .PC(PC),
 		    .pcE(pcE),
+		    .nextPC(nextPC),
 		    .memToReg(memToReg),
 		    .regWrite(regWrite),
 		    .extType(extType),

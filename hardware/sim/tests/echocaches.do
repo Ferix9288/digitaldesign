@@ -29,6 +29,9 @@ add wave EchoTestbenchCaches/DUT/DataPath/dataMemWriteEn
 add wave EchoTestbenchCaches/DUT/DataPath/instruction
 add wave EchoTestbenchCaches/DUT/DataPath/DecIn
 add wave EchoTestbenchCaches/DUT/DataPath/writeBack
+add wave EchoTestbenchCaches/DUT/DataPath/icache_re
+add wave EchoTestbenchCaches/DUT/DataPath/icache_addr
+add wave EchoTestbenchCaches/DUT/DataPath/instruction
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_re
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout
 add wave EchoTestbenchCaches/DUT/DataPath/dcache_dout_Masked
