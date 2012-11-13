@@ -5,8 +5,8 @@ _start:
 	li $sp, 0x1eff0000
 	sw $0, 0x1fff001c #Reset InIndex
 	sw $0, 0x1fff0020 #Reset OutIndex
-	addiu $t0, $0, 82
-	sw $t0,0x1beef000 #Setting State = 'R'
+	addiu $t0, $0, 86
+	sw $t0,0x1beef000 #Setting State = 'V'
 	sw $0, 0x1fff0028 #Reset SW_RTC
 	addiu $t1, $0, 1
 	sw $t1, 0x1fff002c #PRINT_EN = 1

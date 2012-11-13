@@ -2,13 +2,7 @@
 #define FIFO_H_
 
 #define BUFFER ((volatile unsigned char*) 0x1ffff000)
-#define BUFFER_SIZE 100 //length of Buffer = 27 characters
-
-
-//DataInReady
-//#define TRAN_CTRL (*((volatile unsigned int*)0x80000000) & 0x01)
-//DataIn
-//#define TRAN_DATA *((volatile unsigned int*)0x80000008)
+#define BUFFER_SIZE 100 //length of Buffer = 100 characters
 
 #define inIndex *((volatile unsigned int*) 0x1fff001c)
 #define outIndex *((volatile unsigned int*) 0x1fff0020)

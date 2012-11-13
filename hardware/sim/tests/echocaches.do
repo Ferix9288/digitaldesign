@@ -72,4 +72,4 @@ add wave EchoTestbenchCaches/DUT/DataPath/UARTModule/*
 add wave EchoTestbenchCaches/DUT/Controls/UARTControl/*
 
 add wave EchoTestbenchCaches/uart/*
-run 500us
+run 10000us

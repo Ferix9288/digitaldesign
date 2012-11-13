@@ -28,7 +28,7 @@ timer_ISR:
 	lw $k0, 0x1fff0030
 	addiu $k0, $k0, 1
 	sw $k0, 0x1fff0030
-	
+
 	#Save registers
 	addiu $sp, $sp, -28
 	sw $v0, 0($sp)

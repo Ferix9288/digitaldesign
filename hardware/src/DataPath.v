@@ -580,7 +580,7 @@ module DataPath(
 	 addrPC_BIOS = nextPC[13:2];	 
       end else if (stall) begin
 	 addrPC_BIOS = nextPC_E[13:2];
-	 ISR_ReadAddr = nextPC_E[13:2];
+	 ISR_ReadAddr = (PC == ISR_address)? ISR_address[13:2]: nextPC_E[13:2];
       end else begin
 	 addrPC_BIOS = nextPC[13:2];
 	 ISR_ReadAddr = nextPC[13:2];
