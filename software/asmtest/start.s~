@@ -1,0 +1,24 @@
+.section    .start
+.global     _start
+
+_start:
+
+la $k0, 0xfff0
+mtc0 $k0, $9
+addiu $t0, $0, 10
+li $s7, 0x30000100
+sw $t0, 0($s7)
+
+addiu $t0, $0, 24
+addiu $t1, $0, 24
+beq $t0, $t1, Done
+nop
+
+Error:
+# Perhaps write the test number over serial
+
+Done:
+# Write success over serial
+
+
+

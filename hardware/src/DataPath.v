@@ -42,6 +42,9 @@ module DataPath(
 		//Write Ctr output 
 		input [3:0] instrMemWriteEn,
 
+		//Write Ctr output for Instr Memory
+		input [3:0] ISR_MemWriteEn,
+
 		//Branch Ctr output 
 		input branchCtr,
 
@@ -62,7 +65,8 @@ module DataPath(
 		input legalReadE,
 		
 		//BIOS+Instr$ outputs
-		input isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS,
+		input isBIOS_Data, enPC_BIOS, enData_BIOS,
+		input [1:0] instrSrc,
 		input dcache_re_Ctr, icache_re_Ctr,
 
 		//MEM I/O Counters Control Signals
@@ -70,7 +74,7 @@ module DataPath(
 
 		//FOR CP0
 
-		input mtc0, mtf0,
+		input mtc0, mfc0, causeDelaySlot,
 		
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
@@ -116,7 +120,8 @@ module DataPath(
 
 		//Needed for BIOS/Instr$
 		output reg [31:0] PC,
-		output reg [31:0] pcE
+		output reg [31:0] pcE,
+		output reg [31:0] nextPC
 		//opcodeM
 		);
 
@@ -223,9 +228,50 @@ module DataPath(
    //-- FOR CP0 --
 
    //~Inputs~
+
+   reg [4:0] 			 COP_addr;
+   reg 				 InterruptHandled;
+   //reg 				 UART0Request, UART1Request;
    
+   //~Outputs~
+   wire 			 InterruptRequest;
    wire [31:0] 			 COP_Dout;
+
+
+   //--FOR ISR Memory --
+   //~Inputs~
+
+   reg [11:0] 			 ISR_DataAddr;
+   reg [11:0] 			 ISR_ReadAddr;
+   reg [31:0] 			 ISR_din;
+
+   ///~Outputs~
+
+   wire [31:0] 			 ISR_dout;
    
+   
+   
+   //-- FOR UART Interrupt Requests --
+
+   //~Inputs~
+
+   //~Outputs~
+   wire 			 UART0Request, UART1Request;
+   
+   //FOR MEMORY-MAPPED I/O Counters
+   reg [31:0] 			 CycleCounter, InstrCounter;
+   
+
+   //FOR COP
+   reg 				 mtc0_E;
+   reg 				 mfc0_E;
+   //reg [31:0] 			 nextPC;
+   reg [4:0] 			 rdE;
+
+   wire [31:0] 			 ISR_address;
+   reg [31:0] 			 InterruptedPC;
+   
+   assign ISR_address = 32'hc0000000;
    
    
    //Instantiating ALU
@@ -276,8 +322,7 @@ module DataPath(
 
    
    //Instantiating DataOutMask for BIOS Data
-   DataOutMask BIOSMemMask(
-			   //Inputs
+   DataOutMask BIOSMemMask(//Inputs
 			   .DataOutMem(Data_BIOSOut),
 			   .opcode(opcodeM), //An output into an input?
 			   .byteOffset(byteOffsetM),
@@ -289,6 +334,7 @@ module DataPath(
 			     .opcode(opcodeM),
 			     .byteOffset(byteOffsetM),
 			     .DataOutMasked(dcache_dout_Masked));
+
    
    //Instantiating BIOS Memory
    bios_mem BIOS(//inputs
@@ -303,6 +349,17 @@ module DataPath(
 		 .addrb(addrData_BIOS),
 		 //output
 		 .doutb(Data_BIOSOut));
+
+   isr_mem ISR_Memory(//Inputs
+		      .clka(clk),
+		      .ena(1'b1),
+		      .wea(ISR_MemWriteEn),
+		      .addra(ISR_DataAddr), //ISR_dataAddr
+		      .dina(ISR_din), //ISR_din
+		      .clkb(clk),
+		      .addrb(ISR_ReadAddr), //ISR_readAddr
+		      .doutb(ISR_dout));
+
 
    InstrDecoder InstructionDecoder(
 				   //Inputs
@@ -334,33 +391,45 @@ module DataPath(
 		   .SOut(SOut)
 		   );
 
+   wire 			 globalEnable;
+   
    COP0150 Coprocessor(//Inputs
 		       .Clock(clk),
-		       .Enable(),
+		       .Enable(1'b1),
 		       .Reset(reset),
-		       .DataAddress(rdF),
+		       .DataAddress(COP_addr),
 		       //Output
 		       .DataOut(COP_Dout),
 		       //Inputs
 		       .DataInEnable(mtc0_E),
-		       .DataIn(),
-		       .InterruptedPC(),
-		       .InterruptHandled(),
+		       .DataIn(rd2Fwd),
+		       .InterruptedPC(InterruptedPC),
+		       .InterruptHandled(InterruptHandled),
 		       //Ouput
-		       .InterruptRequest(),
+		       .InterruptRequest(InterruptRequest),
 		       //Inputs
-		       .UART0Request(),
-		       .UART1Request()
+		       .UART0Request(UART0Request),
+		       .UART1Request(UART1Request),
+		       .globalEnable(globalEnable)
 		       );
+
+ 
+   UARTRequest UART0RequestModule(//Inputs
+			    .clk(clk),
+			    .reset(reset),
+			    .signal(DataOutValid),
+			    .UARTRequest(UART0Request));
+
+   UARTRequest UART1RequestModule(//Inputs
+			    .clk(clk),
+			    .reset(reset),
+			    .signal(DataInReady),
+			    .UARTRequest(UART1Request));
+   
+
    
    
-   //FOR MEMORY-MAPPED I/O Counters
-   reg [31:0] 			 CycleCounter, InstrCounter;
-   
-   
-   //reg [31:0] 			 PC;
-   reg [31:0] 			 nextPC;
-   //reg [31:0] pcE;
+
    
 
    //=================FETCH==================//
@@ -450,7 +519,7 @@ module DataPath(
 	 PC <= nextPC;
 	 InstrCounter <= 0;
       end else begin
-	 PC <= nextPC;
+	 PC <= (InterruptHandled)? ISR_address: nextPC;
 	 InstrCounter <= InstrCounter + 1;
       end
    end	 
@@ -470,32 +539,55 @@ module DataPath(
    reg [31:0] nextPC_E;
 
    
+   //Next PC Logic
    always@(*) begin
       if (resetClocked) begin
 	 nextPC = 32'h40000000;
 	 //instrMemAddr_B = 0;
-	 addrPC_BIOS = 0;
-      end else if (stall) begin
-	 addrPC_BIOS = nextPC_E[13:2];
+//	 addrPC_BIOS = 0;
+     // end else if (stall) begin
+     //	 addrPC_BIOS = nextPC_E[13:2];
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
 	 //instrMemAddr_B = nextPC[13:2];
-	 addrPC_BIOS = nextPC[13:2];
+	 //addrPC_BIOS = nextPC[13:2];
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
 	 //instrMemAddr_B = nextPC[13:2];
-	 addrPC_BIOS = nextPC[13:2];
+	 //addrPC_BIOS = nextPC[13:2];
       end else if (jrE || jalrE) begin
-	 nextPC = rd1E;
+	 nextPC = rd1Fwd;
 	 //instrMemAddr_B = nextPC[13:2];
-	 addrPC_BIOS = nextPC[13:2];
+	 //addrPC_BIOS = nextPC[13:2];
+     // end else if (InterruptHandled) begin
+	// nextPC = 32'hc0000000;
       end else begin
 	 nextPC = PC + 4;
 	 //instrMemAddr_B = nextPC[13:2];
-	 addrPC_BIOS = nextPC[13:2];
+	 //addrPC_BIOS = nextPC[13:2];
 
       end
    end // always@ (*)
+
+
+   //Setting read address ports for memories
+   always@(*) begin
+      if (resetClocked) begin
+	 addrPC_BIOS = 0;
+	 ISR_ReadAddr = 0;
+      end else if (InterruptHandled) begin
+	 ISR_ReadAddr = ISR_address[13:2];
+	 addrPC_BIOS = nextPC[13:2];	 
+      end else if (stall) begin
+	 addrPC_BIOS = nextPC_E[13:2];
+	 ISR_ReadAddr = (PC == ISR_address)? ISR_address[13:2]: nextPC_E[13:2];
+      end else begin
+	 addrPC_BIOS = nextPC[13:2];
+	 ISR_ReadAddr = nextPC[13:2];
+      end
+   end
+	
+	
    
 
    
@@ -507,7 +599,16 @@ module DataPath(
    
    //Combinatorial logic linking BIOS/Instruction Memory to Decoder
    always@(*) begin
-      DecIn = (instrSrc)? PC_BIOSOut : instruction;
+      case (instrSrc)
+	2'b00:
+	  DecIn = instruction;
+	2'b01:
+	  DecIn = PC_BIOSOut;
+	2'b10:
+	  DecIn = ISR_dout;
+	default:
+	  DecIn = PC_BIOSOut;
+      endcase // case (instrSrc)
    end   
    
    //Combinatorial logic for sign extension
@@ -537,6 +638,20 @@ module DataPath(
       rd2F = (FwdBfromMtoF)? writeBack: rd2;
    end
 
+   //Combinatorial logic fed into and out of COP
+   //Think of it as in parallel with RegFile
+   always@(*) begin
+      COP_addr = (mtc0_E)? rdE : rdF;      
+   end
+
+   //Clock logic for Interrupt Handled (needs to stay high through stall!)
+   always@(*) begin
+      InterruptHandled = (stall)? 0 : InterruptRequest & (!causeDelaySlot);
+      InterruptedPC = (stall)? nextPC_E : nextPC;
+      
+   end
+      
+
    //=================PipeLineFE=================//
 
    reg 				 memToRegE;
@@ -546,6 +661,9 @@ module DataPath(
    reg 				 shiftE;
    //reg [3:0] 			 ALUopE;
    reg 				 icache_re_Ctr_E;
+   reg [31:0] 			 COP_Dout_E;
+   
+   
    
    
 
@@ -563,11 +681,10 @@ module DataPath(
 	 jalrE <= jalrF;
 	 shiftE <= shiftF;
 	 icache_re_Ctr_E <= icache_re_Ctr;
+	 mtc0_E <= mtc0;
+	 mfc0_E <= mfc0;
+	 COP_Dout_E <= COP_Dout;
 	 
-	 
-	 // end else begin 
-	 //	 regWriteE <= 0;	 
-	 //end
       end else if (reset) begin // if (!reset & !stall)
 	 memToRegE <= 0;
 	 regWriteE <= 0;
@@ -580,6 +697,9 @@ module DataPath(
 	 jalrE <= 0;
 	 shiftE <= 0;
 	 icache_re_Ctr_E <= 0;
+	 mtc0_E <= 0;
+	 mfc0_E <= 0;
+	 COP_Dout_E <= 0;
 	 
       end else begin // if (rest)
       	 memToRegE <= memToRegE;
@@ -593,20 +713,15 @@ module DataPath(
 	 jalrE <= jalrE;
 	 shiftE <= shiftE;
 	 icache_re_Ctr_E <= icache_re_Ctr_E;
-	 
+	 mtc0_E <= mtc0_E;
+	 mfc0_E <= mfc0_E;
+	 COP_Dout_E <= COP_Dout_E;
       end
       
    end
    
-   // reg [5:0] opcodeE;
-   //reg [5:0] functE;
-   // reg [4:0] rsE;
-   // reg [4:0] rtE;
-   reg [4:0] rdE;
-   //reg [31:0] rd1Fwd;
-   //reg [31:0] rd2Fwd;
-   
-   
+
+  
    //transfering non-control signals
    always@(posedge clk) begin
       if (!reset && !stall) begin
@@ -697,7 +812,7 @@ module DataPath(
       DataOutReadyE = DataOutReady;
    end
    
-   //Data Memory inputs for DCache + ICache 
+   //Data Memory inputs for DCache + ICache + ISR (Write)
    always@(*) begin
       dataMemIn_toMask = rd2Fwd;
       //dataMemAddr = ALUOutE[13:2];
@@ -712,6 +827,10 @@ module DataPath(
 
       icache_we = instrMemWriteEn; //make sure PC[30] == 1
       icache_din = dataInMasked;
+
+      ISR_DataAddr = (stall)? ALUOutM[13:2]: ALUOutE[13:2];
+      ISR_din = dataInMasked;
+      
 
    end
    
@@ -728,6 +847,10 @@ module DataPath(
    reg 				 isLoadM;
    reg 				 readCycleCount_M;
    reg 				 readInstrCount_M;
+   reg [31:0] 			 COP_Dout_M;
+   reg 				 mfc0_M;
+   
+   
    
    
    
@@ -748,6 +871,9 @@ module DataPath(
 	 readCycleCount_M <= readCycleCount;
 	 readInstrCount_M <=  readInstrCount;
 	 resetCounters_M <= resetCounters;
+	 mfc0_M <= mfc0_E;
+	 COP_Dout_M <= COP_Dout_E;
+	 
 	 
       end else if (reset) begin
 	 memToRegM <= 0;
@@ -762,8 +888,9 @@ module DataPath(
 	 readCycleCount_M <= 0;
 	 readInstrCount_M <= 0;
 	 resetCounters_M <= 0;
-	 
-	 
+	 COP_Dout_M <= 0;
+	 mfc0_M <= 0;
+
       end else begin
 	 memToRegM <= memToRegM;
 	 regWriteM <= regWriteM;
@@ -777,6 +904,9 @@ module DataPath(
 	 readCycleCount_M <= readCycleCount_M;
 	 readInstrCount_M <=  readInstrCount_M;
 	 resetCounters_M <= resetCounters_M;
+	 COP_Dout_M <= COP_Dout_M;
+	 mfc0_M <=  mfc0_M;
+	 
 	 
       end
    end
@@ -814,8 +944,6 @@ module DataPath(
       end     
    end
 
-
-
    //=================Memory==================//
 
    //Determine which read enable /address to take to account for stall
@@ -829,7 +957,6 @@ module DataPath(
 	icache_addr = (stall)? nextPC_E: nextPC;
       else
 	icache_addr = (stall)? ALUOutM: ALUOutE;
-
    end
    
    //Combinatorial logic for all wires after Data Memory
@@ -850,6 +977,8 @@ module DataPath(
    always@(*) begin
       if (isBIOS_DataM)
 	writeBack = Data_BIOSOut_Masked;
+      else if (mfc0_M)
+	writeBack = COP_Dout_M;
       else if (!memToRegM) 
 	writeBack = ALUOutM;
       else if (UARTCtrM)
@@ -858,7 +987,8 @@ module DataPath(
 	writeBack = CycleCounter;
       else if (readInstrCount_M)
 	writeBack = InstrCounter;
-      else 
+   
+      else
 	writeBack = dcache_dout_Masked;
    end
 
@@ -868,7 +998,7 @@ module DataPath(
       regWA = (jalM)? 31 : waM;
    end
 
-   //ChipScope components:
+  // ChipScope components:
    
    wire [35:0] chipscope_control;
    chipscope_icon icon(
@@ -878,7 +1008,7 @@ module DataPath(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
 		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-		     .TRIG0({reset, stall, DataInValid, DataOutReady, instruction, instrMemWriteEn, icache_re, icache_addr, PC, DecIn, dataMemWriteEn, dataInMasked, dcache_re, ALUOutE, writeBack, regWriteM, readCycleCount_M, readInstrCount_M, resetCounters_M})
+		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
 		     ) /* synthesis syn_noprune=1 */;
    
 

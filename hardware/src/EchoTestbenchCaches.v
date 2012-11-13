@@ -208,13 +208,14 @@ module EchoTestbenchCaches();
       repeat (100) @( posedge cpu_clk_g );
 
       Reset = 1;
-      repeat (30) @( posedge cpu_clk_g );
+      repeat (5) @( posedge cpu_clk_g );
       Reset = 0;
 
       // Wait until transmit is ready
       @( posedge init_done ) ; // wait for ddr init done
       repeat (5) @( posedge cpu_clk_g ) ;
-      DataInValid = 1'b1;
+       /*
+	* DataInValid = 1'b1;
       @( posedge cpu_clk_g ) ;
       DataInValid = 1'b0;
 
@@ -300,7 +301,8 @@ module EchoTestbenchCaches();
       @( posedge DataOutValid ) ;
       @( posedge cpu_clk_g ) ;
       $display("Got %h", DataOut);
-      $finish();
+	*/
+      //$finish();
   end
 
 endmodule

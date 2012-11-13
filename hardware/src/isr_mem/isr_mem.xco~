@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.1
-# Date: Sat Nov  3 09:14:34 2012
+# Date: Sat Nov  3 10:14:14 2012
 #
 ##############################################################
 #
@@ -19,7 +19,7 @@
 # BEGIN Project Options
 SET addpads = false
 SET asysymbol = true
-SET busformat = BusFormatAngleBracketNotRipped
+SET busformat = BusFormatSquareBracketNotRipped
 SET createndf = false
 SET designentry = Verilog
 SET device = xc5vlx110t
@@ -31,7 +31,7 @@ SET implementationfiletype = Ngc
 SET package = ff1136
 SET removerpms = false
 SET simulationfiles = Behavioral
-SET speedgrade = -3
+SET speedgrade = -1
 SET verilogsim = true
 SET vhdlsim = false
 # END Project Options
@@ -41,21 +41,21 @@ SELECT Block_Memory_Generator family Xilinx,_Inc. 4.3
 # BEGIN Parameters
 CSET additional_inputs_for_power_estimation=false
 CSET algorithm=Minimum_Area
-CSET assume_synchronous_clk=true
-CSET byte_size=9
-CSET coe_file=./bios150v3.coe
+CSET assume_synchronous_clk=false
+CSET byte_size=8
+CSET coe_file=./echo.coe
 CSET collision_warnings=ALL
-CSET component_name=bios_mem
+CSET component_name=isr_mem
 CSET disable_collision_warnings=false
 CSET disable_out_of_range_warnings=false
 CSET ecc=false
 CSET ecctype=No_ECC
 CSET enable_a=Use_ENA_Pin
-CSET enable_b=Use_ENB_Pin
+CSET enable_b=Always_Enabled
 CSET error_injection_type=Single_Bit_Error_Injection
 CSET fill_remaining_memory_locations=false
 CSET load_init_file=true
-CSET memory_type=Dual_Port_ROM
+CSET memory_type=Simple_Dual_Port_RAM
 CSET operating_mode_a=WRITE_FIRST
 CSET operating_mode_b=WRITE_FIRST
 CSET output_reset_value_a=0
@@ -63,7 +63,7 @@ CSET output_reset_value_b=0
 CSET pipeline_stages=0
 CSET port_a_clock=100
 CSET port_a_enable_rate=100
-CSET port_a_write_rate=0
+CSET port_a_write_rate=50
 CSET port_b_clock=100
 CSET port_b_enable_rate=100
 CSET port_b_write_rate=0
@@ -83,7 +83,7 @@ CSET reset_priority_a=CE
 CSET reset_priority_b=CE
 CSET reset_type=SYNC
 CSET softecc=false
-CSET use_byte_write_enable=false
+CSET use_byte_write_enable=true
 CSET use_error_injection_pins=false
 CSET use_regcea_pin=false
 CSET use_regceb_pin=false
@@ -97,4 +97,4 @@ CSET write_width_b=32
 MISC pkg_timestamp=2012-04-24T06:33:33Z
 # END Extra information
 GENERATE
-# CRC: 5945b777
+# CRC: 4a61712f

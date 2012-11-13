@@ -35,8 +35,7 @@ module MIPS150(
    wire       jal;
    wire       jalr;
    wire       shift;
-   wire [3:0] dataMemWriteEn;
-   wire [3:0] instrMemWriteEn;
+   wire [3:0] dataMemWriteEn, instrMemWriteEn, ISR_MemWriteEn;
    wire       branchCtr;
    wire       FwdAfromMtoE;
    wire       FwdBfromMtoE;
@@ -68,15 +67,19 @@ module MIPS150(
    wire        DataOutValid;
    wire [7:0]  UARTDataOut;
    wire        isLoadE, legalReadE;  
-   wire        isBIOS_Data, instrSrc, enPC_BIOS, enData_BIOS;
+   wire        isBIOS_Data, enPC_BIOS, enData_BIOS;
+   wire [1:0]  instrSrc;
+   
    wire [31:0] PC;
    wire [31:0] pcE;
+   wire [31:0] nextPC;
+   
    
 
    wire        dcache_re_Ctr, icache_re_Ctr;
 
    wire        readCycleCount, readInstrCount, resetCounters;
-   wire        mtc0, mtf0;
+   wire        mtc0, mfc0, causeDelaySlot;
    
    
    
@@ -88,7 +91,7 @@ module MIPS150(
 		     .stall(stall),
 		     .reset(rst),
 		     .SIn(FPGA_SERIAL_RX),
-		     //Outputs
+		     //Outputs to Cache
 		     .SOut(FPGA_SERIAL_TX),
 		     .dcache_addr(dcache_addr),
 		     .icache_addr(icache_addr),
@@ -98,10 +101,12 @@ module MIPS150(
 		     .icache_re(icache_re),
 		     .dcache_din(dcache_din),
 		     .icache_din(icache_din),
-		     //Inputs
+		     //Inputs from Cache
 		     .dcache_dout(dcache_dout),
 		     .instruction(instruction),
-	
+
+
+		     //Basic Controls
 		     .memToReg(memToReg),
 		     .regWrite(regWrite),
 		     .extType(extType),
@@ -113,13 +118,20 @@ module MIPS150(
 		     .jal(jal),
 		     .jalr(jalr),
 		     .shift(shift),
+
+		     //Write Enables for Memory
 		     .dataMemWriteEn(dataMemWriteEn),
 		     .instrMemWriteEn(instrMemWriteEn),
+		     .ISR_MemWriteEn(ISR_MemWriteEn),
+
+		     //Branch Control Logic
 		     .branchCtr(branchCtr),
 		     .FwdAfromMtoE(FwdAfromMtoE),
 		     .FwdBfromMtoE(FwdBfromMtoE),
 		     .FwdAfromMtoF(FwdAfromMtoF),
 		     .FwdBfromMtoF(FwdBfromMtoF),
+
+		     //UART Control
 		     .UARTCtr(UARTCtr),
 		     .UARTCtrOutM(UARTCtrOutM),
 		     .DataInValid(DataInValid),
@@ -129,9 +141,10 @@ module MIPS150(
 
 		     //FOR BIOS MEM
 		     .isBIOS_Data(isBIOS_Data),
-		     .instrSrc(instrSrc),
 		     .enPC_BIOS(enPC_BIOS),
 		     .enData_BIOS(enData_BIOS),
+		     .instrSrc(instrSrc),
+
 		     .dcache_re_Ctr(dcache_re_Ctr),
 		     .icache_re_Ctr(icache_re_Ctr),
 
@@ -143,7 +156,8 @@ module MIPS150(
 		     //FOR CP0
 
 		     .mtc0(mtc0),
-		     .mtf0(mtf0),
+		     .mfc0(mfc0),
+		     .causeDelaySlot(causeDelaySlot),
 		     
 		     //OUTPUTS
 
@@ -169,7 +183,8 @@ module MIPS150(
 		     .ALUOutM(ALUOutM),
 		     .opcodeM(opcodeM),
 		     .PC(PC),
-		     .pcE(pcE));
+		     .pcE(pcE),
+		     .nextPC(nextPC));
    
    Control Controls(.stall(stall),
 		    .opcodeF(opcodeF),
@@ -194,6 +209,7 @@ module MIPS150(
 		    .opcodeM(opcodeM),
 		    .PC(PC),
 		    .pcE(pcE),
+		    .nextPC(nextPC),
 		    .memToReg(memToReg),
 		    .regWrite(regWrite),
 		    .extType(extType),
@@ -205,8 +221,11 @@ module MIPS150(
 		    .jal(jal),
 		    .jalr(jalr),
 		    .shift(shift),
+		    
 		    .dataMemWriteEn(dataMemWriteEn),
 		    .instrMemWriteEn(instrMemWriteEn),
+		    .ISR_MemWriteEn(ISR_MemWriteEn),
+		    
 		    .branchCtr(branchCtr),
 		    .FwdAfromMtoE(FwdAfromMtoE),
 		    .FwdBfromMtoE(FwdBfromMtoE),
@@ -219,16 +238,17 @@ module MIPS150(
 		    .isLoadE(isLoadE),
 		    .legalReadE(legalReadE),
 		    .isBIOS_Data(isBIOS_Data),
-		    .instrSrc(instrSrc),
 		    .enPC_BIOS(enPC_BIOS),
 		    .enData_BIOS(enData_BIOS),
+		    .instrSrc(instrSrc),
 		    .dcache_re_Ctr(dcache_re_Ctr),
 		    .icache_re_Ctr(icache_re_Ctr),
 		    .readCycleCount(readCycleCount),
 		    .readInstrCount(readInstrCount),
 		    .resetCounters(resetCounters),
 		    .mtc0(mtc0),
-		    .mfc0(mfc0));
+		    .mfc0(mfc0),
+		    .causeDelaySlot(causeDelaySlot));
    
 		    
 
