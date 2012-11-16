@@ -22,11 +22,49 @@ module PixelFeeder( //System:
     localparam IDLE = 1'b0;
     localparam FETCH = 1'b1;
 
-    reg  [31:0] ignore_count;
+   reg [31:0] 		   ignore_count;
+   reg [10:0] 		   CountPixels;
+   
 
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
+     * 
+     * 
     **************************************************************************/
+   /*
+    * reg 			   curState, nextState;
+   wire 	feeder_full;
+   
+   
+   always @(posedge cpu_clk_g) begin
+      if (rst) begin
+	 curState <= IDLE;
+	 CountPixels <= 0;
+      end else begin
+	 curState <= nextState;
+	 if (rdf_valid)
+	   CountPixels <= CountPixels - 8;
+	 else if (af_wr_en)
+	   CountPixels <= CountPixels + 8;
+	 else
+	   CountPixels <= CountPixels;
+      end
+   end
+
+   always @(*) begin
+      case (curState)
+	IDLE:
+	  nextState =  (CountPixels > 2040)? IDLE: FETCH;
+	FETCH:
+	  nextState =  (CountPixels > 2040)? IDLE: curState;
+      endcase
+    end
+
+   assign rdf_rd_en = (curState == FETCH);
+   assign af_wr_en = (curState == FETCH);
+   assign af_addr_din = {3'b001, 28'h1004234};
+    */
+   
 
 
     /* We drop the first frame to allow the buffer to fill with data from

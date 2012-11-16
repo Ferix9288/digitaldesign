@@ -410,7 +410,7 @@ module Memory150(
    GraphicsProcessor graphicsprocessor(
       .clk(cpu_clk_g),
       .rst(rst || ~init_done), 
-      .bsel(fb0),
+      //.bsel(fb0),
       //line engine IO
       .LE_ready(line_ready),
       .LE_color(line_color),
