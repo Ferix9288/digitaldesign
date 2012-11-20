@@ -23,47 +23,52 @@ module PixelFeeder( //System:
     localparam FETCH = 1'b1;
 
    reg [31:0] 		   ignore_count;
-   reg [10:0] 		   CountPixels;
+   reg [11:0] 		   CountPixels;
+   reg [30:0] 		   frameCount;
    
-
+   
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
      * 
      * 
     **************************************************************************/
-   /*
-    * reg 			   curState, nextState;
-   wire 	feeder_full;
+   reg 			   curState, nextState;
+   wire 		   feeder_full;
    
    
    always @(posedge cpu_clk_g) begin
       if (rst) begin
 	 curState <= IDLE;
 	 CountPixels <= 0;
+	 frameCount <= 31'h08_0000;	 
       end else begin
 	 curState <= nextState;
-	 if (rdf_valid)
-	   CountPixels <= CountPixels - 8;
-	 else if (af_wr_en)
-	   CountPixels <= CountPixels + 8;
-	 else
+	 if (rdf_valid & video_ready & af_wr_en) begin
+	    CountPixels <= CountPixels;
+	    frameCount <= frameCount + 8;
+	 end else if (af_wr_en) begin
+	    frameCount <= frameCount + 8;
+	    CountPixels <= CountPixels + 8;
+	 end else if (rdf_valid & video_ready) begin
+	    CountPixels <= CountPixels - 8;
+	 end else begin
 	   CountPixels <= CountPixels;
+	 end
       end
    end
 
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  (CountPixels > 2040)? IDLE: FETCH;
+	  nextState =  (CountPixels > 2048)? IDLE: FETCH;
 	FETCH:
-	  nextState =  (CountPixels > 2040)? IDLE: curState;
+	  nextState =  (CountPixels > 2048)? IDLE: curState;
       endcase
-    end
+   end
 
    assign rdf_rd_en = (curState == FETCH);
    assign af_wr_en = (curState == FETCH);
-   assign af_addr_din = {3'b001, 28'h1004234};
-    */
+   assign af_addr_din = frameCount;
    
 
 
@@ -80,8 +85,9 @@ module PixelFeeder( //System:
 
     // FIFO to buffer the reads with a write width of 128 and read width of 32. We try to fetch blocks
     // until the FIFO is full.
-    wire [31:0] feeder_dout;
-
+   wire [31:0] feeder_dout;
+   wire        feeder_empty;
+   
     pixel_fifo feeder_fifo(
     	.rst(rst),
     	.wr_clk(cpu_clk_g),
@@ -95,6 +101,15 @@ module PixelFeeder( //System:
 
     assign video = feeder_dout[23:0];
     assign video_valid = 1'b1;
-
+   
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(cpu_clk_g),
+		     .TRIG0({rst, CountPixels, curState, rdf_valid, af_wr_en, af_addr_din})
+		     );
 endmodule
 
