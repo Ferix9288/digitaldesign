@@ -18,15 +18,15 @@ module PixelFeeder( //System:
 
 		    output frame_interrupt);
 
-    // Hint: States
-    localparam IDLE = 1'b0;
-    localparam FETCH = 1'b1;
+   // Hint: States
+   localparam IDLE = 1'b0;
+   localparam FETCH = 1'b1;
+   localparam BUFFER_1_DDR = 6'h1;
+   
 
    reg [31:0] 		   ignore_count;
    reg [11:0] 		   CountPixels;
-   reg [30:0] 		   frameCount;
-   
-   
+        
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
      * 
@@ -34,41 +34,86 @@ module PixelFeeder( //System:
     **************************************************************************/
    reg 			   curState, nextState;
    wire 		   feeder_full;
+   reg [9:0] 		   x;
+   reg [9:0] 		   y_Rows;
+
+   wire 		   request_8pixels, fetch_pixel;
+   wire 		   xOverFlow, yOverFlow;
    
+   
+
+
    
    always @(posedge cpu_clk_g) begin
+      
       if (rst) begin
 	 curState <= IDLE;
 	 CountPixels <= 0;
-	 frameCount <= 31'h08_0000;	 
+	 x <= 10'b0;
+	 y_Rows <= 10'b0;
+	 
       end else begin
 	 curState <= nextState;
-	 if (rdf_valid & video_ready & af_wr_en) begin
-	    CountPixels <= CountPixels;
-	    frameCount <= frameCount + 8;
-	 end else if (af_wr_en) begin
-	    frameCount <= frameCount + 8;
+	 //both requesting and fetching a pixel at the same time
+	 if (request_8pixels & fetch_pixel) begin
+	    
+	    CountPixels <= CountPixels + 7;
+	    
+	    x <= (xOverFlow)? 0: x + 8;
+	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
+
+	    //just requesting 8 pixels
+	 end else if (request_8pixels) begin 
+	    
 	    CountPixels <= CountPixels + 8;
-	 end else if (rdf_valid & video_ready) begin
-	    CountPixels <= CountPixels - 8;
+
+	    x <= (xOverFlow)? 0: x + 8;
+	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
+	  
+	    //just fetching a pixel
+	 end else if (fetch_pixel) begin 
+	    
+	    CountPixels <= CountPixels - 1;
+	    
+	    x <= x;
+	    y_Rows <= y_Rows;
+	    
 	 end else begin
-	   CountPixels <= CountPixels;
+	    CountPixels <= CountPixels;
+	    x <= x;
+	    y_Rows <= y_Rows;
 	 end
-      end
+      end // else: !if(rst)
+      
    end
 
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  (CountPixels > 2048)? IDLE: FETCH;
+	  nextState =  (CountPixels >= 2040)? IDLE: FETCH;
 	FETCH:
-	  nextState =  (CountPixels > 2048)? IDLE: curState;
+	  nextState =  (CountPixels >= 2040)? IDLE: curState;
       endcase
    end
 
-   assign rdf_rd_en = (curState == FETCH);
-   assign af_wr_en = (curState == FETCH);
-   assign af_addr_din = frameCount;
+   assign xOverFlow = (x == 10'd792);
+   assign yOverFlow = (y_Rows == 10'd599);
+
+   assign rdf_rd_en = CountPixels > 0; 
+   assign af_wr_en = (curState == FETCH) & (!yOverFlow);
+
+   assign request_8pixels = (af_wr_en & !af_full);
+   assign fetch_pixel = (ignore_count == 0) & video_ready;
+   
+
+
+   /*Original MIPS address: {10'b0001_0000_01, y, x, 2'b0}
+    *Shift said address by 3 ... becomes the following:
+    *Note: only care about x[3] and above because incrementing x by 8
+    */
+   assign af_addr_din = {6'b0, 6'b000001, y_Rows, x[9:3], 2'b0};
+   
+
    
 
 
@@ -109,7 +154,7 @@ module PixelFeeder( //System:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({rst, CountPixels, curState, rdf_valid, af_wr_en, af_addr_din})
+		     .TRIG0({rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, video, CountPixels, x, y_Rows})
 		     );
 endmodule
 

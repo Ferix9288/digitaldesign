@@ -44,7 +44,7 @@ module EchoTestbenchCaches();
     wire  [31:0] dcache_din;
     wire  [31:0] icache_din;
     wire [31:0]  dcache_dout;
-    wire [31:0]  instruction;
+    //wire [31:0]  instruction;
     wire         stall;
 
     // Instantiate your CPU here and connect the FPGA_SERIAL_TX wires
@@ -164,28 +164,33 @@ module EchoTestbenchCaches();
         .dcache_din (dcache_din ),
         .icache_din (icache_din ),
         .dcache_dout(dcache_dout),
-        .instruction(instruction),
+        .icache_dout(icache_dout),
         .stall      (stall      )
     );
 
 
-    MIPS150 DUT(
-        .clk(cpu_clk_g),
-        .rst(Reset || ~init_done),
-        .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
-        .FPGA_SERIAL_TX(FPGA_SERIAL_TX),
-        .dcache_addr (dcache_addr ),
-        .icache_addr (icache_addr ),
-        .dcache_we   (dcache_we   ),
-        .icache_we   (icache_we   ),
-        .dcache_re   (dcache_re   ),
-        .icache_re   (icache_re   ),
-        .dcache_din  (dcache_din  ),
-        .icache_din  (icache_din  ),
-        .dcache_dout (dcache_dout ),
-        .instruction (instruction ),
-        .stall(stall)
-    );
+   MIPS150 DUT(
+               .clk(cpu_clk_g),
+               .rst(Reset || ~init_done),
+	       .stall(stall),
+               .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
+               .FPGA_SERIAL_TX(FPGA_SERIAL_TX),
+               .dcache_addr (dcache_addr ),
+               .icache_addr (icache_addr ),
+               .dcache_we   (dcache_we   ),
+               .icache_we   (icache_we   ),
+               .dcache_re   (dcache_re   ),
+               .icache_re   (icache_re   ),
+               .dcache_din  (dcache_din  ),
+               .icache_din  (icache_din  ),
+               .dcache_dout (dcache_dout ),
+               .instruction (icache_dout ),
+	       .gp_code(),
+	       .gp_frame(),
+	       .gp_valid(),
+	       .frame_interrupt()
+      
+	       );
 
     UART          #( .ClockFreq(       ClockFreq))
                   uart( .Clock(           cpu_clk_g),

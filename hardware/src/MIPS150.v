@@ -1,6 +1,8 @@
 module MIPS150(
     input clk,
     input rst,
+    input stall,
+
 
     // Serial
     input FPGA_SERIAL_RX,
@@ -17,7 +19,6 @@ module MIPS150(
     output [31:0] icache_din,
     input [31:0] dcache_dout,
     input [31:0] instruction,
-    input stall,
 
     output [31:0] gp_code,
     output [31:0] gp_frame,

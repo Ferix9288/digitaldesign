@@ -1,5 +1,5 @@
 start EchoTestbenchCaches
-file copy -force ../../../software/application/application.mif bios_mem.mif
+file copy -force ../../../software/bios150v3/bios150v3.mif bios_mem.mif
 file copy -force ../../../software/isr/isr.mif isr_mem.mif
 
 add wave EchoTestbenchCaches/*
@@ -72,4 +72,4 @@ add wave EchoTestbenchCaches/DUT/DataPath/UARTModule/*
 add wave EchoTestbenchCaches/DUT/Controls/UARTControl/*
 
 add wave EchoTestbenchCaches/uart/*
-run 500us
+run 100us
