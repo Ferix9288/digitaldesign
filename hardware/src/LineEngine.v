@@ -29,13 +29,28 @@ module LineEngine(
 );
 
 
-    // Implement Bresenham's line drawing algorithm here!
+   // Implement Bresenham's line drawing algorithm here!
 
+   //X + Y Coordinates
+   reg [9:0] 		x0, y0, x1, y1;
 
+   //#define swap(x,y)
    
-    // Remove these when you implement this module:
-    assign af_wr_en = 1'b0;
-    assign wdf_wr_en = 1'b0;
-    assign LE_ready = 1'b1;
+   //#define ABS(x) ( (x < 0) ? -x : x)
+   wire [9:0] 	       deltay, ABS_deltay;
+   assign deltay = y1 - y0;
+   assign ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
+     
+   /*
+    * //#define ABS(x) ( (x < 0) ? -x : x)
+   wire [9:0] 	       ABS_x;
+   assign ABS_x = ($signed(x_Cols) < 0)? (~x_Cols + 1) : x_Cols;
+    */
+     
+   
+   // Remove these when you implement this module:
+   assign af_wr_en = 1'b0;
+   assign wdf_wr_en = 1'b0;
+   assign LE_ready = 1'b1;
 
 endmodule

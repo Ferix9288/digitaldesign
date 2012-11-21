@@ -5,8 +5,6 @@
  1. Write start point
  2. Write end-point
  3. Write line color
- If trigger bit set in command, command will also fire on start or end point
- Frame buffer fill will trigger automatically
  
  */
 `include "gpcommands.vh"

@@ -91,8 +91,7 @@ module UARTTestbench();
      end
 
      $display("Test Successful, got output %d", 8'hbf);
-     
-     
+
      $finish();
   end
 
