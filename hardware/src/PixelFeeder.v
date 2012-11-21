@@ -35,14 +35,14 @@ module PixelFeeder( //System:
     **************************************************************************/
    reg 			   curState, nextState;
    wire 		   feeder_full;
-   reg [9:0] 		   x;
+   reg [9:0] 		   x_Cols;
    reg [9:0] 		   y_Rows;
 
    wire 		   request_8pixels, fetch_pixel;
    wire 		   xOverFlow, yOverFlow;
    reg [5:0]		   frameBuffer_addr;
 
-   assign xOverFlow = (x == 10'd792);
+   assign xOverFlow = (x_Cols == 10'd792);
    assign yOverFlow = (y_Rows == 10'd599);
    
    assign rdf_rd_en = 1'b1; 
@@ -59,7 +59,7 @@ module PixelFeeder( //System:
       if (rst) begin
 	 curState <= IDLE;
 	 CountPixels <= 0;
-	 x <= 10'b0;
+	 x_Cols <= 10'b0;
 	 y_Rows <= 10'b0;
 	 frameBuffer_addr <= BUFFER1_DDR;
 	 
@@ -70,10 +70,10 @@ module PixelFeeder( //System:
 	    
 	    CountPixels <= CountPixels + 7;
 
-	    x <= (xOverFlow)? 0: x + 8;
+	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
 	    y_Rows <= (yOverFlow)? 0:
-			      (xOverFlow)? 
-			      y_Rows + 1: y_Rows;
+		      (xOverFlow)? 
+		      y_Rows + 1: y_Rows;
 
 	    if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
@@ -87,10 +87,10 @@ module PixelFeeder( //System:
 	    
 	    CountPixels <= CountPixels + 8;
 
-	    x <= (xOverFlow)? 0: x + 8;
+	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
 	    y_Rows <= (yOverFlow)? 0:
-			      (xOverFlow)? 
-			      y_Rows + 1: y_Rows;
+		      (xOverFlow)? 
+		      y_Rows + 1: y_Rows;
 
 	    if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
@@ -104,12 +104,12 @@ module PixelFeeder( //System:
 	    
 	    CountPixels <= CountPixels - 1;
 	    
-	    x <= x;
+	    x_Cols <= x_Cols;
 	    y_Rows <= y_Rows;
 	    
 	 end else begin
 	    CountPixels <= CountPixels;
-	    x <= x;
+	    x_Cols <= x_Cols;
 	    y_Rows <= y_Rows;
 	 end
       end // else: !if(rst)
@@ -125,25 +125,11 @@ module PixelFeeder( //System:
       endcase
    end
 
-   
-   /*
-    * assign frameBuffer_addr = (frameBuffer_addr == BUFFER1_DDR)?
-			     //if currently in BUFFER1_DDR and overflows
-			     //change to BUFFER2
-			     (yOverFlow)? BUFFER2_DDR:
-			     frameBuffer_addr:
-
-			     //ViceVersa
-			     (yOverFlow)? BUFFER1_DDR:
-			     frameBuffer_addr;
-    */
-   
-
    /*Original MIPS address: {10'b0001_0000_01, y, x, 2'b0}
     *Shift said address by 3 ... becomes the following:
     *Note: only care about x[3] and above because incrementing x by 8
     */
-   assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x[9:3], 2'b0};
+   assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x_Cols[9:3], 2'b0};
    
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
@@ -177,15 +163,17 @@ module PixelFeeder( //System:
    assign video_valid = 1'b1;
    
    
-   wire [35:0] chipscope_control;
+   
+    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, frameBuffer_addr, ignore_count, video, CountPixels, x, y_Rows})
+		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, frameBuffer_addr, ignore_count, video, CountPixels, x_Cols, y_Rows})
 		     );
+   
    
     
 endmodule

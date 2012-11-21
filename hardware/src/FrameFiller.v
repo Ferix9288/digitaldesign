@@ -14,39 +14,74 @@ module FrameFiller(//system:
   output            af_wr_en,
   output [15:0]     wdf_mask_din,
   // handshaking:
-  output            ready,
+  output             ready,
   
   input [31:0] FF_frame_base
   );
 
-   wire        colorWord [31:0];
-   reg [30:0]  increment;
-   
-   /*
-    * assign colorWord = {8'b0, color};
-   assign wdf_din = {colorWord, colorWord, colorWord, colorWord};
-    */
-   assign wdf_wr_en = (!af_full) & (!wdf_full);
-   assign af_wr_en = (!af_full) & (!wdf_full);
+   //COLOR
+   wire [31:0] color_word; 
+   assign  color_word = {8'b0, color};        
+   assign wdf_din = {color_word, color_word, color_word, color_word};
 
-   /*
-    * always@(posedge clk) begin
-      if (rst) begin
-	 increment <= 0;
-      else
-	if (af_wr_en)
-    */
+   //FRAME
+   wire [5:0]  frameBuffer_addr;
+   assign frameBuffer_addr = FF_frame_base[24:19] >> 3;
+
+   //FSM
+   localparam IDLE = 1'b0;
+   localparam FILLING = 1'b1;
+   reg 	       curState, nextState;
+   
+   //X+Y Coordinates
+   reg [9:0] 	       x_Cols;
+   reg [9:0] 	       y_Rows;
+   wire 	       xOverFlow, yOverFlow;   
+   assign xOverFlow = (x_Cols == 10'd792);
+   assign yOverFlow = (y_Rows == 10'd599);
+
+   //REQUEST LOGIC
+   assign wdf_wr_en = (!af_full) & (!wdf_full) & (curState == FILLING);
+   assign af_wr_en = (!af_full) & (!wdf_full) & (curState == FILLING);
+  
+   always@(posedge clk) begin
+      if (rst || (curState == FILLING & nextState == IDLE)) begin
+	 curState <= IDLE;
+	 x_Cols <= 0;
+	 y_Rows <= 0;
+      end else begin
+	 curState <= nextState;
+	 if (af_wr_en) begin
+	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
+	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
+	 end else begin
+	    x_Cols <= x_Cols;
+	    y_Rows <= y_Rows;
+	 end
+      end
+   end // always@ (posedge clk)
+
+   //nextState Logic
+   always@(*) begin
+      case (curState)
 	
+	IDLE:
+	  nextState = (valid)? FILLING: IDLE;
+	
+	FILLING: begin
+	   if (xOverFlow & yOverFlow) begin
+	      nextState = IDLE;
+	   end else begin
+	      nextState = FILLING;
+	   end
+	end
+	   
+      endcase // case (curState)
+   end
    
-    
-   //Your code goes here. GL HF DD DS
-
-   // Remove these when you implement the frame filler:
-
-   assign ready     = 1'b1;
-
-
-
-
+   assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x_Cols[9:3], 2'b0};
+   
+   assign ready = (curState == IDLE);
+   
 
 endmodule
