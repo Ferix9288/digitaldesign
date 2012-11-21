@@ -21,7 +21,8 @@ module PixelFeeder( //System:
    // Hint: States
    localparam IDLE = 1'b0;
    localparam FETCH = 1'b1;
-   localparam BUFFER_1_DDR = 6'h1;
+   localparam BUFFER1_DDR = 6'b000001;
+   localparam BUFFER2_DDR = 6'b000010;
    
 
    reg [31:0] 		   ignore_count;
@@ -39,11 +40,20 @@ module PixelFeeder( //System:
 
    wire 		   request_8pixels, fetch_pixel;
    wire 		   xOverFlow, yOverFlow;
-   
-   
+   reg [5:0]		   frameBuffer_addr;
 
-
+   assign xOverFlow = (x == 10'd792);
+   assign yOverFlow = (y_Rows == 10'd599);
    
+   assign rdf_rd_en = 1'b1; 
+   assign af_wr_en = (curState == FETCH) & (nextState == FETCH);
+
+   assign request_8pixels = (af_wr_en & !af_full);
+   assign fetch_pixel = (ignore_count == 0) & video_ready
+			& (CountPixels != 0);
+
+   //assign frame_interrupt = (when frame finished? half-way?)
+			      
    always @(posedge cpu_clk_g) begin
       
       if (rst) begin
@@ -51,6 +61,7 @@ module PixelFeeder( //System:
 	 CountPixels <= 0;
 	 x <= 10'b0;
 	 y_Rows <= 10'b0;
+	 frameBuffer_addr <= BUFFER1_DDR;
 	 
       end else begin
 	 curState <= nextState;
@@ -58,9 +69,18 @@ module PixelFeeder( //System:
 	 if (request_8pixels & fetch_pixel) begin
 	    
 	    CountPixels <= CountPixels + 7;
-	    
+
 	    x <= (xOverFlow)? 0: x + 8;
-	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
+	    y_Rows <= (yOverFlow)? 0:
+			      (xOverFlow)? 
+			      y_Rows + 1: y_Rows;
+
+	    if (yOverFlow)
+	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
+				 BUFFER2_DDR: BUFFER1_DDR;
+	    else
+	      frameBuffer_addr <= frameBuffer_addr;
+	    
 
 	    //just requesting 8 pixels
 	 end else if (request_8pixels) begin 
@@ -68,7 +88,16 @@ module PixelFeeder( //System:
 	    CountPixels <= CountPixels + 8;
 
 	    x <= (xOverFlow)? 0: x + 8;
-	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
+	    y_Rows <= (yOverFlow)? 0:
+			      (xOverFlow)? 
+			      y_Rows + 1: y_Rows;
+
+	    if (yOverFlow)
+	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
+				  BUFFER2_DDR: BUFFER1_DDR;
+	    else
+	      frameBuffer_addr <= frameBuffer_addr;
+	    
 	  
 	    //just fetching a pixel
 	 end else if (fetch_pixel) begin 
@@ -96,27 +125,26 @@ module PixelFeeder( //System:
       endcase
    end
 
-   assign xOverFlow = (x == 10'd792);
-   assign yOverFlow = (y_Rows == 10'd599);
-
-   assign rdf_rd_en = CountPixels > 0; 
-   assign af_wr_en = (curState == FETCH) & (!yOverFlow);
-
-   assign request_8pixels = (af_wr_en & !af_full);
-   assign fetch_pixel = (ignore_count == 0) & video_ready;
    
+   /*
+    * assign frameBuffer_addr = (frameBuffer_addr == BUFFER1_DDR)?
+			     //if currently in BUFFER1_DDR and overflows
+			     //change to BUFFER2
+			     (yOverFlow)? BUFFER2_DDR:
+			     frameBuffer_addr:
 
+			     //ViceVersa
+			     (yOverFlow)? BUFFER1_DDR:
+			     frameBuffer_addr;
+    */
+   
 
    /*Original MIPS address: {10'b0001_0000_01, y, x, 2'b0}
     *Shift said address by 3 ... becomes the following:
     *Note: only care about x[3] and above because incrementing x by 8
     */
-   assign af_addr_din = {6'b0, 6'b000001, y_Rows, x[9:3], 2'b0};
+   assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x[9:3], 2'b0};
    
-
-   
-
-
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
     always @(posedge cpu_clk_g) begin
@@ -144,8 +172,10 @@ module PixelFeeder( //System:
     	.full(feeder_full),
     	.empty(feeder_empty));
 
-    assign video = feeder_dout[23:0];
-    assign video_valid = 1'b1;
+   
+   assign video = feeder_dout[23:0];
+   assign video_valid = 1'b1;
+   
    
    wire [35:0] chipscope_control;
    chipscope_icon icon(
@@ -154,7 +184,9 @@ module PixelFeeder( //System:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, video, CountPixels, x, y_Rows})
+		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, frameBuffer_addr, ignore_count, video, CountPixels, x, y_Rows})
 		     );
+   
+    
 endmodule
 

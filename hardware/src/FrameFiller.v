@@ -19,14 +19,31 @@ module FrameFiller(//system:
   input [31:0] FF_frame_base
   );
 
+   wire        colorWord [31:0];
+   reg [30:0]  increment;
+   
+   /*
+    * assign colorWord = {8'b0, color};
+   assign wdf_din = {colorWord, colorWord, colorWord, colorWord};
+    */
+   assign wdf_wr_en = (!af_full) & (!wdf_full);
+   assign af_wr_en = (!af_full) & (!wdf_full);
+
+   /*
+    * always@(posedge clk) begin
+      if (rst) begin
+	 increment <= 0;
+      else
+	if (af_wr_en)
+    */
+	
+   
+    
    //Your code goes here. GL HF DD DS
 
+   // Remove these when you implement the frame filler:
 
-  // Remove these when you implement the frame filler:
-
-  assign wdf_wr_en = 1'b0;
-  assign af_wr_en  = 1'b0;
-  assign ready     = 1'b1;
+   assign ready     = 1'b1;
 
 
 

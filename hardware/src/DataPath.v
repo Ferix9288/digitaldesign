@@ -997,25 +997,22 @@ module DataPath(
       regWD = (jalM || jalrM)? pcM + 8: writeBack;
       regWA = (jalM)? 31 : waM;
    end
+   
+     
+  // ChipScope components:
    /*
     * 
-  // ChipScope components:
-   
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
-		       ) /* synthesis syn_noprune=1 *///; <--DON'T FORGET TO ERASE ME
-  // chipscope_ila ila(
-   //		     .CONTROL(chipscope_control),
-//		     .CLK(clk),
-		     //.DATA({reset, stall, PC, nextPC, instrMemOut, instrMemWriteEn, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack, regWriteM}),
-//		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
-//		     ) /* synthesis syn_noprune=1 */;
-//   */
+		       ) /; 
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
+		     ) ;
    
-
-//, branchCtr, rd1Fwd, rd2Fwd, ALUOutE, UARTDataIn, UARTDataOut, writeBack,// regWriteM})
-		     //) /* synthesis syn_noprune=1 */;
+   */
 
    
 endmodule

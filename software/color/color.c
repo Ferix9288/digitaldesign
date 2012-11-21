@@ -1,17 +1,20 @@
 #define FRAME_1 ((volatile unsigned int*) 0x10400000)
 #define FRAME_2 ((volatile unsigned int*) 0x10800000)
-#define RED 0x11110000
-#define BLUE 0x11000011
+#define RED 0x00ff0000
+#define GREEN 0x0000ff00
 
 
 
 void setColor() {
-  for (int i = 0; i < 2048; i += 4) {
-    FRAME_1[i] = RED;
+  for (int y = 0; y < 600; y += 1) {
+	for (int x =0; x < 800; x += 1) {
+	    FRAME_1[x + (y << 10)] = RED;
+	}
   }
-
-  for (int i = 0; i < 2048; i += 4) {
-    FRAME_2[i] = BLUE;
+  for (int y = 0; y < 600; y += 1) {
+	for (int x =0; x < 800; x += 1) {
+	    FRAME_2[x + (y << 10)] = GREEN;
+	}
   }
 
 }
