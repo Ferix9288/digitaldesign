@@ -67,26 +67,27 @@ module LineEngineTestbench();
     assign x = {af_addr_din[8:2], mask};
     assign y = af_addr_din[18:9];
 
-    LineEngine le (
-    .clk(Clock),
-    .rst(rst),
-		.LE_ready(LE_ready),
-		.LE_color(LE_color),
-		.LE_point(LE_point),
-		.LE_color_valid(LE_color_valid),
-		.LE_x0_valid(LE_x0_valid),
-		.LE_y0_valid(LE_y0_valid),
-		.LE_x1_valid(LE_x1_valid),
-		.LE_y1_valid(LE_y1_valid),
-		.LE_trigger(LE_trigger),
-		.af_full(af_full),
-		.wdf_full(wdf_full),
-		.af_addr_din(af_addr_din),
-		.af_wr_en(af_wr_en),
-		.wdf_din(wdf_din),
-		.wdf_mask_din(wdf_mask_din),
-		.wdf_wr_en(wdf_wr_en)
-    );
+   LineEngine le (
+		  .clk(Clock),
+		  .rst(rst),
+		  .LE_ready(LE_ready),
+		  .LE_color(LE_color),
+		  .LE_point(LE_point),
+		  .LE_color_valid(LE_color_valid),
+		  .LE_x0_valid(LE_x0_valid),
+		  .LE_y0_valid(LE_y0_valid),
+		  .LE_x1_valid(LE_x1_valid),
+		  .LE_y1_valid(LE_y1_valid),
+		  .LE_trigger(LE_trigger),
+		  .af_full(af_full),
+		  .wdf_full(wdf_full),
+		  .af_addr_din(af_addr_din),
+		  .af_wr_en(af_wr_en),
+		  .wdf_din(wdf_din),
+		  .wdf_mask_din(wdf_mask_din),
+		  .wdf_wr_en(wdf_wr_en),
+		  .LE_frame_base(32'h10400000)
+		  );
 
     initial begin
       @(posedge Clock);
@@ -116,8 +117,8 @@ module LineEngineTestbench();
       input [31:0] color;
     begin
       LE_color = color;
-      while(!LE_ready) #(Cycle); // wait for LE_ready
       LE_color_valid = 1'b1;
+      while(!LE_ready) #(Cycle); // wait for LE_ready
       #(Cycle);
       LE_color_valid = 1'b0;
       LE_point = x0;
@@ -143,9 +144,11 @@ module LineEngineTestbench();
         if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
           $display("%4d %4d", x, y);
         end
-        #(Cycle);
+	 #(Cycle);
+ 
       end
-
+       $display("Got out of loop");
+       
     end
     endtask
 

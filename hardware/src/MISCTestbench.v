@@ -16,6 +16,10 @@ module MISCTestbench();
    assign ABS_x = ($signed(x_Cols) < 0)? - x_Cols : x_Cols;
    assign ABS2_x = ($signed(x_Cols) < 0)? (~x_Cols + 1) : x_Cols;
 
+   
+   assign blah = 1'b1;
+   
+
    //Test if grabbing the right frame
    reg [31:0] frame;
    wire [5:0]  frameBuffer_addr;
@@ -30,6 +34,8 @@ module MISCTestbench();
       $display("ABS_x: %d ", ABS_x);
       $display("ABS2_x: %d ", ABS2_x);
       $display("frame: %b ", frameBuffer_addr);
+      $display("blah: %b ", blah);
+      
 
       $finish();
    end

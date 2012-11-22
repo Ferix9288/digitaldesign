@@ -75,13 +75,15 @@ module PixelFeeder( //System:
 		      (xOverFlow)? 
 		      y_Rows + 1: y_Rows;
 
-	    if (yOverFlow)
+	    /*
+	     * if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
 				 BUFFER2_DDR: BUFFER1_DDR;
 	    else
 	      frameBuffer_addr <= frameBuffer_addr;
 	    
 
+	     */
 	    //just requesting 8 pixels
 	 end else if (request_8pixels) begin 
 	    
@@ -92,11 +94,13 @@ module PixelFeeder( //System:
 		      (xOverFlow)? 
 		      y_Rows + 1: y_Rows;
 
-	    if (yOverFlow)
+	    /*
+	     * if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
 				  BUFFER2_DDR: BUFFER1_DDR;
 	    else
 	      frameBuffer_addr <= frameBuffer_addr;
+	     */
 	    
 	  
 	    //just fetching a pixel

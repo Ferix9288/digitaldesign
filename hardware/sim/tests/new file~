@@ -1,4 +1,0 @@
-start MISCTestbench
-add wave GraphicsProcessorTestbench/*
-add wave GraphicsProcessorTestbench/DUT/*
-run 10us

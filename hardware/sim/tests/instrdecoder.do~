@@ -1,4 +1,0 @@
-start InstrDecoderTestbench
-add wave InstrDecoderTestbench/*
-add wave InstrDecoderTestbench/DUT/*
-run 1000us
