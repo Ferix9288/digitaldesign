@@ -11,17 +11,19 @@ void setColor() {
   while (1) {
     for (int y = 0; y < 600; y += 1) {
       for (int x =0; x < 800; x += 1) {
-	FRAME_1[x + (y << 10)] = RED + rainbow;
+	FRAME_1[x + (y << 10)] = RED + rainbow;// + rainbow;
       }
     }
-    for (int y = 0; y < 600; y += 1) {
-      for (int x =0; x < 800; x += 1) {
-	FRAME_2[x + (y << 10)] = WHITE - rainbow;
-      }
-    }
+    rainbow += 0xaaa;
+    for (int z = 0; z < 1000000; z += 1); 
 
-    for (int z = 0; z < 500000; z += 1); 
-    rainbow += 0xff;
+    /* for (int y = 0; y < 600; y += 1) { */
+    /*   for (int x =0; x < 800; x += 1) { */
+    /* 	FRAME_1[x + (y << 10)] = WHITE; - rainbow; */
+    /*   } */
+    /* } */
+
+    // rainbow += 0xff;
   }
 }
 

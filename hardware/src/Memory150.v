@@ -115,25 +115,31 @@ module Memory150(
     wire         pixel_af_full;
     wire         pixel_rdf_valid;
 
-    // FrameFiller <=> RequestController wires:
-    wire         filler_af_full;
-    wire         filler_wdf_full;
-    wire [127:0] filler_wdf_din;
-    wire         filler_wdf_wr_en;
-    wire [30:0]  filler_addr_din;
-    wire         filler_af_wr_en;
-    wire [15:0]  filler_wdf_mask_din;
+   // FrameFiller <=> RequestController wires:
+   wire 	 filler_af_full;
+   wire 	 filler_wdf_full;
+   wire [127:0]  filler_wdf_din;
+   wire 	 filler_wdf_wr_en;
+   wire [30:0] 	 filler_addr_din;
+   wire 	 filler_af_wr_en;
+   wire [15:0] 	 filler_wdf_mask_din;
    wire [31:0] 	 filler_frame;
- 
-    // Line Engine <=> RequestController wires:
-    wire         line_af_full;
-    wire         line_wdf_full;
-    wire [127:0] line_wdf_din;
-    wire         line_wdf_wr_en;
-    wire [30:0]  line_addr_din;
-    wire         line_af_wr_en;
-    wire [15:0]  line_wdf_mask_din;
+   wire [23:0] 	 filler_color;
+   
+   
+   // Line Engine <=> RequestController wires:
+   wire 	 line_af_full;
+   wire 	 line_wdf_full;
+   wire [127:0]  line_wdf_din;
+   wire 	 line_wdf_wr_en;
+   wire [30:0] 	 line_addr_din;
+   wire 	 line_af_wr_en;
+   wire [15:0] 	 line_wdf_mask_din;
    wire [31:0] 	 line_frame;
+   wire [9:0] 	 line_point;
+   wire [31:0] 	 line_color;
+   
+   
    
 
     // Graphics Command Processor <=> RequestController wires:
@@ -174,7 +180,7 @@ module Memory150(
         .rd_data_valid(ddr_rd_valid),
         .app_wdf_wren(wdf_valid),
         .app_af_wren(af_valid),
-        .app_af_addr(af_dout[30:0]),
+        .app_af_addr(af_dout[30:0] ),
         .app_af_cmd(af_dout[33:31]),
         .rd_data_fifo_out(ddr2_rd_dout),
         .app_wdf_data(wdf_dout[127:0]),
@@ -439,5 +445,4 @@ module Memory150(
       .GP_FRAME(cpu_gp_frame),
       .GP_valid(cpu_gp_valid));
    
-				       
 endmodule

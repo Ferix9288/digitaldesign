@@ -45,7 +45,7 @@ module PixelFeeder( //System:
    assign xOverFlow = (x_Cols == 10'd792);
    assign yOverFlow = (y_Rows == 10'd599);
    
-   assign rdf_rd_en = 1'b1; 
+   assign rdf_rd_en = 1'b1;
    assign af_wr_en = (curState == FETCH) & (nextState == FETCH);
 
    assign request_8pixels = (af_wr_en & !af_full);
@@ -71,10 +71,12 @@ module PixelFeeder( //System:
 	    CountPixels <= CountPixels + 7;
 
 	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
-	    y_Rows <= (yOverFlow)? 0:
-		      (xOverFlow)? 
-		      y_Rows + 1: y_Rows;
-
+	    
+	    if (xOverFlow)
+	      y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
+	    else
+	      y_Rows <= y_Rows;
+	    
 	    /*
 	     * if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
@@ -90,10 +92,12 @@ module PixelFeeder( //System:
 	    CountPixels <= CountPixels + 8;
 
 	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
-	    y_Rows <= (yOverFlow)? 0:
-		      (xOverFlow)? 
-		      y_Rows + 1: y_Rows;
-
+	    
+	    if (xOverFlow)
+	      y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
+	    else
+	      y_Rows <= y_Rows;
+	    
 	    /*
 	     * if (yOverFlow)
 	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
@@ -175,8 +179,8 @@ module PixelFeeder( //System:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, frameBuffer_addr, ignore_count, video, CountPixels, x_Cols, y_Rows})
-		     );
+		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
+		     ); //frameBuffer_addr was in btw af_wr_en and ic
    
    
     

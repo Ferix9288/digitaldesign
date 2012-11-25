@@ -96,7 +96,7 @@ module LineEngine(
 	   y0_init = (LE_y0_valid)? LE_point: y0_init;
 	   x1_init = (LE_x1_valid)? LE_point: x1_init;
 	   y1_init = (LE_y1_valid)? LE_point: y1_init;
-	   nextState = (LE_y1_valid)? LINE_FUNCTION: curState;
+	   nextState = (LE_trigger)? LINE_FUNCTION: curState;
 	end
 
 	LINE_FUNCTION: begin
