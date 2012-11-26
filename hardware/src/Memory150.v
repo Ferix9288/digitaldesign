@@ -138,7 +138,7 @@ module Memory150(
    wire 	 line_af_wr_en;
    wire [15:0] 	 line_wdf_mask_din;
    wire [31:0] 	 line_frame;
-   wire [9:0] 	 line_point;
+   wire [19:0] 	 line_point;
    wire [31:0] 	 line_color;
    
    
@@ -398,10 +398,12 @@ module Memory150(
       .LE_color(line_color),
       .LE_point(line_point),
       .LE_color_valid(line_color_valid),
-      .LE_x0_valid(line_x0_valid),
-      .LE_y0_valid(line_y0_valid),
-      .LE_x1_valid(line_x1_valid),
-      .LE_y1_valid(line_y1_valid),
+      .LE_point0_valid(line_point0_valid),
+      .LE_point1_valid(line_point1_valid),
+      //.LE_x0_valid(line_x0_valid),
+      //.LE_y0_valid(line_y0_valid),
+      //.LE_x1_valid(line_x1_valid),
+      //.LE_y1_valid(line_y1_valid),
       .LE_trigger(line_trigger),
       .af_full(line_af_full),
       .wdf_full(line_wdf_full),
@@ -424,10 +426,12 @@ module Memory150(
       .LE_color(line_color),
       .LE_point(line_point),
       .LE_color_valid(line_color_valid),
-      .LE_x0_valid(line_x0_valid),
-      .LE_y0_valid(line_y0_valid),
-      .LE_x1_valid(line_x1_valid),
-      .LE_y1_valid(line_y1_valid),
+      .LE_point0_valid(line_point0_valid),
+      .LE_point1_valid(line_point1_valid),
+      //.LE_x0_valid(line_x0_valid),
+      //.LE_y0_valid(line_y0_valid),
+      //.LE_x1_valid(line_x1_valid),
+      //.LE_y1_valid(line_y1_valid),
       .LE_trigger(line_trigger),
       .LE_frame(line_frame), 
       //frame filler IO

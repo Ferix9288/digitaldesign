@@ -111,7 +111,8 @@ module GraphicsProcessor(
       end
    end
    
-   
+   /*
+    * 
    always @(*) begin
       case (curState)
 	IDLE: begin
@@ -157,6 +158,7 @@ module GraphicsProcessor(
 	end
       endcase // case (curState)
    end
+    */
    
    //output assignment placeholders - delete these later
 				     /*

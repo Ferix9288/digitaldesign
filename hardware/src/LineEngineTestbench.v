@@ -15,35 +15,35 @@ module LineEngineTestbench();
     initial Clock	= 0;	
     always #(HalfCycle) Clock= ~Clock;
 
-	  wire                LE_ready;
-	  // 8-bit each for RGB
-	  reg [31:0]          LE_color;   
-	  reg [9:0]   LE_point;
-	  // Valid signals for the regs
-	  reg                 LE_color_valid;
-	  reg                 LE_x0_valid;
-	  reg                 LE_y0_valid;
-	  reg                 LE_x1_valid;
-	  reg                 LE_y1_valid;
-	  // Trigger signal - line engine should
-	  // Start drawing the line
-	  reg                 LE_trigger;
-	  // FIFO connections
-	  reg                 af_full;
-	  reg                 wdf_full;
-	  
-	  wire [2:0]          af_cmd_din;
-	  wire [30:0]         af_addr_din;
-	  wire                af_wr_en;
-	  wire [127:0]        wdf_din;
-	  wire [15:0]         wdf_mask_din;
-	  wire                wdf_wr_en;
-    reg                 rst;
-    wire [9:0]          x;
-    wire [9:0]          y;
-    reg [2:0]          mask;
+   wire LE_ready;
+   // 8-bit each for RGB
+   reg [31:0] LE_color;   
+   reg [19:0] LE_point;
+   // Valid signals for the regs
+   reg 	      LE_color_valid;
+   //reg 	      LE_x0_valid;
+   //reg 	      LE_y0_valid;
+   //reg 	      LE_x1_valid;
+   //reg 	      LE_y1_valid;
+   // Trigger signal - line engine should
+   // Start drawing the line
+   reg 	      LE_trigger;
+   // FIFO connections
+   reg 	      af_full;
+   reg 	      wdf_full;
+   
+   wire [2:0] af_cmd_din;
+   wire [30:0] af_addr_din;
+   wire        af_wr_en;
+   wire [127:0] wdf_din;
+   wire [15:0] 	wdf_mask_din;
+   wire 	wdf_wr_en;
+   reg 		rst;
+   wire [9:0] 	x;
+   wire [9:0] 	y;
+   reg [2:0] 	mask;
 
-    wire [9:0] ydiff;
+   wire [9:0] 	ydiff;
     wire [9:0] xdiff;
     assign af_cmd_din = 3'b000;
 
@@ -64,6 +64,8 @@ module LineEngineTestbench();
       end
     end
 
+   reg LE_point0_valid, LE_point1_valid;
+   
     assign x = {af_addr_din[8:2], mask};
     assign y = af_addr_din[18:9];
 
@@ -74,10 +76,12 @@ module LineEngineTestbench();
 		  .LE_color(LE_color),
 		  .LE_point(LE_point),
 		  .LE_color_valid(LE_color_valid),
-		  .LE_x0_valid(LE_x0_valid),
-		  .LE_y0_valid(LE_y0_valid),
-		  .LE_x1_valid(LE_x1_valid),
-		  .LE_y1_valid(LE_y1_valid),
+		  .LE_point0_valid(LE_point0_valid),
+		  .LE_point1_valid(LE_point1_valid),
+		  //.LE_x0_valid(LE_x0_valid),
+		  //.LE_y0_valid(LE_y0_valid),
+		  //.LE_x1_valid(LE_x1_valid),
+		  //.LE_y1_valid(LE_y1_valid),
 		  .LE_trigger(LE_trigger),
 		  .af_full(af_full),
 		  .wdf_full(wdf_full),
@@ -89,15 +93,17 @@ module LineEngineTestbench();
 		  .LE_frame_base(32'h10400000)
 		  );
 
-    initial begin
+   initial begin
       @(posedge Clock);
       af_full = 1'b0;
       wdf_full = 1'b0;
       LE_color_valid = 1'b0;
-      LE_x0_valid = 1'b0;
-      LE_y0_valid = 1'b0;
-      LE_x1_valid = 1'b0;
-      LE_y1_valid = 1'b0;
+      LE_point0_valid = 1'b0;
+      LE_point1_valid = 1'b0;
+      // LE_x0_valid = 1'b0;
+      //LE_y0_valid = 1'b0;
+      //LE_x1_valid = 1'b0;
+      //LE_y1_valid = 1'b0;
       LE_trigger = 1'b0;
       rst = 1'b1;
       #(10*Cycle);
@@ -107,50 +113,58 @@ module LineEngineTestbench();
       // drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       // drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       // drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
-    end
+   end
 
-    task drawLine;
+   task drawLine;
       input [9:0] x0;
       input [9:0] y0;
       input [9:0] x1;
       input [9:0] y1;
       input [31:0] color;
-    begin
-      LE_color = color;
-      LE_color_valid = 1'b1;
-      while(!LE_ready) #(Cycle); // wait for LE_ready
-      #(Cycle);
-      LE_color_valid = 1'b0;
-      LE_point = x0;
-      LE_x0_valid = 1'b1;
-      #(Cycle);
-      LE_x0_valid = 1'b0;
-      LE_point = y0;
-      LE_y0_valid = 1'b1;
-      #(Cycle);
-      LE_y0_valid = 1'b0;
-      LE_x1_valid = 1'b1;
-      LE_point = x1;
-      #(Cycle);
-      LE_x1_valid = 1'b0;
-      LE_y1_valid = 1'b1;
-      LE_point = y1;
-      LE_trigger  = 1'b1;
-      #(Cycle);
-      LE_y1_valid = 1'b0;
-      LE_trigger  = 1'b0;
-      #(Cycle);
-      while(!LE_ready) begin
-        if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
-          $display("%4d %4d", x, y);
-        end
-	 #(Cycle);
- 
-      end
-       $display("Got out of loop");
-       $finish();
-       
-    end
+      
+       begin
+	  LE_color = color;
+	  LE_color_valid = 1'b1;
+	  while(!LE_ready) #(Cycle); // wait for LE_ready
+	  #(Cycle);
+	  LE_color_valid = 1'b0;
+	  LE_point = {x0, y0};
+	  LE_point0_valid = 1'b1;
+	  
+	  // LE_x0_valid = 1'b1;
+	  #(Cycle);
+	  //LE_x0_valid = 1'b0;
+	  LE_point0_valid = 1'b0;
+	  LE_point = {x1, y1};
+	  LE_point1_valid = 1'b1;
+	  
+	  //LE_y0_valid = 1'b1;
+	  #(Cycle);
+	  LE_point0_valid = 1'b0;
+	  LE_trigger = 1'b1;
+	  #(Cycle);
+	  LE_trigger = 1'b0;
+	  //LE_y0_valid = 1'b0;
+	  //LE_x1_valid = 1'b1;
+	  //LE_point = x1;
+	  //LE_x1_valid = 1'b0;
+	  //LE_y1_valid = 1'b1;
+	  // LE_point = y1;
+	  //LE_trigger  = 1'b1;
+	  //LE_y1_valid = 1'b0;
+	  //LE_trigger  = 1'b0;
+	  #(Cycle);
+	  while(!LE_ready) begin
+             if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
+		$display("%4d %4d", x, y);
+             end
+	     #(Cycle);
+	     
+	  end
+	  $display("Got out of loop");
+	  $finish();
+	  
+       end
     endtask
 
 endmodule
