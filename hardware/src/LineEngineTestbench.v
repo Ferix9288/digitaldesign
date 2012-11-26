@@ -148,6 +148,7 @@ module LineEngineTestbench();
  
       end
        $display("Got out of loop");
+       $finish();
        
     end
     endtask

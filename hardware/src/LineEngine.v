@@ -83,13 +83,13 @@ module LineEngine(
 
    //NEXT-STATE LOGIC
    always@(*) begin
-
-      af_wr_en = 0;
-      wdf_wr_en = 0;
       
       case (curState)
-	IDLE:
-	  nextState = (LE_color_valid)? SET_UP: curState;
+	IDLE: begin
+	   af_wr_en = 0;
+	   wdf_wr_en = 0;
+	   nextState = (LE_color_valid)? SET_UP: curState;
+	end
 
 	SET_UP: begin
 	   x0_init = (LE_x0_valid)? LE_point: x0_init;
@@ -178,7 +178,7 @@ module LineEngine(
 	end
 
 	//af_wr_en LOW - second batch of 4 pixels
-	//only go back to WRITE_1 if sucessfully wrote to write data
+	//only go back to WRITE_1 if sucessfully wrote data
 	WRITE_2: begin
 	   af_wr_en = 0;
 	   wdf_wr_en = !af_full & !wdf_full;

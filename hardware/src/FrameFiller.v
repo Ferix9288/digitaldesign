@@ -11,8 +11,8 @@ module FrameFiller(//system:
   output [127:0]    wdf_din,
   output            wdf_wr_en,
   output [30:0]     af_addr_din,
-  output            af_wr_en,
-  output [15:0]     wdf_mask_din,
+  output reg        af_wr_en,
+  output reg [15:0]  wdf_mask_din,
   // handshaking:
   output             ready,
   
@@ -29,35 +29,33 @@ module FrameFiller(//system:
    assign frameBuffer_addr = FF_frame_base[24:19] >> 3;
 
    //FSM
-   localparam IDLE = 1'b0;
-   localparam FILLING = 1'b1;
-   reg 	       curState, nextState;
+   localparam IDLE = 2'b00;
+   localparam FILL_1 = 2'b01;
+   localparam FILL_2 = 2'b10;
+   
+   reg [1:0] 	       curState, nextState;
    
    //X+Y Coordinates
-   reg [9:0] 	       x_Cols;
-   reg [9:0] 	       y_Rows;
+   reg [9:0] 	       x_Cols, next_x;
+   reg [9:0] 	       y_Rows, next_y;
    wire 	       xOverFlow, yOverFlow;   
    assign xOverFlow = (x_Cols == 10'd792);
    assign yOverFlow = (y_Rows == 10'd599);
 
    //REQUEST LOGIC
-   assign wdf_wr_en = (!af_full) & (!wdf_full) & (curState == FILLING);
-   assign af_wr_en = (!af_full) & (!wdf_full) & (curState == FILLING);
-  
+   assign wdf_wr_en = (!af_full) & (!wdf_full) & (curState != IDLE);
+   wire 	       done;
+   assign done = xOverFlow & yOverFlow;
+
    always@(posedge clk) begin
-      if (rst || (curState == FILLING & nextState == IDLE)) begin
+      if (rst || (curState == FILL_2 & nextState == IDLE)) begin
 	 curState <= IDLE;
 	 x_Cols <= 0;
 	 y_Rows <= 0;
       end else begin
 	 curState <= nextState;
-	 if (af_wr_en) begin
-	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
-	    y_Rows <= (xOverFlow)? y_Rows + 1: y_Rows;
-	 end else begin
-	    x_Cols <= x_Cols;
-	    y_Rows <= y_Rows;
-	 end
+	 x_Cols <= next_x;
+	 y_Rows <= next_y;
       end
    end // always@ (posedge clk)
 
@@ -65,15 +63,35 @@ module FrameFiller(//system:
    always@(*) begin
       case (curState)
 	
-	IDLE:
-	  nextState = (valid)? FILLING: IDLE;
-	
-	FILLING: begin
-	   if (xOverFlow & yOverFlow) begin
-	      nextState = IDLE;
+	IDLE: begin
+	   next_x = 0;
+	   next_y = 0;
+	   wdf_mask_din = 16'hffff;
+	   nextState = (valid)? FILL_1: IDLE;
+	end
+
+	//af_wr_en high
+	//Move to Fill_2 if successful request
+	FILL_1: begin
+	   af_wr_en = !af_full & !wdf_full;
+	   wdf_mask_din = 16'h0;
+	   if (af_wr_en) begin
+	      next_x = (xOverFlow)? 0: x_Cols + 8;
+	      next_y = (xOverFlow)? y_Rows + 1: y_Rows;
+	      nextState = FILL_2;
 	   end else begin
-	      nextState = FILLING;
+	      next_x = x_Cols;
+	      next_y = y_Rows;
+	      nextState = curState;
 	   end
+	end
+
+	//af_wr_en low
+	//Only go back to Fill_1 if successfully wrote 2nd burst of pixels
+	FILL_2: begin
+	   af_wr_en = 0;
+	   nextState = (done)? IDLE: 
+		       (wdf_wr_en)? FILL_1: curState;
 	end
 	   
       endcase // case (curState)
@@ -82,6 +100,18 @@ module FrameFiller(//system:
    assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x_Cols[9:3], 2'b0};
    
    assign ready = (curState == IDLE);
+
+
+   
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(cpu_clk_g),
+		     .TRIG0({ rst, ready, done, af_full, wdf_full, curState, nextState, af_wr_en, wdf_wr_en, valid, x_Cols, y_Rows, color, af_addr_din, wdf_din, wdf_mask_din})
+		     ); //frameBuffer_addr was in btw af_wr_en and ic
    
 
 endmodule

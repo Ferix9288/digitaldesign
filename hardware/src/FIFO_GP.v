@@ -16,6 +16,7 @@ module FIFO_GP (
 		af_wr_en,
 		af_addr_din,
 		fifo_GP_out,
+		stall,
 		GP_FRAME,
 		GP_valid,
 		GP_interrupt
@@ -32,6 +33,7 @@ module FIFO_GP (
    output reg 	 af_wr_en;
    output [30:0] af_addr_din;
    output [31:0] fifo_GP_out;
+   output 	 stall;
    input [31:0]  GP_FRAME;
    input 	 GP_valid;
    input 	 GP_interrupt;
@@ -248,13 +250,7 @@ module FIFO_GP (
       endcase // case (curState)
    end // always@ (*)
    
+   assign stall = (read_pointer == 7 & !Block2_Written) ||
+		  (read_pointer == 15 & !Block1_Written);
    
-   
-   
-   
-   
-   
-   
-
-
 endmodule

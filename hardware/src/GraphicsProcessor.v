@@ -67,11 +67,16 @@ module GraphicsProcessor(
    wire [30:0] FIFO_af_addr_din;
 
    wire        GP_interrupt;
+   wire        FIFO_stall;
+   
    //GP_interrupt = HIT STOP OR GP_Valid raised high again
 
-   assign rdf_rd_en = FIFO_rdf_rd_en;
-   assign af_wr_en = FIFO_af_wr_en;
+   //assign rdf_rd_en = FIFO_rdf_rd_en;
+  // assign af_wr_en = FIFO_af_wr_en;
    assign af_addr_din = FIFO_af_addr_din;
+
+   assign rdf_rd_en = 0;
+   assign af_wr_en = 0;
    
    FIFO_GP Fifo_GP(.clk(clk),
 		   .rst(rst),
@@ -82,6 +87,7 @@ module GraphicsProcessor(
 		   .af_wr_en(FIFO_af_wr_en),
 		   .af_addr_din(FIFO_af_addr_din),
 		   .fifo_GP_out(fifo_GP_out),
+		   .stall(FIFO_stall),
 		   .GP_FRAME(GP_FRAME),
 		   .GP_valid(GP_valid),
 		   .GP_interrupt(GP_interrupt));
@@ -153,14 +159,16 @@ module GraphicsProcessor(
    assign LE_frame = 0;
 		       
    //frame filler processor interface
-   assign FF_valid  = 0;
-   assign FF_color = 0;
-   assign FF_frame = 0;
+   assign FF_valid  = 1;
+   assign FF_color = 24'hff0000;
+   assign FF_frame = 32'h10400000;
 		       
    //DRAM request controller interface
-   assign rdf_rd_en = 0;
+  // assign rdf_rd_en = 0;
    
-   assign af_wr_en = 0;
-   assign af_addr_din = 0;
+   //assign af_wr_en = 0;
+   //assign af_addr_din = 0;
+
+   
 		       
 endmodule
