@@ -5,13 +5,16 @@ module LineEngine(
   output                LE_ready,
   // 8-bit each for RGB, and 8 bits zeros at the top
   input [31:0]          LE_color,
-  input [9:0]           LE_point,
+  input [19:0]           LE_point,
   // Valid signals for the inputs
   input                 LE_color_valid,
-  input                 LE_x0_valid,
-  input                 LE_y0_valid,
-  input                 LE_x1_valid,
-  input                 LE_y1_valid,
+  input                 LE_point0_valid,
+  input                 LE_point1_valid,
+		  
+  //input                 LE_x0_valid,
+  //input                 LE_y0_valid,
+  //input                 LE_x1_valid,
+  //input                 LE_y1_valid,
   // Trigger signal - line engine should
   // Start drawing the line
   input                 LE_trigger,
@@ -92,10 +95,10 @@ module LineEngine(
 	end
 
 	SET_UP: begin
-	   x0_init = (LE_x0_valid)? LE_point: x0_init;
-	   y0_init = (LE_y0_valid)? LE_point: y0_init;
-	   x1_init = (LE_x1_valid)? LE_point: x1_init;
-	   y1_init = (LE_y1_valid)? LE_point: y1_init;
+	   x0_init = (LE_point0_valid)? LE_point: x0_init;
+	   y0_init = (LE_point0_valid)? LE_point: y0_init;
+	   x1_init = (LE_point1_valid)? LE_point: x1_init;
+	   y1_init = (LE_point1_valid)? LE_point: y1_init;
 	   nextState = (LE_trigger)? LINE_FUNCTION: curState;
 	end
 

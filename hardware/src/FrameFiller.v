@@ -64,9 +64,10 @@ module FrameFiller(//system:
       case (curState)
 	
 	IDLE: begin
+	   af_wr_en = 0;
+	   wdf_mask_din = 16'hffff;
 	   next_x = 0;
 	   next_y = 0;
-	   wdf_mask_din = 16'hffff;
 	   nextState = (valid)? FILL_1: IDLE;
 	end
 
@@ -90,10 +91,19 @@ module FrameFiller(//system:
 	//Only go back to Fill_1 if successfully wrote 2nd burst of pixels
 	FILL_2: begin
 	   af_wr_en = 0;
+	   wdf_mask_din = 16'h0;
+	   next_x = x_Cols;
+	   next_y = y_Rows;
 	   nextState = (done)? IDLE: 
 		       (wdf_wr_en)? FILL_1: curState;
 	end
-	   
+	
+	default: begin
+	   af_wr_en = 0;
+	   wdf_mask_din = 16'hffff;
+	   next_x = x_Cols;
+	   next_y = y_Rows;
+	end
       endcase // case (curState)
    end
    
@@ -109,8 +119,8 @@ module FrameFiller(//system:
 		       );
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
-		     .CLK(cpu_clk_g),
-		     .TRIG0({ rst, ready, done, af_full, wdf_full, curState, nextState, af_wr_en, wdf_wr_en, valid, x_Cols, y_Rows, color, af_addr_din, wdf_din, wdf_mask_din})
+		     .CLK(clk),
+		     .TRIG0({rst, ready, done, af_full, wdf_full, curState, nextState, af_wr_en, wdf_wr_en, valid, x_Cols, y_Rows, wdf_mask_din})
 		     ); //frameBuffer_addr was in btw af_wr_en and ic
    
 

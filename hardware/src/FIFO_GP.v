@@ -3,7 +3,6 @@
 // File Name   : FIFO_GP.v
 // Function    : Synchronous (single clock) FIFO for GP
 // Coder       : Felix Li and Lionel Honda
-// Original    : Deepak Kumar Tala
 //-----------------------------------------------------
 
 module FIFO_GP (
@@ -16,7 +15,8 @@ module FIFO_GP (
 		af_wr_en,
 		af_addr_din,
 		fifo_GP_out,
-		stall,
+		fifo_stall,
+		GP_stall,
 		GP_FRAME,
 		GP_valid,
 		GP_interrupt
@@ -33,7 +33,8 @@ module FIFO_GP (
    output reg 	 af_wr_en;
    output [30:0] af_addr_din;
    output [31:0] fifo_GP_out;
-   output 	 stall;
+   output 	 fifo_stall;
+   input 	 GP_stall;
    input [31:0]  GP_FRAME;
    input 	 GP_valid;
    input 	 GP_interrupt;
@@ -94,18 +95,9 @@ module FIFO_GP (
 	 y <= next_y;
 	 //if read_pointer in BLOCK1
 	 if (curState != IDLE & First_Block_Written) begin
-	    if (read_pointer < 8) begin
-	       if (read_pointer != 7)
-		 read_pointer <= read_pointer + 1;
-	       else
-		 read_pointer <= (Block2_Written)? 8: read_pointer;
-	       //if read_pointer in BLOCK2
-	    end else begin
-	       if (read_pointer != 15)
-		 read_pointer <= read_pointer + 1;
-	       else
-		 read_pointer <= (Block1_Written)? 0: read_pointer;
-	    end // else: !if(read_pointer < 8)
+	    read_pointer <= (fifo_stall || GP_stall)? read_pointer:
+			    (read_pointer == 15)? 0 : read_pointer + 1;
+	    
 	 end else // if (curState != IDLE)
 	   read_pointer <= 0;
       end
@@ -250,7 +242,7 @@ module FIFO_GP (
       endcase // case (curState)
    end // always@ (*)
    
-   assign stall = (read_pointer == 7 & !Block2_Written) ||
+   assign fifo_stall = (read_pointer == 7 & !Block2_Written) ||
 		  (read_pointer == 15 & !Block1_Written);
    
 endmodule

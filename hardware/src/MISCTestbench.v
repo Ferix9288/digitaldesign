@@ -48,6 +48,8 @@ module MISCTestbench();
    wire        af_wr_en;
    wire [30:0] af_addr_din;
    wire [31:0] fifo_GP_out;
+   reg 	       GP_stall;
+   
    
    FIFO_GP FIFO(.clk(Clock),
 		.rst(Reset),
@@ -58,6 +60,7 @@ module MISCTestbench();
 		.af_wr_en(af_wr_en),
 		.af_addr_din(af_addr_din),
 		.fifo_GP_out(fifo_GP_out),
+		.GP_stall(GP_stall),
 		.GP_FRAME(GP_FRAME),
 		.GP_valid(GP_valid),
 		.GP_interrupt(GP_interrupt));
@@ -72,6 +75,8 @@ module MISCTestbench();
       
       GP_valid = 0;
       GP_interrupt = 0;
+      GP_stall = 0;
+      
 
       Reset = 1;
       #(5*Cycle);

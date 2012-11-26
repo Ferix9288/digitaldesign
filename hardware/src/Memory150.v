@@ -125,6 +125,8 @@ module Memory150(
    wire [15:0] 	 filler_wdf_mask_din;
    wire [31:0] 	 filler_frame;
    wire [23:0] 	 filler_color;
+   wire 	 filler_valid;
+   
    
    
    // Line Engine <=> RequestController wires:
