@@ -40,7 +40,7 @@ module FrameFiller(//system:
    reg [9:0] 	       y_Rows, next_y;
    wire 	       xOverFlow, yOverFlow;   
    assign xOverFlow = (x_Cols == 10'd792);
-   assign yOverFlow = (y_Rows == 10'd599);
+   assign yOverFlow = (y_Rows == 10'd600);
 
    //REQUEST LOGIC
    assign wdf_wr_en = (!af_full) & (!wdf_full) & (curState != IDLE);
@@ -74,9 +74,10 @@ module FrameFiller(//system:
 	//af_wr_en high
 	//Move to Fill_2 if successful request
 	FILL_1: begin
-	   af_wr_en = !af_full & !wdf_full;
+	   af_wr_en = 1'b1;
 	   wdf_mask_din = 16'h0;
-	   if (af_wr_en) begin
+	   //not af_full and not wd_full
+	   if (wdf_wr_en) begin
 	      next_x = (xOverFlow)? 0: x_Cols + 8;
 	      next_y = (xOverFlow)? y_Rows + 1: y_Rows;
 	      nextState = FILL_2;
@@ -90,7 +91,7 @@ module FrameFiller(//system:
 	//af_wr_en low
 	//Only go back to Fill_1 if successfully wrote 2nd burst of pixels
 	FILL_2: begin
-	   af_wr_en = 0;
+	   af_wr_en = 1'b0;
 	   wdf_mask_din = 16'h0;
 	   next_x = x_Cols;
 	   next_y = y_Rows;
@@ -113,6 +114,7 @@ module FrameFiller(//system:
 
 
    
+   
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -120,8 +122,8 @@ module FrameFiller(//system:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({rst, ready, done, af_full, wdf_full, curState, nextState, af_wr_en, wdf_wr_en, valid, x_Cols, y_Rows, wdf_mask_din})
-		     ); //frameBuffer_addr was in btw af_wr_en and ic
+		     .TRIG0({rst, done, curState, nextState, af_wr_en, wdf_wr_en, x_Cols, y_Rows, wdf_mask_din})
+		     ); 
    
 
 endmodule

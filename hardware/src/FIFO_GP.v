@@ -17,7 +17,7 @@ module FIFO_GP (
 		fifo_GP_out,
 		fifo_stall,
 		GP_stall,
-		GP_FRAME,
+		GP_CODE,
 		GP_valid,
 		GP_interrupt
 		);    
@@ -35,7 +35,7 @@ module FIFO_GP (
    output [31:0] fifo_GP_out;
    output 	 fifo_stall;
    input 	 GP_stall;
-   input [31:0]  GP_FRAME;
+   input [31:0]  GP_CODE;
    input 	 GP_valid;
    input 	 GP_interrupt;
    
@@ -54,7 +54,7 @@ module FIFO_GP (
    reg [2:0] 	 curState, nextState;
 
    wire [5:0] 	 frameBuffer_addr;
-   assign frameBuffer_addr = GP_FRAME[24:19] >> 3;
+   assign frameBuffer_addr = GP_CODE[24:19] >> 3;
 
    reg [9:0] 	 x, y, next_x, next_y;
    assign af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
@@ -94,7 +94,7 @@ module FIFO_GP (
 	 x <= next_x;
 	 y <= next_y;
 	 //if read_pointer in BLOCK1
-	 if (curState != IDLE & First_Block_Written) begin
+	 if (curState != IDLE) begin
 	    read_pointer <= (fifo_stall || GP_stall)? read_pointer:
 			    (read_pointer == 15)? 0 : read_pointer + 1;
 	    
@@ -133,7 +133,7 @@ module FIFO_GP (
 	      FIFO_GP[write_pointer+1] = rdf_dout[63:32];
 	      FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	      FIFO_GP[write_pointer+3] = rdf_dout[127:96];
-	      nextState = (GP_interrupt)? IDLE:
+	      nextState = (GP_interrupt || GP_valid)? IDLE:
 			  PRE_BURST_2;
 	   end else begin // if (request & rdf_valid)
 	      next_x = x;
@@ -144,21 +144,14 @@ module FIFO_GP (
 
 	PRE_BURST_2: begin
 	   af_wr_en = 1'b0;
-	   First_Block_Written = 1'b1;
 	   write_pointer = 0;
 	   FIFO_GP[write_pointer] = rdf_dout[31:0];
 	   FIFO_GP[write_pointer+1] = rdf_dout[63:32];
 	   FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	   FIFO_GP[write_pointer+3] = rdf_dout[127:96];
+	   nextState = (GP_interrupt || GP_valid)? IDLE:
+		       BURST_3;
 	   
-	   nextState = (GP_interrupt)? IDLE:
-		       //Need to be < 7 because @ the 8th word,
-		       //it'll fetch the 9th (and that word won't be
-		       //written until the next cycle over - one too early)
-
-		       //also !af_full in case it'll delay 
-		       // pulling the next burst of 4 words
-		       (read_pointer < 8)? BURST_3 : curState;
 	   
 	end // case: PRE_BURST_2
 	
@@ -175,12 +168,12 @@ module FIFO_GP (
 	      FIFO_GP[write_pointer+1] = rdf_dout[63:32];
 	      FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	      FIFO_GP[write_pointer+3] = rdf_dout[127:96];
-	      nextState = (GP_interrupt)? IDLE:
+	      nextState = (GP_interrupt || GP_valid)? IDLE:
 			  BURST_2;
 	   end else begin // if (request & rdf_valid)
 	      next_x = x;
 	      next_y = y;
-	      nextState = (GP_interrupt)? IDLE: curState;
+	      nextState = (GP_interrupt || GP_valid)? IDLE: curState;
 	   end
 	end // case: BURST_1
 
@@ -193,13 +186,8 @@ module FIFO_GP (
 	   FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	   FIFO_GP[write_pointer+3] = rdf_dout[127:96];
 	   
-	   nextState = (GP_interrupt)? IDLE:
-		       //Need to be < 7 because @ the 8th word,
-		       //it'll fetch the 9th (and that word won't be
-		       //written until the next cycle over - one too early)
-
-		       //also !af_full in case it'll delay 
-		       // pulling the next burst of 4 words
+	   nextState = (GP_interrupt || GP_valid)? IDLE:
+		       //if read_pointer in Block 1
 		       (read_pointer < 8)? BURST_3 : curState;
 	   
 	end // case: BURST_2
@@ -208,6 +196,8 @@ module FIFO_GP (
 	   af_wr_en = 1'b1;
 	   Block2_Written = 1'b0;
 	   write_pointer = 12;
+	   First_Block_Written = 1'b1;
+
 
 	   if (request & rdf_valid) begin
 	      next_x = (xOverFlow)? 0: x + 8;
@@ -217,12 +207,12 @@ module FIFO_GP (
 	      FIFO_GP[write_pointer+1] = rdf_dout[63:32];
 	      FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	      FIFO_GP[write_pointer+3] = rdf_dout[127:96];
-	      nextState = (GP_interrupt)? IDLE:
+	      nextState = (GP_interrupt || GP_valid)? IDLE:
 			  BURST_4;
 	   end else begin // if (request & rdf_valid)
 	      next_x = x;
 	      next_y = y;
-	      nextState = (GP_interrupt)? IDLE: curState;
+	      nextState = (GP_interrupt || GP_valid)? IDLE: curState;
 	   end
 	   
 	end // case: BURST_3
@@ -236,13 +226,13 @@ module FIFO_GP (
 	   FIFO_GP[write_pointer+2] = rdf_dout[95:64];
 	   FIFO_GP[write_pointer+3] = rdf_dout[127:96];
 	   
-	   nextState = (GP_interrupt)? IDLE:
+	   nextState = (GP_interrupt || GP_valid)? IDLE:
 		       (read_pointer > 8)? BURST_1 : curState;
 	end
       endcase // case (curState)
    end // always@ (*)
    
    assign fifo_stall = (read_pointer == 7 & !Block2_Written) ||
-		  (read_pointer == 15 & !Block1_Written);
+		  (read_pointer == 15 & !Block1_Written) || (!First_Block_Written) ;
    
 endmodule

@@ -1,4 +1,6 @@
 start GraphicsProcessorTestbench
 add wave GraphicsProcessorTestbench/*
 add wave GraphicsProcessorTestbench/DUT/*
-run 10us
+add wave GraphicsProcessorTestbench/DUT/Fifo_GP/*
+
+run 1000us
