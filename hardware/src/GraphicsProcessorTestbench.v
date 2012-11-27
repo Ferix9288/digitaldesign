@@ -71,12 +71,55 @@ module GraphicsProcessorTestbench();
 				);
 
    //ADD FRAME FILLER READY AND LE READY MODULES
+
+   wire [127:0]     FF_wdf_din;
+   wire 	    FF_wdf_wr_en;
+   wire [30:0] 	    FF_af_addr_din;
+   wire [15:0] 	    FF_wdf_mask_din;
+   wire 	    FF_af_wr_en;
+   
+   FrameFiller Fill( .clk(Clock),
+		     .rst(Reset),
+		     .valid(FF_valid),
+		     .color(FF_color),
+		     .af_full(af_full),
+		     .wdf_full(wdf_full),
+		     .wdf_din(wdf_din),
+		     .wdf_wr_en(FF_wdf_wr_en),
+		     .af_addr_din(FF_af_addr_din),
+		     .af_wr_en(FF_af_wr_en),
+		     .wdf_mask_din(FF_wdf_mask_din),
+		     .ready(FF_ready),
+		     .FF_frame_base(FF_frame));
+
+   wire [30:0] 	    LE_af_addr_din;
+   wire 	    LE_af_wr_en, LE_wdf_wr_en;
+   wire [127:0]     LE_wdf_din;
+   wire [15:0] 	    LE_wdf_mask_din;
+   
+   LineEngine Line( .clk(Clock),
+		    .rst(Reset),
+		    .LE_ready(LE_ready),
+		    .LE_color(LE_color),
+		    .LE_point(LE_point),
+		    .LE_color_valid(LE_color_valid),
+		    .LE_point0_valid(LE_point0_valid),
+		    .LE_point1_valid(LE_point1_valid),
+		    .LE_trigger(LE_trigger),
+		    .LE_frame_base(LE_frame),
+		    .af_full(af_full),
+		    .wdf_full(wdf_full),
+		    .af_addr_din(LE_af_addr_din),
+		    .af_wr_en(LE_af_wr_en),
+		    .wdf_din(LE_wdf_din),
+		    .wdf_mask_din(LE_wdf_mask_din),
+		    .wdf_wr_en(LE_wdf_wr_en));
+   
+		    
    
    initial begin
       
       //TODO put your code here
-      LE_ready = 1;
-      FF_ready = 1;
       af_full = 0;
       rdf_valid = 0;
       Reset = 1;
