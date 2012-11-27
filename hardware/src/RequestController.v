@@ -251,9 +251,8 @@ module RequestController(
     reg line_reserved;
     reg filler_reserved;
     reg bypass_reserved;
-    reg cmd_reserved;
     wire reserved;
-    assign reserved = filler_reserved || line_reserved || bypass_reserved || cmd_reserved;
+    assign reserved = filler_reserved || line_reserved || bypass_reserved;
 
     always @(posedge clk) begin
         if(rst) 
@@ -270,11 +269,7 @@ module RequestController(
             filler_reserved <= 1'b0;
         else if(fifo_access == FILLER_ACCESS && !wdf_full && !af_full)
             filler_reserved <= filler_reserved + 1'b1;
-            
-        if(rst)
-            cmd_reserved <= 1'b0;
-        else if(fifo_access == CMD_ACCESS && !wdf_full && !af_full)
-            cmd_reserved <= cmd_reserved + 1'b1;
+      
     end
 
     always @(*) begin

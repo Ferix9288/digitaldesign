@@ -147,7 +147,7 @@ module Memory150(
     // Graphics Command Processor <=> RequestController wires:
     wire 		 cmd_rdf_rd_en;
     wire 		 cmd_af_wr_en;
-    wire		 cmd_addr_din;
+    wire [30:0]		 cmd_addr_din;
     wire		 cmd_rdf_valid;
     wire		 cmd_af_full;
 
