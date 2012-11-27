@@ -65,9 +65,11 @@ module LineEngineTestbench();
     end
 
    reg LE_point0_valid, LE_point1_valid;
+   wire steep;
    
-    assign x = {af_addr_din[8:2], mask};
-    assign y = af_addr_din[18:9];
+   assign x = (steep)? {af_addr_din[8:2], mask} : af_addr_din[18:9];
+   assign y = (steep)? af_addr_din[18:9]: {af_addr_din[8:2], mask};
+   
 
    LineEngine le (
 		  .clk(Clock),
@@ -90,7 +92,8 @@ module LineEngineTestbench();
 		  .wdf_din(wdf_din),
 		  .wdf_mask_din(wdf_mask_din),
 		  .wdf_wr_en(wdf_wr_en),
-		  .LE_frame_base(32'h10400000)
+		  .LE_frame_base(32'h10400000),
+		  .steep(steep)
 		  );
 
    initial begin
@@ -110,9 +113,9 @@ module LineEngineTestbench();
       rst = 1'b0;
       #(Cycle);
       //drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
-      drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
-      // drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
-      // drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
+      //drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
+      //drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
+       drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
    end
 
    task drawLine;
@@ -153,10 +156,20 @@ module LineEngineTestbench();
 	  //LE_trigger  = 1'b1;
 	  //LE_y1_valid = 1'b0;
 	  //LE_trigger  = 1'b0;
-	  #(Cycle);
+	  /*
+	   * #(Cycle);
+	  #(100*Cycle);
+	  af_full = 1'b1;
+	  #(5*Cycle);
+	  af_full = 1'b0;
+	   */
+	  
 	  while(!LE_ready) begin
              if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
-		$display("%4d %4d", x, y);
+		if (steep)
+		  $display("%4d %4d", y, x);
+		else
+		  $display("%4d %4d", x, y);
              end
 	     #(Cycle);
 	     
