@@ -51,13 +51,15 @@ module GraphicsProcessor(
    //Your code goes here. GL HF.
 
    
-   reg [1:0] 		       curState;
-   reg [1:0] 		       nextState;
+   reg [2:0] 		       curState;
+   reg [2:0] 		       nextState;
 
-   localparam IDLE = 2'b00;
-   localparam READ_0 = 2'b01;
-   localparam READ_1 = 2'b10;
-   localparam READ_2 = 2'b11;
+   localparam IDLE = 3'b000;
+   localparam READ_0 = 3'b001;
+   localparam READ_1 = 3'b010;
+   localparam READ_2 = 3'b011;
+   localparam WAIT = 3'b100;
+   
 
 
    wire 		       FIFO_rdf_rd_en;
@@ -137,6 +139,12 @@ module GraphicsProcessor(
       case (curState)
 	IDLE: begin
 	   GP_interrupt = 0;
+	   FF_valid = 0;
+	   LE_color_valid = 0;
+	   LE_point0_valid = 0;
+	   LE_point1_valid = 0;
+	   LE_trigger = 0;
+	   
 	   nextState = (GP_valid)? READ_0 : curState;
 	end
 	
@@ -146,7 +154,7 @@ module GraphicsProcessor(
 	   FF_valid = 0;
 	   LE_color_valid = 0;
        
-	   if (!FIFO_stall || !GP_stall) begin
+	   if (!FIFO_stall & !GP_stall) begin
 	      if (curCommand == `STOP) begin
 		 GP_interrupt = 1;
 		 nextState = (GP_valid)? curState: IDLE;
@@ -154,8 +162,9 @@ module GraphicsProcessor(
 		 FF_frame = GP_FRAME;
 		 FF_color = fifo_GP_out[`COLOR_IDX];
 		 FF_valid = 1;
-		 nextState  = curState;
-	      end else if (curCommand == `LINE) begin
+		 nextState  = curState;//: WAIT;
+		 
+ 	      end else if (curCommand == `LINE) begin
 		 LE_frame = GP_FRAME;
 		 LE_color = {8'b0, fifo_GP_out[`COLOR_IDX]};
 		 LE_color_valid = 1;
@@ -170,7 +179,7 @@ module GraphicsProcessor(
 
 	READ_1: begin	
 	   LE_color_valid = 0;	   
-	   if (!FIFO_stall || !GP_stall) begin
+	   if (!FIFO_stall & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point0_valid = 1;	     
 	      nextState = (GP_valid)? READ_0 : READ_2;
@@ -182,17 +191,30 @@ module GraphicsProcessor(
 	
 	READ_2: begin
 	   LE_point0_valid = 0;
-	   if (!FIFO_stall || !GP_stall) begin
+	   if (!FIFO_stall & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point1_valid = 1;
 	      LE_trigger = 1;
-	      nextState = READ_0;
+	      nextState = READ_0; //WAIT
 	   end else begin
 	      LE_point1_valid = 0;
-	      nextState = (GP_valid)? READ_0 : curState;
 	      LE_trigger = 0;
+	      nextState = (GP_valid)? READ_0 : curState;
 	   end
+	end // case: READ_2
+
+	/*
+	 * WAIT: begin
+	   FF_valid = 0;
+	   LE_point1_valid = 0;
+	   LE_trigger = 0;
+	   
+	   nextState = (GP_valid)? READ_0:
+		       (!FIFO_stall & !GP_stall)? READ_0: curState;
+	   
 	end
+	 */
+	
       endcase // case (curState)
    end
     

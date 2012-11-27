@@ -14,17 +14,19 @@ module GraphicsProcessorTestbench();
 
    reg 	rdf_valid;
    reg 	af_full;
+   reg 	wdf_full;
+   
    reg [127:0] rdf_dout;
    wire        rdf_rd_en;
    wire        af_wr_en;
    wire [30:0] af_addr_din;
    wire        ready;
    
-   reg 	       FF_ready;
+   wire        FF_ready;
    wire        FF_valid;
    wire [23:0] FF_color;
    
-   reg 	       LE_ready;
+   wire	       LE_ready;
    wire [31:0] LE_color;
    wire [19:0] LE_point;
    wire        LE_color_valid;
@@ -84,7 +86,7 @@ module GraphicsProcessorTestbench();
 		     .color(FF_color),
 		     .af_full(af_full),
 		     .wdf_full(wdf_full),
-		     .wdf_din(wdf_din),
+		     .wdf_din(FF_wdf_din),
 		     .wdf_wr_en(FF_wdf_wr_en),
 		     .af_addr_din(FF_af_addr_din),
 		     .af_wr_en(FF_af_wr_en),
@@ -121,6 +123,7 @@ module GraphicsProcessorTestbench();
       
       //TODO put your code here
       af_full = 0;
+      wdf_full = 0;
       rdf_valid = 0;
       Reset = 1;
       #(10*Cycle);

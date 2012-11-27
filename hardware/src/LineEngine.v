@@ -245,7 +245,7 @@ module LineEngine(
   
       
    
-   assign LE_ready = (curState == IDLE);
+   assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
    
 endmodule

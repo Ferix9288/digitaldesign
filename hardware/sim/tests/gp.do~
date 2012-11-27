@@ -5,4 +5,4 @@ add wave GraphicsProcessorTestbench/DUT/Fifo_GP/*
 add wave GraphicsProcessorTestbench/Fill/*
 add wave GraphicsProcessorTestbench/Line/*
 
-run 10000us
+run 1000us
