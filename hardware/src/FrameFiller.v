@@ -114,7 +114,8 @@ module FrameFiller(//system:
 
 
    
-   
+   /*
+    * 
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -124,6 +125,7 @@ module FrameFiller(//system:
 		     .CLK(clk),
 		     .TRIG0({rst, done, curState, nextState, af_wr_en, wdf_wr_en, x_Cols, y_Rows, wdf_mask_din})
 		     ); 
+    */
    
 
 endmodule

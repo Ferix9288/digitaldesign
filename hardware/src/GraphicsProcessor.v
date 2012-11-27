@@ -230,7 +230,18 @@ module GraphicsProcessor(
     */
    
    //DRAM request controller interface
- 
+
+   
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     .TRIG0({rst, LE_ready, FF_ready, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, FF_valid, FIFO_stall, GP_stall, GP_valid, curState, nextState, rdf_dout, GP_FRAME, GP_CODE, fifo_GP_out})
+		     ); 
+   
    
    
 endmodule

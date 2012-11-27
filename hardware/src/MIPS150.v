@@ -190,7 +190,11 @@ module MIPS150(
 		     .opcodeM(opcodeM),
 		     .PC(PC),
 		     .pcE(pcE),
-		     .nextPC(nextPC));
+		     .nextPC(nextPC),
+		     //Graphics Processor
+		     .GP_CODE(gp_code),
+		     .GP_FRAME(gp_frame),
+		     .GP_valid(gp_valid));
    
    Control Controls(.stall(stall),
 		    .opcodeF(opcodeF),

@@ -39,10 +39,10 @@ module MISCTestbench();
 
    reg 	      rdf_valid, af_full;
    reg [127:0] rdf_dout;
-   wire [31:0] GP_FRAME;
+   wire [31:0] GP_CODE;
    reg 	       GP_valid, GP_interrupt;
 
-   assign GP_FRAME = 32'h10400000;
+   assign GP_CODE = 32'h10400000;
    
    wire        rdf_rd_en;
    wire        af_wr_en;
@@ -61,9 +61,17 @@ module MISCTestbench();
 		.af_addr_din(af_addr_din),
 		.fifo_GP_out(fifo_GP_out),
 		.GP_stall(GP_stall),
-		.GP_FRAME(GP_FRAME),
+		.GP_CODE(GP_CODE),
 		.GP_valid(GP_valid),
 		.GP_interrupt(GP_interrupt));
+
+   reg 	       stall, is_GP_CODE;
+   wire        gp_valid;
+   GPValid gpvalid(.clk(Clock),
+		   .rst(Reset),
+		   .stall(stall),
+		   .is_GP_CODE(is_GP_CODE),
+		   .GP_valid(gp_valid));
    
    
    initial begin
@@ -107,6 +115,22 @@ module MISCTestbench();
       rdf_valid = 1;
       rdf_dout = 128'hff000000ceaa0e3ddeadbeefffffffff;
       #(100*Cycle);
+
+      //Check GP_Valid FSM
+      Reset = 1'b1;
+      #(10*Cycle);
+      Reset = 1'b0;
+      stall = 0;
+      is_GP_CODE = 1;
+      #(Cycle);
+      is_GP_CODE = 0;
+      #(3*Cycle);
+      is_GP_CODE = 1;
+      stall = 1;
+      #(5*Cycle);
+      stall = 0;
+      #(3*Cycle);
+      
       
       $finish();
    end

@@ -121,8 +121,13 @@ module DataPath(
 		//Needed for BIOS/Instr$
 		output reg [31:0] PC,
 		output reg [31:0] pcE,
-		output reg [31:0] nextPC
+		output reg [31:0] nextPC,
 		//opcodeM
+
+		//Graphics Processor
+		output reg [31:0] GP_CODE,
+		output reg [31:0] GP_FRAME,
+		output GP_valid
 		);
 
    //--FOR ALU--
@@ -305,22 +310,6 @@ module DataPath(
 			   //Output
 			   .DataInMasked(dataInMasked));
 
-   
-   /*
-    * //Instantiating Data Memory
-   dmem_blk_ram DataMemory(
-			   //Inputs
-			   .clka(clk),
-			   .ena(~stall),
-			   .wea(dataMemWriteEn),
-			   .addra(dataMemAddr),
-			   .dina(dataInMasked), //CHANGED
-			   //Output
-			   .douta(dataMemOut));
-    */
-    
-
-   
    //Instantiating DataOutMask for BIOS Data
    DataOutMask BIOSMemMask(//Inputs
 			   .DataOutMem(Data_BIOSOut),
@@ -427,10 +416,25 @@ module DataPath(
 			    .UARTRequest(UART1Request));
    
 
-   
-   
+   //============GRAPHICS PROCESSOR==========//
 
+   wire [31:0] 			 GP_CODE_ADDR, GP_FRAME_ADDR;
+   assign GP_CODE_ADDR = 32'h18000000;
+   assign GP_FRAME_ADDR = 32'h18000004;
    
+   wire 			 is_GP_CODE, is_GP_FRAME;
+   assign is_GP_CODE = (stall & ALUOutM == GP_CODE_ADDR) ||
+		       (!stall & ALUOutE == GP_CODE_ADDR);
+   assign is_GP_FRAME = (stall & ALUOutM == GP_FRAME_ADDR) ||
+			(!stall & ALUOutE == GP_FRAME_ADDR);
+
+   GPValid gpvalid(.clk(clk),
+		   .rst(reset),
+		   .stall(stall),
+		   .is_GP_CODE(is_GP_CODE),
+		   .GP_valid(GP_valid));
+   
+     
 
    //=================FETCH==================//
 
@@ -543,29 +547,14 @@ module DataPath(
    always@(*) begin
       if (resetClocked) begin
 	 nextPC = 32'h40000000;
-	 //instrMemAddr_B = 0;
-//	 addrPC_BIOS = 0;
-     // end else if (stall) begin
-     //	 addrPC_BIOS = nextPC_E[13:2];
       end else if (branchCtr) begin
 	 nextPC =  PC + $signed(immediateESigned<<2);
-	 //instrMemAddr_B = nextPC[13:2];
-	 //addrPC_BIOS = nextPC[13:2];
       end else if (jE) begin
 	 nextPC = {PC[31:28], targetE, 2'b0};
-	 //instrMemAddr_B = nextPC[13:2];
-	 //addrPC_BIOS = nextPC[13:2];
       end else if (jrE || jalrE) begin
 	 nextPC = rd1Fwd;
-	 //instrMemAddr_B = nextPC[13:2];
-	 //addrPC_BIOS = nextPC[13:2];
-     // end else if (InterruptHandled) begin
-	// nextPC = 32'hc0000000;
       end else begin
 	 nextPC = PC + 4;
-	 //instrMemAddr_B = nextPC[13:2];
-	 //addrPC_BIOS = nextPC[13:2];
-
       end
    end // always@ (*)
 
@@ -587,10 +576,6 @@ module DataPath(
       end
    end
 	
-	
-   
-
-   
    //Combinatorial logic to hook up PC to BIOS and Instr $
    always@(*) begin
       //addrPC_BIOS = (stall)? nextPC_E[13:2] : addrPC_BIOS;      
@@ -830,10 +815,18 @@ module DataPath(
 
       ISR_DataAddr = (stall)? ALUOutM[13:2]: ALUOutE[13:2];
       ISR_din = dataInMasked;
-      
-
    end
-   
+
+   //Graphics Processor - MMIO Registers
+   always@(*) begin
+      GP_CODE = (is_GP_CODE)? rd2Fwd:
+		GP_CODE;
+
+      GP_FRAME = (is_GP_FRAME)? rd2Fwd:
+		 GP_FRAME;
+      
+   end
+      
 
    //===============PipeLineEM==================//
    
