@@ -86,6 +86,9 @@ module MIPS150(
 
    wire        readCycleCount, readInstrCount, resetCounters;
    wire        mtc0, mfc0, causeDelaySlot;
+
+   wire        readFrameCount;
+   
    
    
    
@@ -164,6 +167,11 @@ module MIPS150(
 		     .mtc0(mtc0),
 		     .mfc0(mfc0),
 		     .causeDelaySlot(causeDelaySlot),
+
+		     //FOR Graphics Processor
+
+		     .readFrameCount(readFrameCount),
+		     .frame_interrupt(frame_interrupt),
 		     
 		     //OUTPUTS
 
@@ -258,7 +266,8 @@ module MIPS150(
 		    .resetCounters(resetCounters),
 		    .mtc0(mtc0),
 		    .mfc0(mfc0),
-		    .causeDelaySlot(causeDelaySlot));
+		    .causeDelaySlot(causeDelaySlot),
+		    .readFrameCount(readFrameCount));
    
 		    
 

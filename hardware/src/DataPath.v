@@ -75,6 +75,9 @@ module DataPath(
 		//FOR CP0
 
 		input mtc0, mfc0, causeDelaySlot,
+
+		//FOR Graphics Processor
+		input readFrameCount, frame_interrupt, 
 		
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
@@ -292,6 +295,7 @@ module DataPath(
    RegFile Regfile(
 		   //Inputs
 		   .clk(clk),
+		   .rst(reset),
 		   .we(regWriteM),
 		   .ra1(ra1),
 		   .ra2(ra2),
@@ -423,18 +427,35 @@ module DataPath(
    assign GP_FRAME_ADDR = 32'h18000004;
    
    wire 			 is_GP_CODE, is_GP_FRAME;
-   assign is_GP_CODE = (stall & ALUOutM == GP_CODE_ADDR) ||
-		       (!stall & ALUOutE == GP_CODE_ADDR);
-   assign is_GP_FRAME = (stall & ALUOutM == GP_FRAME_ADDR) ||
-			(!stall & ALUOutE == GP_FRAME_ADDR);
+
+   wire 			 isStoreE, isStoreM;
+   assign isStoreE = (opcodeE == `SB) || (opcodeE == `SH) || 
+		     (opcodeE == `SW);
+
+   assign is_GP_CODE = (!stall & ALUOutE == GP_CODE_ADDR & isStoreE); 
+//and is a store instruction
+   assign is_GP_FRAME = (!stall & ALUOutE == GP_FRAME_ADDR & isStoreE);
 
    GPValid gpvalid(.clk(clk),
 		   .rst(reset),
 		   .stall(stall),
 		   .is_GP_CODE(is_GP_CODE),
 		   .GP_valid(GP_valid));
-   
-     
+
+   reg [31:0] 			 FrameCounter;
+
+   //For Graphics Processor and Frame Counter
+   always@(posedge clk) begin
+      if (reset) begin
+	 GP_CODE <= 0;
+	 GP_FRAME <= 10400000;
+	 FrameCounter <= 0;
+      end else begin
+	 GP_CODE <= (is_GP_CODE)? rd2Fwd: GP_CODE;
+	 GP_FRAME <= (is_GP_FRAME)? rd2Fwd: GP_FRAME;
+	 FrameCounter <= (frame_interrupt)? FrameCounter + 1 : FrameCounter;
+      end
+   end
 
    //=================FETCH==================//
 
@@ -817,16 +838,7 @@ module DataPath(
       ISR_din = dataInMasked;
    end
 
-   //Graphics Processor - MMIO Registers
-   always@(*) begin
-      GP_CODE = (is_GP_CODE)? rd2Fwd:
-		GP_CODE;
 
-      GP_FRAME = (is_GP_FRAME)? rd2Fwd:
-		 GP_FRAME;
-      
-   end
-      
 
    //===============PipeLineEM==================//
    
@@ -838,16 +850,15 @@ module DataPath(
    reg 				 isBIOS_DataM;
    reg 				 dcache_re_Ctr_M;
    reg 				 isLoadM;
+   //Memory-Mapped Controls
    reg 				 readCycleCount_M;
    reg 				 readInstrCount_M;
+   //Coprocessor 0
    reg [31:0] 			 COP_Dout_M;
    reg 				 mfc0_M;
+   //Graphics Processor
+   reg 				 readFrameCount_M;
    
-   
-   
-   
-   
-				    
    //transfering control signals   
    always@(posedge clk) begin
       if (!reset && !stall) begin
@@ -866,6 +877,8 @@ module DataPath(
 	 resetCounters_M <= resetCounters;
 	 mfc0_M <= mfc0_E;
 	 COP_Dout_M <= COP_Dout_E;
+	 readFrameCount_M <= readFrameCount;
+	 
 	 
 	 
       end else if (reset) begin
@@ -883,6 +896,8 @@ module DataPath(
 	 resetCounters_M <= 0;
 	 COP_Dout_M <= 0;
 	 mfc0_M <= 0;
+	 readFrameCount_M <= 0;
+	 
 
       end else begin
 	 memToRegM <= memToRegM;
@@ -899,7 +914,7 @@ module DataPath(
 	 resetCounters_M <= resetCounters_M;
 	 COP_Dout_M <= COP_Dout_M;
 	 mfc0_M <=  mfc0_M;
-	 
+	 readFrameCount_M <= readFrameCount_M;
 	 
       end
    end
@@ -976,6 +991,8 @@ module DataPath(
 	writeBack = ALUOutM;
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
+      else if (readFrameCount_M)
+	writeBack = FrameCounter;
       else if (readCycleCount_M)
 	writeBack = CycleCounter;
       else if (readInstrCount_M)
@@ -998,14 +1015,16 @@ module DataPath(
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
-		       ) /; 
+		       ) ;
+ 
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
+		     .TRIG0({reset, stall, frame_interrupt, is_GP_FRAME, is_GP_CODE, GP_valid, regWriteM, instrSrc, nextPC, PC, DecIn, ALUOutE, writeBack, GP_FRAME, GP_CODE})
 		     ) ;
+    */
    
-   */
+   
 
    
 endmodule

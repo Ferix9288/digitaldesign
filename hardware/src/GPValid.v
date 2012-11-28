@@ -21,6 +21,7 @@ module GPValid ( input clk,
    end
 
    always@(*) begin
+      nextState = curState;
       case (curState)
 	LOW: begin
 	   if (is_GP_CODE & stall)

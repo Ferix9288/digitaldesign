@@ -16,7 +16,7 @@ module PixelFeeder( //System:
                     output         video_valid,
                     input          video_ready,
 
-		    output frame_interrupt);
+		    output reg frame_interrupt);
 
    // Hint: States
    localparam IDLE = 1'b0;
@@ -72,20 +72,18 @@ module PixelFeeder( //System:
 
 	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
 	    
-	    if (xOverFlow)
-	      y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
-	    else
-	      y_Rows <= y_Rows;
+	    if (xOverFlow) begin
+	       y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
+	       frame_interrupt <= (yOverFlow)? 1: 0;
+	       // frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
+	       //			   BUFFER2_DDR: BUFFER1_DDR;
+	       
+	    end else begin
+	       y_Rows <= y_Rows;
+	       frame_interrupt <= 0;
+	       // frameBuffer_addr <= frameBuffer_addr;
+	    end
 	    
-	    /*
-	     * if (yOverFlow)
-	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
-				 BUFFER2_DDR: BUFFER1_DDR;
-	    else
-	      frameBuffer_addr <= frameBuffer_addr;
-	    
-
-	     */
 	    //just requesting 8 pixels
 	 end else if (request_8pixels) begin 
 	    
@@ -93,18 +91,17 @@ module PixelFeeder( //System:
 
 	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
 	    
-	    if (xOverFlow)
-	      y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
-	    else
-	      y_Rows <= y_Rows;
-	    
-	    /*
-	     * if (yOverFlow)
-	      frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
-				  BUFFER2_DDR: BUFFER1_DDR;
-	    else
-	      frameBuffer_addr <= frameBuffer_addr;
-	     */
+	    if (xOverFlow) begin
+	       y_Rows <= (yOverFlow)? 0 : y_Rows + 1;
+	       frame_interrupt <= (yOverFlow)? 1: 0;
+	       // frameBuffer_addr <= (frameBuffer_addr == BUFFER1_DDR)?
+	       //			   BUFFER2_DDR: BUFFER1_DDR;
+
+	    end else begin
+	       y_Rows <= y_Rows;
+	       frame_interrupt <= 0;
+	       // frameBuffer_addr <= frameBuffer_addr;
+	    end
 	    
 	  
 	    //just fetching a pixel

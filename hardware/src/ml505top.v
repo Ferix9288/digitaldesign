@@ -164,19 +164,21 @@ module ml505top
   wire         filler_valid;
   wire         line_ready;
   wire  [31:0] line_color;
-  wire  [9:0]  line_point;
-  wire         line_color_valid;
-  wire         line_x0_valid;
-  wire         line_y0_valid;
-  wire         line_x1_valid;
-  wire         line_y1_valid;
+  wire  [19:0]  line_point;
+   wire        line_color_valid;
+   wire        line_point0_valid;
+   wire        line_point1_valid;
+   
+  //wire         line_x0_valid;
+  //wire         line_y0_valid;
+ // wire         line_x1_valid;
+ // wire         line_y1_valid;
   wire         line_trigger;
   
-  wire fb0;
-   wire frame_interrupt;
-   wire [31:0] gp_code;
-   wire [31:0] gp_frame;
-   wire        gp_valid;
+   wire        frame_interrupt;
+   wire [31:0] cpu_gp_code;
+   wire [31:0] cpu_gp_frame;
+   wire        cpu_gp_valid;
    
   
   Memory150 #(.SIM_ONLY(1'b0)) mem_arch(
@@ -217,9 +219,9 @@ module ml505top
       .video      (video      ),
       .video_ready(video_ready),
       .video_valid(video_valid),
-      .cpu_gp_code(gp_code),
-      .cpu_gp_frame(gp_frame),
-      .cpu_gp_valid(gp_valid),
+      .cpu_gp_code(cpu_gp_code),
+      .cpu_gp_frame(cpu_gp_frame),
+      .cpu_gp_valid(cpu_gp_valid),
       .frame_interrupt(frame_interrupt)
     );
   

@@ -103,10 +103,11 @@ module Control(
 	       output readCycleCount, readInstrCount, resetCounters,
 	       
 	       //FOR CP0
+	       output mtc0, mfc0, causeDelaySlot,
 
-	       output mtc0, mfc0, causeDelaySlot
+	       //FOR Graphics Processor
+	       output readFrameCount
 	       
-
 	       );
 
    ALUdec ALUdecoder(
@@ -400,9 +401,9 @@ module Control(
 
    assign icache_re_Ctr = (PC[31:28] == 4'b0001) || (nextPC[31:28] == 4'b0001);
 
-   assign readCycleCount = (ALUOutE == 32'h80000010);
-   assign readInstrCount = (ALUOutE == 32'h80000014);
-   assign resetCounters = (ALUOutE == 32'h80000018);
+   assign readCycleCount = (ALUOutE == 32'h80000010) & isLoadE;
+   assign readInstrCount = (ALUOutE == 32'h80000014) & isLoadE;
+   assign resetCounters = (ALUOutE == 32'h80000018) & isLoadE;
    
    //Logic for mtc0 and mfc0
 
@@ -422,8 +423,7 @@ module Control(
 			   (mfc0) || (mtc0)
 			   ;
 
+   assign readFrameCount = (ALUOutE == 32'h8000001c) & isLoadE;
    
-
-    
 endmodule
 	  

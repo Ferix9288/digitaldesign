@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------------
 
 module RegFile(input clk,
+	       input rst,
                input we,
                input  [4:0] ra1, ra2, wa,
                input  [31:0] wd,
@@ -31,7 +32,7 @@ module RegFile(input clk,
    
    always @(posedge clk)
      if(we) rf[wa] <= wd;
-   
+     
    assign rd1 = (ra1 != 0) ? rf[ra1] : 0;
    assign rd2 = (ra2 != 0) ? rf[ra2] : 0;
     
