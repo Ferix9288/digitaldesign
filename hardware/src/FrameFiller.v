@@ -20,8 +20,10 @@ module FrameFiller(//system:
   );
 
    //COLOR
-   wire [31:0] color_word; 
-   assign  color_word = {8'b0, color};        
+   wire [31:0] color_word;
+   reg [23:0]  stored_color;
+   reg [23:0]  next_color;
+   assign  color_word = {8'b0, stored_color};        
    assign wdf_din = {color_word, color_word, color_word, color_word};
 
    //FRAME
@@ -54,10 +56,13 @@ module FrameFiller(//system:
 	 curState <= IDLE;
 	 x_Cols <= 0;
 	 y_Rows <= 0;
+	 stored_color <= 0;
       end else begin
 	 curState <= nextState;
 	 x_Cols <= next_x;
 	 y_Rows <= next_y;
+	 stored_color <= next_color;
+	 
       end
    end // always@ (posedge clk)
 
@@ -70,6 +75,7 @@ module FrameFiller(//system:
 	   wdf_mask_din = 16'hffff;
 	   next_x = 0;
 	   next_y = 0;
+	   next_color = (valid)? color: stored_color;
 	   nextState = (valid)? FILL_1: IDLE;
 	end
 
@@ -78,6 +84,7 @@ module FrameFiller(//system:
 	FILL_1: begin
 	   af_wr_en = 1'b1;
 	   wdf_mask_din = 16'h0;
+	   next_color = stored_color;
 	   //not af_full and not wd_full
 	   if (wdf_wr_en) begin
 	      next_x = (xOverFlow)? 0: x_Cols + 8;
@@ -95,6 +102,7 @@ module FrameFiller(//system:
 	FILL_2: begin
 	   af_wr_en = 1'b0;
 	   wdf_mask_din = 16'h0;
+	   next_color = stored_color;
 	   next_x = x_Cols;
 	   next_y = y_Rows;
 	   nextState = (done)? IDLE: 
@@ -106,6 +114,7 @@ module FrameFiller(//system:
 	   wdf_mask_din = 16'hffff;
 	   next_x = x_Cols;
 	   next_y = y_Rows;
+	   next_color = stored_color;
 	end
       endcase // case (curState)
    end

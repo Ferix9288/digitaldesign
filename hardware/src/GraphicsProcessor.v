@@ -123,12 +123,19 @@ module GraphicsProcessor(
    wire [7:0] 		       curCommand;
    assign curCommand = fifo_GP_out[`OPCODE_IDX];
    assign GP_stall = !FF_ready || !LE_ready;
+
+   reg 			       GP_stall_clocked, FIFO_stall_clocked;
+   
       
    always @(posedge clk) begin
       if (rst) begin
 	 curState <= IDLE;
+	 GP_stall_clocked <= 0;
+	 FIFO_stall_clocked <= 0;
       end else begin
 	 curState <= nextState;
+	 GP_stall_clocked <= GP_stall;
+	 FIFO_stall_clocked <= FIFO_stall;
       end
    end
    
@@ -151,7 +158,7 @@ module GraphicsProcessor(
 	   FF_valid = 0;
 	   LE_color_valid = 0;
        
-	   if (!FIFO_stall & !GP_stall) begin
+	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
 	      if (curCommand == `STOP) begin
 		 GP_interrupt = 1;
 		 nextState = (GP_valid)? curState: IDLE;
@@ -176,7 +183,7 @@ module GraphicsProcessor(
 
 	READ_1: begin	
 	   LE_color_valid = 0;	   
-	   if (!FIFO_stall & !GP_stall) begin
+	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point0_valid = 1;	     
 	      nextState = (GP_valid)? READ_0 : READ_2;
@@ -188,7 +195,7 @@ module GraphicsProcessor(
 	
 	READ_2: begin
 	   LE_point0_valid = 0;
-	   if (!FIFO_stall & !GP_stall) begin
+	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point1_valid = 1;
 	      LE_trigger = 1;

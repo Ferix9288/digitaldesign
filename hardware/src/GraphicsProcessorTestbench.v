@@ -153,9 +153,8 @@ module GraphicsProcessorTestbench();
       #(2*Cycle)
       rdf_valid = 0;
       #(5*Cycle);
-      #(2*Cycle);
       rdf_valid = 1;
-      
+
       while (!gp_interrupt) #(Cycle);
 
       #(10*Cycle);
