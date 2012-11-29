@@ -25,8 +25,10 @@ module FrameFiller(//system:
    assign wdf_din = {color_word, color_word, color_word, color_word};
 
    //FRAME
+   wire [31:0] addr_div8;
    wire [5:0]  frameBuffer_addr;
-   assign frameBuffer_addr = FF_frame_base[24:19] >> 3;
+   assign addr_div8 = FF_frame_base >> 3;
+   assign frameBuffer_addr = addr_div8[24:19];
 
    //FSM
    localparam IDLE = 2'b00;
@@ -38,7 +40,7 @@ module FrameFiller(//system:
    //X+Y Coordinates
    reg [9:0] 	       x_Cols, next_x;
    reg [9:0] 	       y_Rows, next_y;
-   wire 	       xOverFlow, yOverFlow;   
+   wire 	      xOverFlow, yOverFlow;   
    assign xOverFlow = (x_Cols == 10'd792);
    assign yOverFlow = (y_Rows == 10'd600);
 

@@ -1,0 +1,30 @@
+#define frameCount (volatile unsigned int*) 0x8000001c
+#define GP_CODE (volatile unsigned int*) 0x180000040
+#define GP_FRAME (volatile unsigned int*) 0x18000004
+#define ODD_CODE (volatile unsigned int*) 0x17800000
+#define EVEN_CODE (volatile unsigned int*) 0x17600000
+
+int main(void) {
+  unsigned int oldframe;
+  frameCount = 0;
+  ODD_CODE[0] = 0x01000000;
+  ODD_CODE
+  while (1) {
+    if (*frameCount%2) {
+      writeOddFrameGPinst();
+      GP_FRAME = 0x10800000;
+      GP_CODE = 0x17800000;
+    } else {
+      writeEvenFrameGPinst();
+      GP_FRAME = 0x10400000;
+      GP_CODE = 0x17600000;
+    }
+    oldframe = frame;
+    while (frame == oldframe);
+  }
+}
+
+writeOddFrameGPinst(void) {
+  ODD_CODE[0] = 0x01000000;
+  ODD_CODE[1] = 0x0200_00FF;
+  

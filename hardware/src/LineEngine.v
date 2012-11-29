@@ -88,8 +88,10 @@ module LineEngine(
    assign steep = (ABS_deltay_init > ABS_deltax_init)? 1: 0;
    reg [9:0] 		ystep;
 
+   wire [31:0] 		addr_div8;
    wire [5:0] 		frameBuffer_addr;
-   assign frameBuffer_addr = LE_frame_base[24:19] >> 3;
+   assign addr_div8 = LE_frame_base >> 3;
+   assign frameBuffer_addr = addr_div8[24:19];
    //--------------------------------------------------
    
    reg [9:0] 		temp;

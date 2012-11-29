@@ -21,7 +21,9 @@ module PixelFeeder( //System:
    // Hint: States
    localparam IDLE = 1'b0;
    localparam FETCH = 1'b1;
+   //0x1040_0000
    localparam BUFFER1_DDR = 6'b000001;
+   //0x1080_0000
    localparam BUFFER2_DDR = 6'b000010;
    
 

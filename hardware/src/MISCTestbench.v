@@ -25,9 +25,14 @@ module MISCTestbench();
 
    //Test if grabbing the right frame
    reg [31:0] frame;
+   wire [31:0] addr_div8;
    wire [5:0]  frameBuffer_addr;
-   assign frameBuffer_addr = frame[24:19] >> 3;
+   assign addr_div8 = frame >> 3;
+   assign frameBuffer_addr = addr_div8[24:19];
 
+   wire [31:0]  frame_result;
+   assign frame_result = {6'b0, frameBuffer_addr, 19'b0};
+   
    reg [3:0]   read_pointer;
 
    reg [31:0] read_out;
@@ -76,7 +81,7 @@ module MISCTestbench();
    
    initial begin
       x_Cols = -30;
-      frame = 32'h10800000;
+      frame = 32'h19000000;
       FIFO_GP[2] = 32'hffffffff;      
       read_pointer = 2;
       read_out = FIFO_GP[read_pointer];
@@ -96,6 +101,8 @@ module MISCTestbench();
       $display("ABS_x: %d ", ABS_x);
       $display("ABS2_x: %d ", ABS2_x);
       $display("frame: %b ", frameBuffer_addr);
+      $display("frame result: %h ", frame_result);
+
       $display("blah: %b ", blah);
       $display("FIFO_GP: %h", FIFO_GP[2]);
       $display("Read_out: %h", read_out);

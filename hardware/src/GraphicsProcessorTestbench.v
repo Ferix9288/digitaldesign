@@ -133,12 +133,17 @@ module GraphicsProcessorTestbench();
       gp_valid = 1;
       #(Cycle);
       gp_valid = 0;
-      rdf_valid = 1;
+      rdf_valid = 0;
       
       rdf_dout = {32'h00000000, 32'h00AA00BB, 32'h01230124, 32'h02ff0000};
-      #(Cycle);
+      #(10*Cycle);
+      rdf_valid = 1;
+      #(3*Cycle);
       rdf_dout = {32'h001A002B, 32'h00100020, 32'h020000FF, 32'h01000000};
-
+      rdf_valid = 0;
+      #(5*Cycle);
+      rdf_valid = 1;
+      #(2*Cycle);
       while (!gp_interrupt) #(Cycle);
 
       #(10*Cycle);
