@@ -132,9 +132,6 @@ module GraphicsProcessor(
       end
    end
    
-
-   
- 
    always @(*) begin
       case (curState)
 	IDLE: begin
