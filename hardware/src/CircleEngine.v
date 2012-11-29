@@ -1,4 +1,5 @@
-//Draws Circles
+/*
+ * //Draws Circles
 //First Word: 8 bits for command; 24 for color
 //Second Word: [[31:22] -> x, [21: 12] -> y, [11:0] radius]
 
@@ -28,7 +29,7 @@ module CircleEngine(
 
    localparam IDLE = 3'b000;
    localparam SETUP = 3'b001;
-   localparam CIRCLE_FUNCTION = 3'b002;
+   localparam CIRCLE_FUNCTION = 3'b010;
 
    reg [2:0] 			 curState, nextState;
 
@@ -46,8 +47,8 @@ module CircleEngine(
    assign frameBuffer_addr = addr_div8[24:19];
 
    assign af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
-   
-   always@(posedge clk) begin
+  
+     always@(posedge clk) begin
       if (rst) begin
 	 curState <= IDLE;
       end else begin
@@ -92,6 +93,7 @@ module CircleEngine(
    end // always@ (*)
    
 	  
+    
 
  
    
@@ -109,3 +111,4 @@ module CircleEngine(
    
    
 endmodule
+*/

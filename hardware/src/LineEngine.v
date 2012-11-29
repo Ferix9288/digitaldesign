@@ -28,7 +28,7 @@ module LineEngine(
   output reg [15:0]     wdf_mask_din,
   output reg            wdf_wr_en,
   //for testing
-  output                steep,
+  output reg            steep,
 
   input [31:0] 		LE_frame_base
 );
@@ -42,50 +42,26 @@ module LineEngine(
    localparam WRITE_1 = 3'b011;
    localparam WRITE_2 = 3'b100;
    
-   reg [2:0] 		curState, nextState, prevState;
-   reg [9:0] 		x0_init, y0_init, x1_init, y1_init;
+   reg [2:0] 		curState, nextState;
    reg [9:0] 		x0, y0, x1, y1;
-   reg [10:0] 		x, y;
+   reg [10:0] 		x, y, next_y;
    wire 		done;
-   reg [15:0] 		error;
+   reg [15:0] 		error, next_error;
 
-   //Current state and point updates
-   always@(posedge clk) begin
-      if (rst) begin
-	 curState <= IDLE;
-	 prevState <= IDLE;
+   reg [15:0] 		deltay, ABS_deltay;
+   reg [15:0] 		deltax, ABS_deltax;
+   
+   reg [23:0] 		store_color, next_color;
 
-	 
-      end else begin
-	 prevState <= curState;
-	 curState <= nextState;
 
-	 
-      end
-   end
-
-   assign wdf_din = {LE_color, LE_color, LE_color, LE_color};
-   assign done = (x > x1);
    
    reg [2:0] 		mask;
 
    //--SET UP FOR LINE_FUNCTION STATE AND WRITE-- (Bresenham's Algorithm)
    //#define ABSOLUTE VALUES
-   wire [15:0] 		deltay_init, ABS_deltay_init;
-   assign deltay_init = y1_init - y0_init;
-   assign ABS_deltay_init = ($signed(deltay_init) < 0)? (~deltay_init + 1) : deltay_init;
-   reg [15:0] 		deltay, ABS_deltay;
-   
-   
-   wire [15:0] 		deltax_init, ABS_deltax_init;
-   assign deltax_init = x1_init - x0_init;
-   assign ABS_deltax_init = ($signed(deltax_init) < 0)? (~deltax_init + 1) : deltax_init;
-   reg [15:0] 		deltax;
-   
-   wire [15:0] 		error_init;
+
    
    //wire 		steep;
-   assign steep = (ABS_deltay_init > ABS_deltax_init)? 1: 0;
    reg [9:0] 		ystep;
 
    wire [31:0] 		addr_div8;
@@ -95,63 +71,101 @@ module LineEngine(
    //--------------------------------------------------
    
    reg [9:0] 		temp;
+   reg [9:0] 		next_x0, next_y0, next_x1, next_y1;
+    
+   assign wdf_din = {store_color, store_color, store_color, store_color};
+   assign done = (x > x1);
    
+   //Current state and point updates
+   always@(posedge clk) begin
+      if (rst) begin
+	 curState <= IDLE;
+	 x0 <= 0;
+	 y0 <= 0;
+	 x1 <= 0;
+	 y1 <= 0;
+	 y <= 0;
+	 error <= 0;
+	 store_color <= 0;
+      end else begin
+	 curState <= nextState;
+	 x0 <= next_x0;
+	 y0 <= next_y0;
+	 x1 <= next_x1;
+	 y1 <= next_y1;
+	 y <= next_y;
+	 error <= next_error;
+	 store_color <= next_color;
+      end
+   end
+
    //NEXT-STATE LOGIC
    always@(*) begin
+
+      af_wr_en = 0;
+      wdf_wr_en = 0;
+      next_color = store_color;
+      next_y = y;
+      next_x0 = x0;
+      next_y0 = y0;
+      next_x1 = x1;
+      next_y1 = y1;
+      next_error = error;
       
       case (curState)
 	IDLE: begin
-	   af_wr_en = 0;
-	   wdf_wr_en = 0;
+	   next_color = (LE_color_valid)? LE_color[23:0]: store_color;
 	   nextState = (LE_color_valid)? SET_UP: curState;
-	   
 	end
 
 	SET_UP: begin
-	   x0_init = (LE_point0_valid)? LE_point[19:10]: x0_init;
-	   y0_init = (LE_point0_valid)? LE_point[9:0]: y0_init;
-	   x1_init = (LE_point1_valid)? LE_point[19:10]: x1_init;
-	   y1_init = (LE_point1_valid)? LE_point[9:0]: y1_init;
+	   
+	   next_error = error;
+	   next_x0 = (LE_point0_valid)? LE_point[19:10]: x0;
+	   next_y0 = (LE_point0_valid)? LE_point[9:0]: y0;
+	   next_x1 = (LE_point1_valid)? LE_point[19:10]: x1;
+	   next_y1 = (LE_point1_valid)? LE_point[9:0]: y1;
 	   nextState = (LE_trigger)? LINE_FUNCTION: curState;
 	end
-
+  
 	LINE_FUNCTION: begin
-	   if (steep) begin
-	      //SWAP x0, y0
-	      x0 = y0_init;
-	      y0 = x0_init;
-	      //SWAP x1, y1
-	      x1 = y1_init;
-	      y1 = x1_init;
-	   end else begin
-	      x0 = x0_init;
-	      y0 = y0_init;
-	      x1 = x1_init;
-	      y1 = y1_init;
-	   end
-	   
-	   if (x0 > x1) begin
-	      //SWAP x0, x1
-	      temp = x0;
-	      x0 = x1;
-	      x1 = temp;
-	      //SWAP y0, y1
-	      temp = y0;
-	      y0 = y1;
-	      y1 = temp;
-	   end else begin
-	      x0 = x0;
-	      y0 = y0;
-	      x1 = x1;
-	      y1 = y1;
-	   end // else: !if(x0 > x1)
-	   
-	   deltax = x1 - x0;
 	   deltay = y1 - y0;
 	   ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
-	   y =  y0;
-	   ystep = (y0 < y1)? 1: -1;
-	   error = deltax / 2;
+	   deltax = x1 - x0;
+	   ABS_deltax = ($signed(deltax) < 0)? (~deltax + 1) : deltax;
+	   steep = (ABS_deltay > ABS_deltax)? 1: 0;
+	   
+	   if (steep) begin
+	      //SWAP x0, y0
+	      next_x0 = y0;
+	      next_y0 = x0;
+	      //SWAP x1, y1
+	      next_x1 = y1;
+	      next_y1 = x1;
+	   end else begin
+	      next_x0 = x0;
+	      next_y0 = y0;
+	      next_x1 = x1;
+	      next_y1 = y1;
+	   end
+	   
+	   if (next_x0 > next_x1) begin
+	      //SWAP x0, x1
+	      temp = next_x0;
+	      next_x0 = next_x1;
+	      next_x1 = temp;
+	      //SWAP y0, y1
+	      temp = next_y0;
+	      next_y0 = next_y1;
+	      next_y1 = temp;
+	   end 
+	   
+	   deltax = next_x1 - next_x0;
+	   deltay = next_y1 - next_y0;
+	   ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
+	   next_y =  next_y0;
+	   ystep = (next_y0 < next_y1)? 1: -1;
+	   next_error = deltax / 2;
 	   nextState = WRITE_1;
 	end
 	
@@ -173,10 +187,10 @@ module LineEngine(
 		    mask = y[2:0];
 		 end
 		 
-		 error = $signed(error) - ABS_deltay;		 
-		 if ($signed(error) < 0) begin
-		    y = y + ystep;
-		    error = $signed(error) + deltax;
+		 next_error = $signed(error) - ABS_deltay;		 
+		 if ($signed(next_error) < 0) begin
+		    next_y = y + ystep;
+		    next_error = $signed(next_error) + deltax;
 		 end
 	      end // if (x <= x1 && curState == WRITE_1)
 
@@ -196,8 +210,6 @@ module LineEngine(
 
 	      nextState = WRITE_2;
 	   end else begin // if (wdf_wr_en)
-	      error = error;
-	      y = y;
 	      wdf_mask_din = 16'hFFFF;
 	      nextState = curState;
 	   end

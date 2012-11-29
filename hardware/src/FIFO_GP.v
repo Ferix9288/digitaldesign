@@ -150,12 +150,12 @@ module FIFO_GP (
 	   Block2_Written = 1'b1;
 	   //WRITE_POINTER
 	   write_pointer = 8;
-	   /*
-	    * word0 = oldword0;
+	   
+	   word0 = oldword0;
 	   word1 = oldword1;
 	   word2 = oldword2;
 	   word3 = oldword3;
-	    */
+	   
 	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer >= 8)) begin
 	      next_x = (xOverFlow)? 0 : x + 8;
@@ -211,12 +211,12 @@ module FIFO_GP (
 	   //WRITE_POINTER
 	   write_pointer = 0;
 	   //READ BURST 2
-	   /*
-	    * word0 = rdf_dout[31:0]; 
+	   
+	   word0 = rdf_dout[31:0]; 
 	   word1 = rdf_dout[63:32];
 	   word2 = rdf_dout[95:64];
 	   word3 = rdf_dout[127:96];
-	    */
+	    
 	   nextState = (GP_valid)? REQUEST_BLOCK1:
 		       (GP_interrupt)? IDLE:
 		       //if read_pointer in Block 1
@@ -231,10 +231,12 @@ module FIFO_GP (
 	   Block2_Written = 1'b0;
 	   //WRITE_POINTER
 	   write_pointer = 0;
+	   
 	   word0 = oldword0;
 	   word1 = oldword1;
 	   word2 = oldword2;
 	   word3 = oldword3;
+	    
 	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer < 8)) begin
 	      next_x = (xOverFlow)? 0 : x + 8;

@@ -112,7 +112,7 @@ module LineEngineTestbench();
       #(10*Cycle);
       rst = 1'b0;
       #(Cycle);
-      //drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
+      drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
       //drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       //drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       // drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
@@ -147,23 +147,7 @@ module LineEngineTestbench();
 	  LE_trigger = 1'b1;
 	  #(Cycle);
 	  LE_trigger = 1'b0;
-	  //LE_y0_valid = 1'b0;
-	  //LE_x1_valid = 1'b1;
-	  //LE_point = x1;
-	  //LE_x1_valid = 1'b0;
-	  //LE_y1_valid = 1'b1;
-	  // LE_point = y1;
-	  //LE_trigger  = 1'b1;
-	  //LE_y1_valid = 1'b0;
-	  //LE_trigger  = 1'b0;
-	  /*
-	   * #(Cycle);
-	  #(100*Cycle);
-	  af_full = 1'b1;
-	  #(5*Cycle);
-	  af_full = 1'b0;
-	   */
-	  
+	  #(Cycle);
 	  while(!LE_ready) begin
              if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
 		if (steep)

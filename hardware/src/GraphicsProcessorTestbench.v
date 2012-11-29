@@ -134,27 +134,20 @@ module GraphicsProcessorTestbench();
       #(Cycle);
       gp_valid = 0;
       rdf_valid = 0;
-      
       rdf_dout = {32'h00000000, 32'h00AA00BB, 32'h01230124, 32'h02ff0000};
       #(10*Cycle);
       rdf_valid = 1;
       #(Cycle);
       rdf_dout = {32'h001A002B, 32'h00100020, 32'h020000FF, 32'h01000000};
-      #(2*Cycle)
-      rdf_valid = 0;
-      gp_valid = 1;
       #(Cycle);
-      gp_valid = 0;
-      rdf_dout = {32'h00000000, 32'h00AA00BB, 32'h01230124, 32'h02ff0000};
-      #(10*Cycle);
-      rdf_valid = 1;
-      #(Cycle);
-      rdf_dout = {32'h001A002B, 32'h00100020, 32'h020000FF, 32'h01000000};
-      #(2*Cycle)
+      rdf_dout = {32'ha281902a, 32'h00000000, 32'haaaabbbb, 32'hddeaff12};
       rdf_valid = 0;
+      af_full = 1;
+      #(Cycle);
+      #(Cycle);
       #(5*Cycle);
+      af_full = 0;
       rdf_valid = 1;
-
       while (!gp_interrupt) #(Cycle);
 
       #(10*Cycle);
