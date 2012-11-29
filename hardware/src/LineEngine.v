@@ -248,7 +248,7 @@ module LineEngine(
    //For x and y increments
    always@(posedge clk) begin
       if (rst || curState == LINE_FUNCTION) begin
-	 x <= x0;
+	 x <= next_x0;
       end else if (curState == WRITE_1 & wdf_wr_en) begin
 	 x <= x + 1;
       end else begin

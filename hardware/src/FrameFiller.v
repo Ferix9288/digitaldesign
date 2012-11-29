@@ -68,6 +68,7 @@ module FrameFiller(//system:
 
    //nextState Logic
    always@(*) begin
+
       case (curState)
 	
 	IDLE: begin
