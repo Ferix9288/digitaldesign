@@ -100,7 +100,9 @@ module GraphicsProcessor(
    
    wire 		      GP_stall;
    
-   
+   wire [3:0]		      read_pointer;
+   wire [2:0] 		      FIFO_curState;
+ 
    FIFO_GP Fifo_GP(//INPUTS
 		   .clk(clk),
 		   .rst(rst),
@@ -117,7 +119,9 @@ module GraphicsProcessor(
 		   .GP_stall(GP_stall),
 		   .GP_CODE(GP_CODE),
 		   .GP_valid(GP_valid),
-		   .GP_interrupt(GP_interrupt));
+		   .GP_interrupt(GP_interrupt),
+		   .read_pointer(read_pointer),
+		   .curState(FIFO_curState));
 
 
    wire [7:0] 		       curCommand;
@@ -142,24 +146,21 @@ module GraphicsProcessor(
    end
    
    always @(*) begin
+      GP_interrupt = 0;
+      FF_valid = 0;
+      LE_color_valid = 0;
+      LE_point0_valid = 0;
+      LE_point1_valid = 0;
+      LE_trigger = 0;
+      
       case (curState)
 	IDLE: begin
-	   GP_interrupt = 0;
-	   FF_valid = 0;
-	   LE_color_valid = 0;
-	   LE_point0_valid = 0;
-	   LE_point1_valid = 0;
-	   LE_trigger = 0;
-	   
+
 	   nextState = (GP_valid)? READ_0 : curState;
 	end
 	
 	READ_0: begin
-	   LE_point1_valid = 0;
-	   LE_trigger = 0;
-	   FF_valid = 0;
-	   LE_color_valid = 0;
-       
+
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      if (curCommand == `STOP) begin
 		 GP_interrupt = 1;
@@ -184,27 +185,22 @@ module GraphicsProcessor(
 	end // case: READ_0
 
 	READ_1: begin	
-	   LE_color_valid = 0;	   
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point0_valid = 1;	     
 	      nextState = (GP_valid)? READ_0 : READ_2;
 	   end else begin
-	      LE_point0_valid = 0;
 	      nextState = (GP_valid)? READ_0 : curState;
 	   end
 	end
 	
 	READ_2: begin
-	   LE_point0_valid = 0;
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point1_valid = 1;
 	      LE_trigger = 1;
 	      nextState = READ_0; //WAIT
 	   end else begin
-	      LE_point1_valid = 0;
-	      LE_trigger = 0;
 	      nextState = (GP_valid)? READ_0 : curState;
 	   end
 	end // case: READ_2
@@ -240,17 +236,17 @@ module GraphicsProcessor(
    
    
     
-   /*
-    * wire [35:0] chipscope_control;
+   
+   wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, FF_ready, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, FF_valid, FIFO_stall, GP_stall, GP_valid, curState, nextState, rdf_dout, GP_FRAME, GP_CODE, fifo_GP_out})
+		     .TRIG0({FIFO_curState, read_pointer, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, FF_ready, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, FF_valid, FIFO_stall, GP_stall, GP_valid, curState, nextState, rdf_dout, GP_FRAME, GP_CODE, fifo_GP_out})
 		     ); 
-    */
+   
     
    
    

@@ -24,6 +24,7 @@ module CircleEngineTestbench();
 
    wire       af_wr_en;
    wire [15:0] wdf_mask_din;
+   wire [30:0] af_addr_din;
    
    
    CircleEngine circle(.clk(Clock),
@@ -38,7 +39,7 @@ module CircleEngineTestbench();
 		       .wdf_full(wdf_full),
 		       .af_addr_din(af_addr_din),
 		       .af_wr_en(af_wr_en),
-		       .wdf_din(wdf_din),
+		       .wdf_din(),
 		       .wdf_mask_din(wdf_mask_din),
 		       .wdf_wr_en(wdf_wr_en),
 		       .CE_frame_base(32'h10400000));
@@ -87,6 +88,7 @@ module CircleEngineTestbench();
       input [9:0] y_input;
       input [11:0] radius_input;
       input [23:0] color_input;
+      
       begin
 	 
 	 CE_color = color_input;
@@ -100,10 +102,12 @@ module CircleEngineTestbench();
 	 #(Cycle);
 	 CE_arguments_valid = 1'b0;
 	 CE_trigger = 1'b0;
+	 #(Cycle);
+	 
 
-	 while (!CE_ready) begin
-	    if (wdf_wr_en && wdf_mask_din != 16'FFFF) begin
-	       $display ("%4d %4d", x, y);
+	 while(!CE_ready) begin
+	    if (wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
+	       $display ("%4d %4d", result_x, result_y);
 	    end
 	    #(Cycle);
 	 end

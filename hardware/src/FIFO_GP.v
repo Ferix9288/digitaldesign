@@ -19,7 +19,9 @@ module FIFO_GP (
 		GP_stall,
 		GP_CODE,
 		GP_valid,
-		GP_interrupt
+		GP_interrupt,
+		read_pointer,
+		curState
 		);    
 
    
@@ -38,6 +40,10 @@ module FIFO_GP (
    input [31:0]  GP_CODE;
    input 	 GP_valid;
    input 	 GP_interrupt;
+   output reg [3:0] read_pointer;
+   output reg [2:0] curState;
+   
+   
    
    //assign stall
 
@@ -50,7 +56,7 @@ module FIFO_GP (
    localparam BURST_4 = 3'b100;
    
    
-   reg [2:0] 	 curState, nextState;
+   reg [2:0] 	 nextState;
 
    wire [31:0] 	 addr_div8;
    wire [5:0] 	 GP_CODE_addr;
@@ -61,7 +67,7 @@ module FIFO_GP (
    assign af_addr_din = {6'b0, GP_CODE_addr, addr_offset, 2'b0};
 
    (* ram_style = "distributed" *)  reg [31:0] 	 FIFO_GP[15:0];
-   reg [3:0] 	 read_pointer, write_pointer;
+   reg [3:0] 	 write_pointer;
    
    wire 	 request;   
    assign request = af_wr_en & !af_full;
@@ -120,20 +126,19 @@ module FIFO_GP (
    always@(*) begin
 
       next_addr_offset = addr_offset;
+      af_wr_en = 0;
+      word0 = oldword0;
+      word1 = oldword1;
+      word2 = oldword2;
+      word3 = oldword3;
+      //BLOCK_WRITTEN
+      Block1_Written = 1'b0;
+      Block2_Written = 1'b0;
       
       case (curState)
 	IDLE: begin
-	   //BLOCK_WRITTEN
-	   Block1_Written = 1'b0;
-	   Block2_Written = 1'b0;
 	   //WRITE_POINTER
 	   write_pointer = 0;
-	   word0 = oldword0;
-	   word1 = oldword1;
-	   word2 = oldword2;
-	   word3 = oldword3;
-	   //ADDRESSING
-
 	   //STATE
 	   nextState = (GP_valid)? REQUEST_BLOCK1 : IDLE;
 	end // case: IDLE
@@ -141,36 +146,26 @@ module FIFO_GP (
 	REQUEST_BLOCK1: begin
 	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
-	   Block1_Written = 1'b0;
 	   Block2_Written = 1'b1;
 	   //WRITE_POINTER
 	   write_pointer = 8;
 	   
-	   word0 = oldword0;
-	   word1 = oldword1;
-	   word2 = oldword2;
-	   word3 = oldword3;
-	   
-	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer >= 8)) begin
 	      next_addr_offset = addr_offset + 1;
 	      nextState = BURST_1;
 	      
 	   end else begin
-	    
+	      
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
 	   end	   
 	end
 	
 	BURST_1: begin
-	   af_wr_en = 1'b0;
 	   //BLOCK_WRITTEN
-	   Block1_Written = 1'b0;
 	   Block2_Written = 1'b1;
 	   //WRITE_POINTER
 	   write_pointer = 4;
-	   //ADDRESSING
 	  
 	   //READ BURST1
 	   if (rdf_valid) begin
@@ -183,19 +178,12 @@ module FIFO_GP (
 			  (GP_interrupt)? IDLE: BURST_2;
 	   end else begin // if (request & rdf_valid)
 	      
-	      word0 = oldword0;
-	      word1 = oldword1;
-	      word2 = oldword2;
-	      word3 = oldword3;
-	      
-	       
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
 	   end
 	end // case: BURST_1
 
 	BURST_2: begin
-	   af_wr_en = 1'b0;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
 	   Block2_Written = 1'b1;
@@ -219,15 +207,9 @@ module FIFO_GP (
 	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
-	   Block2_Written = 1'b0;
 	   //WRITE_POINTER
 	   write_pointer = 0;
 	   
-	   word0 = oldword0;
-	   word1 = oldword1;
-	   word2 = oldword2;
-	   word3 = oldword3;
-	    
 	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer < 8)) begin
 	      next_addr_offset = addr_offset + 1;
@@ -239,10 +221,8 @@ module FIFO_GP (
 	end // case: REQUEST_BLOCK2
 	
 	BURST_3: begin
-	   af_wr_en = 1'b0;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
-	   Block2_Written = 1'b0;
 	   //WRITE_POINTER
 	   write_pointer = 12;
 	   //READ BURST 3
@@ -257,11 +237,6 @@ module FIFO_GP (
 			  BURST_4;
 	   end else begin // if (request & rdf_valid)
 	      
-	      word0 = oldword0;
-	      word1 = oldword1;
-	      word2 = oldword2;
-	      word3 = oldword3;
-
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
 	   end

@@ -28,7 +28,7 @@ module PixelFeeder( //System:
    
 
    reg [31:0] 		   ignore_count;
-   reg [11:0] 		   CountPixels;
+   reg [31:0] 		   CountPixels;
         
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
@@ -48,7 +48,7 @@ module PixelFeeder( //System:
    assign yOverFlow = (y_Rows == 10'd599);
    
    assign rdf_rd_en = 1'b1;
-   assign af_wr_en = (curState == FETCH) & (nextState == FETCH);
+   assign af_wr_en = (ignore_count == 0) & (curState == FETCH) & (nextState == FETCH);
 
    assign request_8pixels = (af_wr_en & !af_full);
    assign fetch_pixel = (ignore_count == 0) & video_ready
@@ -126,9 +126,9 @@ module PixelFeeder( //System:
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  (CountPixels >= 2040)? IDLE: FETCH;
+	  nextState =  (CountPixels >= 4000)? IDLE: FETCH;
 	FETCH:
-	  nextState =  (CountPixels >= 2040)? IDLE: curState;
+	  nextState =  (CountPixels >= 4000)? IDLE: curState;
       endcase
    end
 

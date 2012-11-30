@@ -67,10 +67,9 @@ module CircleEngine(
    
    
 
-   reg [3:0] 			 count_4, count_8;
 
    wire [3:0] 			 mask;
-   assign mask = x[2:0];
+   assign mask = x_addr[2:0];
    
   
    always@(posedge clk) begin
@@ -103,16 +102,17 @@ module CircleEngine(
 	 
       end
    end // always@ (posedge clk)
-
+   
+   reg [3:0] 			 count_4, count_8;
+   reg [3:0] 			 next_count_4, next_count_8;
+   
    always @(posedge clk) begin
       if (rst) begin
 	 count_4 <= 0;
 	 count_8 <= 0;
       end else begin
-	 count_4 <= (curState == PRINT4)? count_4 + 1 : 
-		    (curState == WRITE1_4 || curState == WRITE2_4)? count_4: 0;
-	 count_8 <= (curState == PRINT8)?  count_8 + 1: 
-		    (curState == WRITE1_8 || WRITE2_8)? count_8 : 0;
+	 count_4 <= next_count_4;
+	 count_8 <= next_count_8;
       end
    end
    
@@ -129,14 +129,18 @@ module CircleEngine(
       next_color = stored_color;
       next_x_addr = x_addr;
       next_y_addr = y_addr;
+
+      next_count_4 = 0;
+      next_count_8 = 0;
       
+      af_wr_en = 0;
+      wdf_wr_en = 0;
       case(curState)
 	
 	IDLE: begin
-	   af_wr_en = 0;
-	   wdf_wr_en = 0;
+
 	   next_color = (CE_color_valid)? CE_color: stored_color;
-	   nextState = (CE_trigger)? SETUP: curState;
+	   nextState = (CE_color_valid)? SETUP: curState;
 	end
 
 	SETUP: begin
@@ -148,13 +152,14 @@ module CircleEngine(
 
 	CIRCLE_FUNCTION: begin
 	   next_f = 1 - radius;
-	   ddF_x = 1;
-	   ddF_y = radius << -2;
+	   next_ddF_x = 1;
+	   next_ddF_y = ~(radius << 1) + 1;
 	   next_y = radius;
 	   nextState = PRINT4;
 	end
 
 	PRINT4: begin
+	   next_count_4 = count_4;
 	   case (count_4)
 	     4'h0: begin
 		next_x_addr = x0;
@@ -190,6 +195,7 @@ module CircleEngine(
 	WRITE1_4: begin
 	   af_wr_en = 1'b1;
 	   wdf_wr_en = !af_full & !wdf_full;
+	   next_count_4 = count_4;
 	   
 	   if (wdf_wr_en) begin
 	      case (mask)
@@ -225,13 +231,17 @@ module CircleEngine(
 		  wdf_mask_din = 16'hFFFF;
 	      endcase // case (mask)
 	      nextState = PRINT4;
-	   end else // if (wdf_wr_en)
-	     nextState = curState;
+	      next_count_4 = count_4 + 1;
+	   end else begin // if (wdf_wr_en) 
+	      nextState = curState;
+	      next_count_4 = count_4;
+	      
+	   end
 	end // case: WRITE2_4
 
 	WHILE: begin
 	   if (x < y) begin
-	      if (f >= 0) begin
+	      if ($signed(f) >= 0) begin
 		 next_y = y - 1;
 		 next_ddF_y = ddF_y + 2;
 		 next_f = f + next_ddF_y;
@@ -244,7 +254,9 @@ module CircleEngine(
 	end
 
 	PRINT8: begin
-	   case(PRINT8)
+	   next_count_8 = count_8;
+	   
+	   case(count_8)
 	     4'h0: begin
 		next_x_addr = x0 + x;
 		next_y_addr = y0 + y;
@@ -264,8 +276,8 @@ module CircleEngine(
 	     end
 
 	     4'h3: begin
-		next_x_addr = x0 + y;
-		next_y_addr = y0 + x;
+		next_x_addr = x0 - x;
+		next_y_addr = y0 - y;
 		nextState = WRITE1_8;
 	     end
 
@@ -303,7 +315,8 @@ module CircleEngine(
 	WRITE1_8: begin
 	   af_wr_en = 1'b1;
 	   wdf_wr_en = !af_full & !wdf_full;
-	   
+	   next_count_8 = count_8;
+
 	   if (wdf_wr_en) begin
 	      case (mask)
 		4'h0:
@@ -318,8 +331,9 @@ module CircleEngine(
 		  wdf_mask_din = 16'hFFFF;
 	      endcase // case (mask)
 	      nextState = WRITE2_8;
-	   end else 
-	     nextState = curState;
+	   end else begin // if (wdf_wr_en)
+	      nextState = curState;
+	   end
 	end // case: WRITE8_4
    	
 	WRITE2_8: begin
@@ -338,8 +352,11 @@ module CircleEngine(
 		 wdf_mask_din = 16'hFFFF;
 	     endcase // case (mask)
 	      nextState = PRINT8;
-	   end else 
-	     nextState = curState;
+	      next_count_8 = count_8 + 1;
+	   end else begin 
+	      nextState = curState;
+	      next_count_8 = count_8;
+	   end
 	end // case: WRITE2_4
 
 	

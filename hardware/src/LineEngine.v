@@ -260,8 +260,11 @@ module LineEngine(
       end
    end // always@ (posedge clk)
 
-   assign LE_ready = (curState == IDLE) || (curState == SET_UP);
    
+    assign LE_ready = (curState == IDLE) || (curState == SET_UP);
+
+   /*
+    *
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -271,5 +274,6 @@ module LineEngine(
 		     .CLK(clk),
 		     .TRIG0({LE_frame_base, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
+    */
    
 endmodule
