@@ -27,122 +27,134 @@
 //-----------------------------------------------------------------------------
 
 module RequestController( 
-                        input           clk,
-                        input           rst,
-                        // inputs from the DDR2 FIFOs:
-                        input           af_full,
-                        input           wdf_full,
-                        input           rdf_valid,
-                        
-                       // inputs from the instruction cache:
-                       input            i_rdf_rd_en,
-                       input [2:0]      i_af_cmd_din,
-                       input [30:0]     i_addr_din,
-                       input            i_af_wr_en,
-                       input [127:0]    i_wdf_din,
-                       input [15:0]     i_wdf_mask_din,
-                       input            i_wdf_wr_en,
-                       input            i_stall,
+                          input           clk,
+                          input           rst,
+                          // inputs from the DDR2 FIFOs:
+                          input           af_full,
+                          input           wdf_full,
+                          input           rdf_valid,
 
-                       // inputs from the data cache:
-                       input            d_rdf_rd_en,
-                       input [2:0]      d_af_cmd_din,
-                       input [30:0]     d_addr_din,
-                       input            d_af_wr_en,
-                       input [127:0]    d_wdf_din,
-                       input [15:0]     d_wdf_mask_din,
-                       input            d_wdf_wr_en,
-                       input            d_stall,
+			  // inputs from the instruction cache:
+			  input            i_rdf_rd_en,
+			  input [2:0]      i_af_cmd_din,
+			  input [30:0]     i_addr_din,
+			  input            i_af_wr_en,
+			  input [127:0]    i_wdf_din,
+			  input [15:0]     i_wdf_mask_din,
+			  input            i_wdf_wr_en,
+			  input            i_stall,
 
-                       // inputs from the line drawing engine
-                       // Note: the line drawing engine only needs to write,
-                       //   thus, it accesses on a subset of the fifo signals
-                       input [30:0]     line_addr_din,
-                       input            line_af_wr_en,
-                       input [127:0]    line_wdf_din,
-                       input [15:0]     line_wdf_mask_din,
-                       input            line_wdf_wr_en,
+			  // inputs from the data cache:
+			  input            d_rdf_rd_en,
+			  input [2:0]      d_af_cmd_din,
+			  input [30:0]     d_addr_din,
+			  input            d_af_wr_en,
+			  input [127:0]    d_wdf_din,
+			  input [15:0]     d_wdf_mask_din,
+			  input            d_wdf_wr_en,
+			  input            d_stall,
 
-                       // inputs from the cache bypass module
-                       //   write-only path
-                       input [30:0]     bypass_addr_din,
-                       input            bypass_af_wr_en,
-                       input [127:0]    bypass_wdf_din,
-                       input [15:0]     bypass_wdf_mask_din,
-                       input            bypass_wdf_wr_en,
-                       
-                       // inputs from the color filler
-                       // similarly only needs to write
-                       input [30:0]     filler_addr_din,
-                       input            filler_af_wr_en,
-                       input [127:0]    filler_wdf_din,
-                       input [15:0]     filler_wdf_mask_din,
-                       input            filler_wdf_wr_en,
-                       
-                       // inputs from the graphics command processor
-                       // read only
-                       input            cmd_rdf_rd_en,
-                       input            cmd_af_wr_en,
-                       input [30:0]     cmd_addr_din,
+			  // inputs from the line drawing engine
+			  // Note: the line drawing engine only needs to write,
+			  //   thus, it accesses on a subset of the fifo signals
+			  input [30:0]     line_addr_din,
+			  input            line_af_wr_en,
+			  input [127:0]    line_wdf_din,
+			  input [15:0]     line_wdf_mask_din,
+			  input            line_wdf_wr_en,
 
-                       // inputs from the module responsibile for keeping the 
-                       // pixel fifo full, designated with 'pixel'. This only allows
-                       // read access.
-                       input            pixel_rdf_rd_en,
-                       input            pixel_af_wr_en,
-                       input [30:0]     pixel_addr_din,
-                       
-                       // output to the DDR2 FIFOs:
-                       output             rdf_rd_en,
-                       output reg [2:0]   af_cmd_din,
-                       output reg [30:0]  addr_din,
-                       output reg         af_wr_en,
-                       output reg [127:0] wdf_din,
-                       output reg [15:0]  wdf_mask_din,
-                       output reg         wdf_wr_en,
+			  // inputs from the cache bypass module
+			  //   write-only path
+			  input [30:0]     bypass_addr_din,
+			  input            bypass_af_wr_en,
+			  input [127:0]    bypass_wdf_din,
+			  input [15:0]     bypass_wdf_mask_din,
+			  input            bypass_wdf_wr_en,
 
-                       // output to the instruction cache:
-                       output             i_rdf_valid,
-                       output             i_af_full,
-                       output             i_wdf_full,
+			  // inputs from the color filler
+			  // similarly only needs to write
+			  input [30:0]     filler_addr_din,
+			  input            filler_af_wr_en,
+			  input [127:0]    filler_wdf_din,
+			  input [15:0]     filler_wdf_mask_din,
+			  input            filler_wdf_wr_en,
 
-                       // output to the data cache:
-                       output             d_rdf_valid,
-                       output             d_af_full,
-                       output             d_wdf_full,
+			  //inputs from the circle engine
+			  input [30:0] circle_addr_din,
+			  input circle_af_wr_en,
+			  input [127:0] circle_wdf_din,
+			  input [15:0] circle_wdf_mask_din,
+			  input circle_wdf_wr_en,
+			  
+			  // inputs from the graphics command processor
+			  // read only
+			  input            cmd_rdf_rd_en,
+			  input            cmd_af_wr_en,
+			  input [30:0]     cmd_addr_din,
+
+			  // inputs from the module responsibile for keeping the 
+			  // pixel fifo full, designated with 'pixel'. This only allows
+			  // read access.
+			  input            pixel_rdf_rd_en,
+			  input            pixel_af_wr_en,
+			  input [30:0]     pixel_addr_din,
+
+			  // output to the DDR2 FIFOs:
+			  output             rdf_rd_en,
+			  output reg [2:0]   af_cmd_din,
+			  output reg [30:0]  addr_din,
+			  output reg         af_wr_en,
+			  output reg [127:0] wdf_din,
+			  output reg [15:0]  wdf_mask_din,
+			  output reg         wdf_wr_en,
+
+			  // output to the instruction cache:
+			  output             i_rdf_valid,
+			  output             i_af_full,
+			  output             i_wdf_full,
+
+			  // output to the data cache:
+			  output             d_rdf_valid,
+			  output             d_af_full,
+			  output             d_wdf_full,
+
+			  // outputs to the line drawing engine:
+			  output             line_af_full,
+			  output             line_wdf_full,
+
+			  //outputs to the circle drawing engine:
+			  output circle_af_full,
+			  output circle_wdf_full,
+			  
+			  // outputs to the cache bypass module
+			  output             bypass_af_full,
+			  output             bypass_wdf_full,
+
+			  // outputs to the color filler:
+			  output             filler_af_full,
+			  output             filler_wdf_full,
+
+			  // outputs to the fifo-filling module:
+			  output             pixel_rdf_valid,
+			  output             pixel_af_full,
+
+			  // outputs to graphics command processor
+			  output 			cmd_rdf_valid,
+			  output 			cmd_af_full
+			  );
    
-                       // outputs to the line drawing engine:
-                       output             line_af_full,
-                       output             line_wdf_full,
-                       
-                       // outputs to the cache bypass module
-                       output             bypass_af_full,
-                       output             bypass_wdf_full,
 
-                       // outputs to the color filler:
-                       output             filler_af_full,
-                       output             filler_wdf_full,
 
-                       // outputs to the fifo-filling module:
-                       output             pixel_rdf_valid,
-                       output             pixel_af_full,
-                       
-                       // outputs to graphics command processor
-                       output 			cmd_rdf_valid,
-                       output 			cmd_af_full
-                       );
+   localparam NO_ACCESS     = 3'b000;
+   localparam D_ACCESS      = 3'b001;
+   localparam I_ACCESS      = 3'b010;
+   localparam FILLER_ACCESS = 3'b011;
+   localparam LINE_ACCESS   = 3'b100;
+   localparam PIXEL_ACCESS  = 3'b101;
+   localparam BYPASS_ACCESS = 3'b110;
+   localparam CMD_ACCESS 	 = 3'b111;
+   localparam CIRCLE_ACCESS = 4'b1000;
    
-
-
-    localparam NO_ACCESS     = 3'b000;
-    localparam D_ACCESS      = 3'b001;
-    localparam I_ACCESS      = 3'b010;
-    localparam FILLER_ACCESS = 3'b011;
-    localparam LINE_ACCESS   = 3'b100;
-    localparam PIXEL_ACCESS  = 3'b101;
-    localparam BYPASS_ACCESS = 3'b110;
-    localparam CMD_ACCESS 	 = 3'b111;
-
     // New approach: icache and dcache don't stream reads. Keep
     // a count of each read and then remember the number for
     // the caches. Should be okay if they wrap around; 11 bits
@@ -248,29 +260,36 @@ module RequestController(
     // from interrupting the filler or line engine (which run async) during
     // writes.
     
-    reg line_reserved;
-    reg filler_reserved;
-    reg bypass_reserved;
-    wire reserved;
-    assign reserved = filler_reserved || line_reserved || bypass_reserved;
+   reg 	 line_reserved;
+   reg 	 circle_reserved;
+   reg 	 filler_reserved;
+   reg 	 bypass_reserved;
+   wire  reserved;
+   assign reserved = filler_reserved || line_reserved ||
+		     circle_reserved || bypass_reserved;
 
-    always @(posedge clk) begin
-        if(rst) 
-            line_reserved <= 1'b0;
-        else if (fifo_access == LINE_ACCESS && !wdf_full && !af_full) 
-            line_reserved <= line_reserved + 1'b1;
+   always @(posedge clk) begin
+      if(rst) 
+        line_reserved <= 1'b0;
+      else if (fifo_access == LINE_ACCESS && !wdf_full && !af_full) 
+        line_reserved <= line_reserved + 1'b1;
 
-        if(rst)
-            bypass_reserved <= 1'b0;
-        else if(fifo_access == BYPASS_ACCESS && !wdf_full && !af_full)
-          bypass_reserved <= 1'b0;
-
-        if(rst)
-            filler_reserved <= 1'b0;
-        else if(fifo_access == FILLER_ACCESS && !wdf_full && !af_full)
-            filler_reserved <= filler_reserved + 1'b1;
+      if (rst)
+	circle_reserved <= 1'b0;
+      else if (fifo_access == CIRCLE_ACCESS && !wdf_full && !af_full)
+	circle_reserved <= circle_reserved + 1'b1;
       
-    end
+      if(rst)
+        bypass_reserved <= 1'b0;
+      else if(fifo_access == BYPASS_ACCESS && !wdf_full && !af_full)
+        bypass_reserved <= 1'b0;
+
+      if(rst)
+        filler_reserved <= 1'b0;
+      else if(fifo_access == FILLER_ACCESS && !wdf_full && !af_full)
+        filler_reserved <= filler_reserved + 1'b1;
+      
+   end
 
     always @(*) begin
        // Access is given in the order of icache, dcache, pixel feeder, color filler
@@ -335,6 +354,16 @@ module RequestController(
             wdf_mask_din = line_wdf_mask_din;
             wdf_wr_en    = line_wdf_wr_en && !wdf_full && !af_full;
         end
+        else if((circle_af_wr_en || circle_wdf_wr_en) && !circle_reserved && !bypass_reserved) begin
+           fifo_access  = CIRCLE_ACCESS;
+           // write-only path
+           af_cmd_din   = 3'b000;
+           addr_din     = circle_addr_din;
+           af_wr_en     = circle_af_wr_en && !wdf_full && !af_full;
+           wdf_din      = circle_wdf_din;
+           wdf_mask_din = circle_wdf_mask_din;
+           wdf_wr_en    = circle_wdf_wr_en && !wdf_full && !af_full;
+        end
         /*
 	else if((bypass_af_wr_en || bypass_wdf_wr_en) && !filler_reserved && !line_reserved) begin
             fifo_access  = BYPASS_ACCESS;
@@ -377,6 +406,9 @@ module RequestController(
     
     assign line_af_full  = fifo_access == LINE_ACCESS  ? af_full || wdf_full : 1'b1;
     assign line_wdf_full = fifo_access == LINE_ACCESS  ? wdf_full || af_full : 1'b1;
+
+   assign circle_af_full  = fifo_access == CIRCLE_ACCESS  ? af_full || wdf_full : 1'b1;
+   assign circle_wdf_full = fifo_access == CIRCLE_ACCESS  ? wdf_full || af_full : 1'b1;
 
     assign bypass_af_full  = fifo_access == BYPASS_ACCESS  ? af_full || wdf_full : 1'b1;
     assign bypass_wdf_full = fifo_access == BYPASS_ACCESS  ? wdf_full || af_full : 1'b1;

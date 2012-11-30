@@ -141,7 +141,14 @@ module Memory150(
    wire [19:0] 	 line_point;
    wire [31:0] 	 line_color;
    
+   // Circle Engine <==> Request Controller Wires and to GP
    
+   wire [23:0] 		 circle_color;
+   wire [31:0] 		 circle_args;
+   wire [30:0] 		 circle_addr_din;
+   wire [127:0] 	 circle_wdf_din;
+   wire [15:0] 		 circle_wdf_mask_din;
+   wire [31:0] 		 circle_frame;
    
 
     // Graphics Command Processor <=> RequestController wires:
@@ -286,19 +293,29 @@ module Memory150(
         .filler_wdf_wr_en(filler_wdf_wr_en), 
         .filler_wdf_mask_din(filler_wdf_mask_din),
         .filler_wdf_din(filler_wdf_din),
+
+			      //Circle engine request DDR2 controls
+			      .circle_addr_din(circle_addr_din),
+			      .circle_af_wr_en(circle_af_wr_en),
+			      .circle_wdf_din(circle_wdf_din),
+			      .circle_wdf_mask_din(circle_wdf_mask_din),
+			      .circle_wdf_wr_en(circle_wdf_wr_en),
+			      
         .pixel_rdf_rd_en(pixel_rdf_rd_en),
         .pixel_af_wr_en(pixel_af_wr_en), 
         .pixel_addr_din(pixel_af_addr_din), 
         // new outputs for cp4-5:
         .line_af_full(line_af_full),      
-        .line_wdf_full(line_wdf_full),    
+        .line_wdf_full(line_wdf_full),
+			      //CIRCLE
+			      .circle_af_full(circle_af_full),
+			      .circle_wdf_full(circle_wdf_full),
         .bypass_af_full(), //not using this port
         .bypass_wdf_full(), //not using this port
         .filler_af_full(filler_af_full),
         .filler_wdf_full(filler_wdf_full),
         .pixel_rdf_valid(pixel_rdf_valid),
         .pixel_af_full(pixel_af_full),  
-        
         // new inputs for graphics command processor 
         .cmd_rdf_rd_en(cmd_rdf_rd_en),
         .cmd_af_wr_en(cmd_af_wr_en),
@@ -400,10 +417,6 @@ module Memory150(
       .LE_color_valid(line_color_valid),
       .LE_point0_valid(line_point0_valid),
       .LE_point1_valid(line_point1_valid),
-      //.LE_x0_valid(line_x0_valid),
-      //.LE_y0_valid(line_y0_valid),
-      //.LE_x1_valid(line_x1_valid),
-      //.LE_y1_valid(line_y1_valid),
       .LE_trigger(line_trigger),
       .af_full(line_af_full),
       .wdf_full(line_wdf_full),
@@ -415,41 +428,65 @@ module Memory150(
       .LE_frame_base(line_frame)
     );
 
+   
+   CircleEngine circle(.clk(cpu_clk_g),
+		       .rst(rst || ~init_done),
+		       .CE_ready(circle_ready),
+		       .CE_color(circle_color),
+		       .CE_arguments(circle_args),
+		       .CE_color_valid(circle_color_valid),
+		       .CE_arguments_valid(circle_args_valid),
+		       .CE_trigger(circle_trigger),
+		       .af_full(circle_af_full),
+		       .wdf_full(circle_wdf_full),
+		       .af_addr_din(circle_addr_din),
+		       .af_wr_en(circle_af_wr_en),
+		       .wdf_din(circle_wdf_din),
+		       .wdf_mask_din(circle_wdf_mask_din),
+		       .wdf_wr_en(circle_wdf_wr_en),
+		       .CE_frame_base(circle_frame)
+		       );
+   
 
    //For CP5:
    GraphicsProcessor graphicsprocessor(
-      .clk(cpu_clk_g),
-      .rst(rst || ~init_done), 
-      //.bsel(fb0),
-      //line engine IO
-      .LE_ready(line_ready),
-      .LE_color(line_color),
-      .LE_point(line_point),
-      .LE_color_valid(line_color_valid),
-      .LE_point0_valid(line_point0_valid),
-      .LE_point1_valid(line_point1_valid),
-      //.LE_x0_valid(line_x0_valid),
-      //.LE_y0_valid(line_y0_valid),
-      //.LE_x1_valid(line_x1_valid),
-      //.LE_y1_valid(line_y1_valid),
-      .LE_trigger(line_trigger),
-      .LE_frame(line_frame), 
-      //frame filler IO
-      .FF_ready(filler_ready),
-      .FF_valid(filler_valid),
-      .FF_color(filler_color),
-      .FF_frame(filler_frame), 
-      //DRAM request controller interface
-      .rdf_valid(cmd_rdf_valid),
-      .af_full(cmd_af_full),
-      .rdf_dout(rdf_dout),
-      .rdf_rd_en(cmd_rdf_rd_en),
-      .af_wr_en(cmd_af_wr_en),
-      .af_addr_din(cmd_addr_din),
-      //CPU IO
-      .GP_CODE(cpu_gp_code),
-      .GP_FRAME(cpu_gp_frame),
-      .GP_valid(cpu_gp_valid));
+				       .clk(cpu_clk_g),
+				       .rst(rst || ~init_done), 
+				       //.bsel(fb0),
+				       //line engine IO
+				       .LE_ready(line_ready),
+				       .LE_color(line_color),
+				       .LE_point(line_point),
+				       .LE_color_valid(line_color_valid),
+				       .LE_point0_valid(line_point0_valid),
+				       .LE_point1_valid(line_point1_valid),
+				       .LE_trigger(line_trigger),
+				       .LE_frame(line_frame), 
+				       //frame filler IO
+				       .FF_ready(filler_ready),
+				       .FF_valid(filler_valid),
+				       .FF_color(filler_color),
+				       .FF_frame(filler_frame),
+				       //circle engine IO
+				       .CE_ready(circle_ready),
+				       .CE_color(circle_color),
+				       .CE_arguments(circle_args),
+				       .CE_color_valid(circle_color_valid),
+				       .CE_arguments_valid(circle_args_valid),
+				       .CE_trigger(circle_trigger),
+				       .CE_frame(circle_frame),
+      
+				       //DRAM request controller interface
+				       .rdf_valid(cmd_rdf_valid),
+				       .af_full(cmd_af_full),
+				       .rdf_dout(rdf_dout),
+				       .rdf_rd_en(cmd_rdf_rd_en),
+				       .af_wr_en(cmd_af_wr_en),
+				       .af_addr_din(cmd_addr_din),
+				       //CPU IO
+				       .GP_CODE(cpu_gp_code),
+				       .GP_FRAME(cpu_gp_frame),
+				       .GP_valid(cpu_gp_valid));
 
  
 endmodule

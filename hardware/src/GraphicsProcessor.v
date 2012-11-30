@@ -33,6 +33,15 @@ module GraphicsProcessor(
 			 output reg  [23:0]  FF_color,
 			 output   [31:0]  FF_frame,
 
+			 //circle engine process interface
+			 input CE_ready,
+			 output reg [23:0] CE_color,
+			 output reg [31:0] CE_arguments,
+			 output reg CE_color_valid,
+			 output reg CE_arguments_valid,
+			 output reg CE_trigger,
+			 output [31:0] CE_frame,
+			 
 			 //DRAM request controller interface
 			 input rdf_valid,
 			 input af_full,
@@ -56,10 +65,11 @@ module GraphicsProcessor(
 
    localparam IDLE = 3'b000;
    localparam READ_0 = 3'b001;
-   localparam READ_1 = 3'b010;
-   localparam READ_2 = 3'b011;
+   localparam LINE_1 = 3'b010;
+   localparam LINE_2 = 3'b011;
+   localparam CIRCLE_1 = 3'b101;
    localparam WAIT = 3'b100;
-   
+  
 
 
    wire 		       FIFO_rdf_rd_en;
@@ -126,12 +136,13 @@ module GraphicsProcessor(
 
    wire [7:0] 		       curCommand;
    assign curCommand = fifo_GP_out[`OPCODE_IDX];
-   assign GP_stall = !FF_ready || !LE_ready;
+   assign GP_stall = !FF_ready || !LE_ready || !CE_ready;
 
    reg 			       GP_stall_clocked, FIFO_stall_clocked;
 
    assign FF_frame = GP_FRAME;
    assign LE_frame = GP_FRAME;
+   assign CE_frame = GP_FRAME;
    
    always @(posedge clk) begin
       if (rst) begin
@@ -148,10 +159,21 @@ module GraphicsProcessor(
    always @(*) begin
       GP_interrupt = 0;
       FF_valid = 0;
+      FF_color = 0;
+      
       LE_color_valid = 0;
       LE_point0_valid = 0;
       LE_point1_valid = 0;
       LE_trigger = 0;
+      LE_color = 0;
+      LE_point = 0;
+      
+      CE_color_valid = 0;
+      CE_arguments_valid = 0;
+      CE_trigger = 0;
+      CE_arguments = 0;
+      CE_color = 0;
+      
       
       case (curState)
 	IDLE: begin
@@ -175,26 +197,30 @@ module GraphicsProcessor(
 		 //LE_frame = GP_FRAME;
 		 LE_color = {8'b0, fifo_GP_out[`COLOR_IDX]};
 		 LE_color_valid = 1;
-		 nextState = (GP_valid)? curState : READ_1;
+		 nextState = (GP_valid)? curState : LINE_1;
+	      end else if (curCommand == `CIRCLE) begin
+		 CE_color = fifo_GP_out[`COLOR_IDX];
+		 CE_color_valid = 1;
+		 nextState = (GP_valid)? curState : CIRCLE_1;
 	      end else begin
 		 nextState = curState;
 	      end
 	   end else begin
 	      nextState = curState;
 	   end
-	end // case: READ_0
+	end // case: LINE_0
 
-	READ_1: begin	
+	LINE_1: begin	
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point0_valid = 1;	     
-	      nextState = (GP_valid)? READ_0 : READ_2;
+	      nextState = (GP_valid)? READ_0 : LINE_2;
 	   end else begin
 	      nextState = (GP_valid)? READ_0 : curState;
 	   end
 	end
 	
-	READ_2: begin
+	LINE_2: begin
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point1_valid = 1;
@@ -203,20 +229,18 @@ module GraphicsProcessor(
 	   end else begin
 	      nextState = (GP_valid)? READ_0 : curState;
 	   end
-	end // case: READ_2
+	end // case: LINE_2
 
-	/*
-	 * WAIT: begin
-	   FF_valid = 0;
-	   LE_point1_valid = 0;
-	   LE_trigger = 0;
-	   
-	   nextState = (GP_valid)? READ_0:
-		       (!FIFO_stall & !GP_stall)? READ_0: curState;
-	   
+	CIRCLE_1: begin	
+	   if (!FIFO_stall_clocked & !GP_stall) begin
+	      CE_arguments = fifo_GP_out;
+	      CE_arguments_valid = 1;	     
+	      nextState = READ_0;
+	   end else begin
+	      nextState = (GP_valid)? READ_0 : curState;
+	   end
 	end
-	 */
-	
+
       endcase // case (curState)
    end
     
