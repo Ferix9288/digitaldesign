@@ -53,20 +53,16 @@ module FIFO_GP (
    reg [2:0] 	 curState, nextState;
 
    wire [31:0] 	 addr_div8;
-   wire [5:0] 	 frameBuffer_addr;
+   wire [5:0] 	 GP_CODE_addr;
    assign addr_div8 = GP_CODE >> 3;
-   assign frameBuffer_addr = addr_div8[24:19];
+   assign GP_CODE_addr = addr_div8[24:19];
 
-   reg [9:0] 	 x, y, next_x, next_y;
-   assign af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
+   reg [16:0] 	 addr_offset, next_addr_offset;
+   assign af_addr_din = {6'b0, GP_CODE_addr, addr_offset, 2'b0};
 
    (* ram_style = "distributed" *)  reg [31:0] 	 FIFO_GP[15:0];
    reg [3:0] 	 read_pointer, write_pointer;
    
-   
-   wire 	 xOverFlow;
-   assign xOverFlow = (x == 10'd792);
-
    wire 	 request;   
    assign request = af_wr_en & !af_full;
 
@@ -94,13 +90,11 @@ module FIFO_GP (
       if (rst) begin
 	 curState <= IDLE;
 	 read_pointer <= 15;
-	 x <= 0;
-	 y <= 0;
+	 addr_offset <= 0;
 	 
       end else begin
 	 curState <= nextState;
-	 x <= (GP_valid)? 0 : next_x;
-	 y <= (GP_valid)? 0 : next_y;
+	 addr_offset <= (GP_valid)? 0 : next_addr_offset;
 	 //write_pointer <= next_wp;
 	 FIFO_GP[write_pointer] <= word0;
 	 FIFO_GP[write_pointer+1] <= word1;	 
@@ -113,7 +107,7 @@ module FIFO_GP (
 			    (read_pointer == 15)? 0 : read_pointer + 1;
 	    
 	 end else // if (curState != IDLE)
-	   read_pointer <= read_pointer;
+	   read_pointer <= 15;
       end
    end  // always@ (posedge clk)
    
@@ -125,6 +119,8 @@ module FIFO_GP (
    
    always@(*) begin
 
+      next_addr_offset = addr_offset;
+      
       case (curState)
 	IDLE: begin
 	   //BLOCK_WRITTEN
@@ -137,14 +133,13 @@ module FIFO_GP (
 	   word2 = oldword2;
 	   word3 = oldword3;
 	   //ADDRESSING
-	   next_x = 0;
-	   next_y = 0;
+
 	   //STATE
 	   nextState = (GP_valid)? REQUEST_BLOCK1 : IDLE;
 	end // case: IDLE
 
 	REQUEST_BLOCK1: begin
-	   af_wr_en = 1'b1;
+	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b0;
 	   Block2_Written = 1'b1;
@@ -158,13 +153,11 @@ module FIFO_GP (
 	   
 	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer >= 8)) begin
-	      next_x = (xOverFlow)? 0 : x + 8;
-	      next_y = (xOverFlow)? y + 1: y;
+	      next_addr_offset = addr_offset + 1;
 	      nextState = BURST_1;
 	      
 	   end else begin
-	      next_x = x;
-	      next_y = y;
+	    
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
 	   end	   
@@ -178,9 +171,7 @@ module FIFO_GP (
 	   //WRITE_POINTER
 	   write_pointer = 4;
 	   //ADDRESSING
-	   next_x = x;
-	   next_y = y;
-	   
+	  
 	   //READ BURST1
 	   if (rdf_valid) begin
 	      word0 = rdf_dout[31:0]; 
@@ -225,7 +216,7 @@ module FIFO_GP (
 	end // case: BURST_2
 
 	REQUEST_BLOCK2: begin
-	   af_wr_en = 1'b1;
+	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
 	   Block2_Written = 1'b0;
@@ -239,27 +230,21 @@ module FIFO_GP (
 	    
 	   //ADDRESSING
 	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer < 8)) begin
-	      next_x = (xOverFlow)? 0 : x + 8;
-	      next_y = (xOverFlow)? y + 1: y;
+	      next_addr_offset = addr_offset + 1;
 	      nextState = BURST_3;
 	   end else begin
-	      next_x = x;
-	      next_y = y;
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
 	   end	   
 	end // case: REQUEST_BLOCK2
 	
 	BURST_3: begin
-	   af_wr_en = 1'b1;
+	   af_wr_en = 1'b0;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
 	   Block2_Written = 1'b0;
 	   //WRITE_POINTER
 	   write_pointer = 12;
-	   //ADDRESSING
-	   next_x = x;
-	   next_y = y;
 	   //READ BURST 3
 	   if (rdf_valid) begin
 	      word0 = rdf_dout[31:0]; 
@@ -304,16 +289,18 @@ module FIFO_GP (
    end // always@ (*)
    
 
-
-   wire [35:0] chipscope_control;
+   
+   /*
+    * wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({GP_interrupt, xOverFlow, yOverFlow, rst, rdf_valid, af_full, af_wr_en, First_Block_Written, Block1_Written, Block2_Written, fifo_stall, GP_stall, GP_valid, curState, nextState, read_pointer, rdf_dout, x, y, af_addr_din, fifo_GP_out})
+		     .TRIG0({GP_interrupt, xOverFlow, yOverFlow, rst, rdf_valid, af_full, af_wr_en, First_Block_Written, Block1_Written, Block2_Written, fifo_stall, GP_stall, GP_valid, curState, nextState, read_pointer, rdf_dout, 3'b0, addr_offset, af_addr_din, fifo_GP_out})
 		     ); 
+    */
    
    
 endmodule

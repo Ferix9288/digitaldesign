@@ -4,17 +4,29 @@
 _start:
 	li $sp, 0x10004000
 	la $t0, 0x19000000
-	
-	la $t1, 0x02ffffff
+
+	la $t1, 0x01ff00ff
 	sw $t1, 0($t0)
 	nop
-	la $t1, 0x01230124
+	la $t1, 0x02ffffff
 	sw $t1, 4($t0)
 	nop
-	la $t1, 0x00AA00BB
-        sw $t1, 8($t0)
+	la $t1, 0x00000000
+	sw $t1, 8($t0)
 	nop
-	sw $zero, 12($t0)
+	la $t1, 0x00FF00FF
+	sw $t1, 12($t0)
+	nop
+	la $t1, 0x02ffffff
+	sw $t1, 16($t0)
+	nop
+	la $t1, 0x01230124
+	sw $t1, 20($t0)
+	nop
+	la $t1, 0x00AA00BB
+	sw $t1, 24($t0)
+	nop
+	sw $0, 28($t0)
 	nop
 	la $t2, 0x10400000
 	sw $t2, 0x18000004

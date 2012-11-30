@@ -116,6 +116,7 @@ module FrameFiller(//system:
 	   next_x = x_Cols;
 	   next_y = y_Rows;
 	   next_color = stored_color;
+	   nextState = IDLE;
 	end
       endcase // case (curState)
    end

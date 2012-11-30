@@ -25,13 +25,13 @@ module GraphicsProcessor(
 			 //output LE_x1_valid,
 			 //output LE_y1_valid,
 			 output reg  LE_trigger,
-			 output reg  [31:0] LE_frame,
+			 output   [31:0] LE_frame,
 
 			 //frame filler processor interface
 			 input FF_ready,
 			 output reg  FF_valid,
 			 output reg  [23:0]  FF_color,
-			 output reg  [31:0]  FF_frame,
+			 output   [31:0]  FF_frame,
 
 			 //DRAM request controller interface
 			 input rdf_valid,
@@ -125,8 +125,10 @@ module GraphicsProcessor(
    assign GP_stall = !FF_ready || !LE_ready;
 
    reg 			       GP_stall_clocked, FIFO_stall_clocked;
+
+   assign FF_frame = GP_FRAME;
+   assign LE_frame = GP_FRAME;
    
-      
    always @(posedge clk) begin
       if (rst) begin
 	 curState <= IDLE;
@@ -158,18 +160,18 @@ module GraphicsProcessor(
 	   FF_valid = 0;
 	   LE_color_valid = 0;
        
-	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
+	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      if (curCommand == `STOP) begin
 		 GP_interrupt = 1;
 		 nextState = (GP_valid)? curState: IDLE;
 	      end else if (curCommand == `FILL) begin
-		 FF_frame = GP_FRAME;
+		 //FF_frame = GP_FRAME;
 		 FF_color = fifo_GP_out[`COLOR_IDX];
 		 FF_valid = 1;
 		 nextState  = curState;//: WAIT;
 		 
  	      end else if (curCommand == `LINE) begin
-		 LE_frame = GP_FRAME;
+		 //LE_frame = GP_FRAME;
 		 LE_color = {8'b0, fifo_GP_out[`COLOR_IDX]};
 		 LE_color_valid = 1;
 		 nextState = (GP_valid)? curState : READ_1;
@@ -183,7 +185,7 @@ module GraphicsProcessor(
 
 	READ_1: begin	
 	   LE_color_valid = 0;	   
-	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
+	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point0_valid = 1;	     
 	      nextState = (GP_valid)? READ_0 : READ_2;
@@ -195,7 +197,7 @@ module GraphicsProcessor(
 	
 	READ_2: begin
 	   LE_point0_valid = 0;
-	   if (!FIFO_stall_clocked & !GP_stall_clocked) begin
+	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      LE_point = {fifo_GP_out[`X_ADDR], fifo_GP_out[`Y_ADDR]};
 	      LE_point1_valid = 1;
 	      LE_trigger = 1;
@@ -236,9 +238,10 @@ module GraphicsProcessor(
    //DRAM request controller interface
 
    
+   
+    
    /*
-    * 
-   wire [35:0] chipscope_control;
+    * wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
@@ -248,6 +251,7 @@ module GraphicsProcessor(
 		     .TRIG0({rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, FF_ready, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, FF_valid, FIFO_stall, GP_stall, GP_valid, curState, nextState, rdf_dout, GP_FRAME, GP_CODE, fifo_GP_out})
 		     ); 
     */
+    
    
    
    

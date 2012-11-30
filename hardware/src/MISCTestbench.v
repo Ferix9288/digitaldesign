@@ -32,7 +32,8 @@ module MISCTestbench();
 
    wire [31:0]  frame_result;
    assign frame_result = {6'b0, frameBuffer_addr, 19'b0};
-   
+
+    
    reg [3:0]   read_pointer;
 
    reg [31:0] read_out;
@@ -81,7 +82,7 @@ module MISCTestbench();
    
    initial begin
       x_Cols = -30;
-      frame = 32'h19000000;
+      frame = 32'h10400000;
       FIFO_GP[2] = 32'hffffffff;      
       read_pointer = 2;
       read_out = FIFO_GP[read_pointer];

@@ -8,9 +8,10 @@ module CircleEngine(
 		    input rst,
 		    output CE_ready,
 		    input [23:0] CE_color,
-		    input [31:0] CE_arguments,
+		    input [19:0] CE_point,
+		    input [11:0] CE_radius,
 		    input CE_color_valid,
-		    input CE_arguments_valid,
+		    input CE_point_valid,
 
 		    input CE_trigger,
 
@@ -140,9 +141,9 @@ module CircleEngine(
 	end
 
 	SETUP: begin
-	   next_x0 = (CE_arguments_valid)? CE_arguments[31:22]: x0;
-	   next_y0 = (CE_arguments_valid)? CE_arguments[21:12]: y0;
-	   next_radius = (CE_arguments_valid)? CE_arguments[11:0] : radius;
+	   next_x0 = (CE_point_valid)? CE_point[19:10]: x0;
+	   next_y0 = (CE_point_valid)? CE_point[9:0]: y0;
+	   next_radius = (CE_point_valid)? CE_radius[11:0] : radius;
 	   nextState = (CE_trigger)? CIRCLE_FUNCTION: curState;
 	end
 
@@ -211,22 +212,19 @@ module CircleEngine(
 
 	WRITE2_4: begin
 	   wdf_wr_en = !af_full & !wdf_full;
-	   if (wdf_wr_en) begin
-	      case (mask)
-		4'h4:
-		  wdf_mask_din = 16'h0FFF;
-		4'h5:
-		  wdf_mask_din = 16'hF0FF;
-		4'h6:
-		  wdf_mask_din = 16'hFF0F;
-		4'h7:
-		  wdf_mask_din = 16'hFFF0;
-		default:
-		  wdf_mask_din = 16'hFFFF;
-	      endcase // case (mask)
-	      nextState = PRINT4;
-	   end else // if (wdf_wr_en)
-	     nextState = curState;
+	   case (mask)
+	     4'h4:
+	       wdf_mask_din = 16'h0FFF;
+	     4'h5:
+	       wdf_mask_din = 16'hF0FF;
+	     4'h6:
+	       wdf_mask_din = 16'hFF0F;
+	     4'h7:
+	       wdf_mask_din = 16'hFFF0;
+	     default:
+	       wdf_mask_din = 16'hFFFF;
+	   endcase // case (mask)
+	   nextState = PRINT4;
 	end // case: WRITE2_4
 
 	WHILE: begin
@@ -324,22 +322,19 @@ module CircleEngine(
    	
 	WRITE2_8: begin
 	   wdf_wr_en = !af_full & !wdf_full;
-	   if (wdf_wr_en) begin
-	     case (mask)
-	       4'h4:
-		 wdf_mask_din = 16'h0FFF;
-	       4'h5:
-		 wdf_mask_din = 16'hF0FF;
-	       4'h6:
-		 wdf_mask_din = 16'hFF0F;
-	       4'h7:
-		 wdf_mask_din = 16'hFFF0;
-	       default:
-		 wdf_mask_din = 16'hFFFF;
-	     endcase // case (mask)
-	      nextState = PRINT8;
-	   end else 
-	     nextState = curState;
+	   case (mask)
+	     4'h4:
+	       wdf_mask_din = 16'h0FFF;
+	     4'h5:
+	       wdf_mask_din = 16'hF0FF;
+	     4'h6:
+	       wdf_mask_din = 16'hFF0F;
+	     4'h7:
+	       wdf_mask_din = 16'hFFF0;
+	     default:
+	       wdf_mask_din = 16'hFFFF;
+	   endcase // case (mask)
+	   nextState = PRINT8;
 	end // case: WRITE2_4
 
 	
@@ -359,8 +354,10 @@ module CircleEngine(
       end
    end
    
-   assign CE_ready = (curState == IDLE);
    
+
+ 
+  
    
    
 endmodule

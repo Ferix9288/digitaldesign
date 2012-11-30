@@ -44,7 +44,7 @@ module LineEngine(
    
    reg [2:0] 		curState, nextState;
    reg [9:0] 		x0, y0, x1, y1;
-   reg [10:0] 		x, y, next_y;
+   reg [9:0] 		x, y, next_y;
    wire 		done;
    reg [15:0] 		error, next_error;
 
@@ -74,7 +74,7 @@ module LineEngine(
    reg [9:0] 		next_x0, next_y0, next_x1, next_y1;
     
    assign wdf_din = {store_color, store_color, store_color, store_color};
-   assign done = (x > x1);
+   assign done = (x == x1);
    
    //Current state and point updates
    always@(posedge clk) begin
@@ -84,7 +84,6 @@ module LineEngine(
 	 y0 <= 0;
 	 x1 <= 0;
 	 y1 <= 0;
-	 y <= 0;
 	 error <= 0;
 	 store_color <= 0;
       end else begin
@@ -93,7 +92,6 @@ module LineEngine(
 	 y0 <= next_y0;
 	 x1 <= next_x1;
 	 y1 <= next_y1;
-	 y <= next_y;
 	 error <= next_error;
 	 store_color <= next_color;
       end
@@ -105,21 +103,24 @@ module LineEngine(
       af_wr_en = 0;
       wdf_wr_en = 0;
       next_color = store_color;
-      next_y = y;
       next_x0 = x0;
       next_y0 = y0;
       next_x1 = x1;
       next_y1 = y1;
       next_error = error;
+      wdf_mask_din =  16'hFFFF;
+      af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
+
       
       case (curState)
 	IDLE: begin
+	   next_y = y;
 	   next_color = (LE_color_valid)? LE_color[23:0]: store_color;
 	   nextState = (LE_color_valid)? SET_UP: curState;
 	end
 
 	SET_UP: begin
-	   
+	   next_y = y;
 	   next_error = error;
 	   next_x0 = (LE_point0_valid)? LE_point[19:10]: x0;
 	   next_y0 = (LE_point0_valid)? LE_point[9:0]: y0;
@@ -210,11 +211,10 @@ module LineEngine(
 
 	      nextState = WRITE_2;
 	   end else begin // if (wdf_wr_en)
+	      next_y = y;
 	      wdf_mask_din = 16'hFFFF;
 	      nextState = curState;
 	   end
-
-	   
 	end
 
 	//af_wr_en LOW - second batch of 4 pixels
@@ -222,6 +222,7 @@ module LineEngine(
 	WRITE_2: begin
 	   af_wr_en = 0;
 	   wdf_wr_en = !af_full & !wdf_full;
+	   next_y = next_y;
 	   if (wdf_wr_en) begin
 	      case (mask)
 		4'h4:
@@ -249,17 +250,26 @@ module LineEngine(
    always@(posedge clk) begin
       if (rst || curState == LINE_FUNCTION) begin
 	 x <= next_x0;
-      end else if (curState == WRITE_1 & wdf_wr_en) begin
+	 y <= next_y0;
+      end else if (curState == WRITE_2 & wdf_wr_en) begin
+	 y <= next_y;
 	 x <= x + 1;
       end else begin
 	 x <= x;
+	 y <= y;
       end
    end // always@ (posedge clk)
 
-  
-      
-   
    assign LE_ready = (curState == IDLE) || (curState == SET_UP);
-
+   
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     .TRIG0({LE_frame_base, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
+		     ); 
    
 endmodule

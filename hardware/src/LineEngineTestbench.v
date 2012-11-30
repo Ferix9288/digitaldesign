@@ -116,7 +116,8 @@ module LineEngineTestbench();
       //drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       //drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
-   end
+   end // initial begin
+   
 
    task drawLine;
       input [9:0] x0;
@@ -148,15 +149,44 @@ module LineEngineTestbench();
 	  #(Cycle);
 	  LE_trigger = 1'b0;
 	  #(Cycle);
+
+	  /*
+	   * #(5*Cycle);
+	  af_full = 1;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 1;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 1;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 1;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 0;
+	  #(Cycle);
+	  af_full = 1;
+	  #(Cycle);
+	  af_full = 0;
+	   */
+	  
 	  while(!LE_ready) begin
              if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
 		if (steep)
 		  $display("%4d %4d", y, x);
 		else
 		  $display("%4d %4d", x, y);
-             end
+             end 
 	     #(Cycle);
-	     
 	  end
 	  $display("Got out of loop");
 	  $finish();
