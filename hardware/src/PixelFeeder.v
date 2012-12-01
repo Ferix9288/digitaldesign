@@ -52,7 +52,7 @@ module PixelFeeder( //System:
 
    assign request_8pixels = (af_wr_en & !af_full);
    assign fetch_pixel = (ignore_count == 0) & video_ready
-			& (CountPixels != 0);
+			& !(CountPixels < 0);
 
    //assign frame_interrupt = (when frame finished? half-way?)
 			      
@@ -169,9 +169,7 @@ module PixelFeeder( //System:
    assign video = feeder_dout[23:0];
    assign video_valid = 1'b1;
    
-   
-   /*
-    * 
+
     wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -181,7 +179,6 @@ module PixelFeeder( //System:
 		     .CLK(cpu_clk_g),
 		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
 		     ); //frameBuffer_addr was in btw af_wr_en and ic
-    */
    
    
     

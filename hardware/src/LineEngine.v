@@ -28,7 +28,7 @@ module LineEngine(
   output reg [15:0]     wdf_mask_din,
   output                wdf_wr_en,
   //for testing
-  output reg            steep,
+  output reg               steep,
 
   input [31:0] 		LE_frame_base
 );
@@ -46,7 +46,7 @@ module LineEngine(
    reg [9:0] 		x0, y0, x1, y1;
    reg [9:0] 		x, y, next_y;
    wire 		done;
-   reg [15:0] 		error, next_error;
+   reg [15:0] 		error, next_error, temp_error;
 
    reg [15:0] 		deltay, ABS_deltay;
    reg [15:0] 		deltax, ABS_deltax;
@@ -71,15 +71,18 @@ module LineEngine(
    
    reg [9:0] 		temp;
    reg [9:0] 		next_x0, next_y0, next_x1, next_y1;
-    
-   assign wdf_din = {store_color, store_color, store_color, store_color};
+
+   wire [31:0] 		color_word;
+   assign color_word = {8'b0, store_color};
+   assign wdf_din = {color_word, color_word,color_word, color_word};
    assign done = (x == x1);
 
    assign af_addr_din = (steep)? {6'b0, frameBuffer_addr, y, x[9:3], 2'b0}:
 			{6'b0, frameBuffer_addr, x, y[9:3], 2'b0};
 
    assign mask = (steep)? x[2:0] : y[2:0];
-   
+   reg 		next_steep;
+
    //Current state and point updates
    always@(posedge clk) begin
       if (rst) begin
@@ -90,6 +93,7 @@ module LineEngine(
 	 y1 <= 0;
 	 error <= 0;
 	 store_color <= 0;
+	 steep <= 0;
       end else begin
 	 curState <= nextState;
 	 x0 <= next_x0;
@@ -98,6 +102,7 @@ module LineEngine(
 	 y1 <= next_y1;
 	 error <= next_error;
 	 store_color <= next_color;
+	 steep <= next_steep;
       end
    end
 
@@ -115,6 +120,9 @@ module LineEngine(
       next_y = y;
       next_error = error;
       wdf_mask_din =  16'hFFFF;
+      next_steep = steep;
+      temp_error = error;
+      
       
       case (curState)
 	IDLE: begin
@@ -135,9 +143,9 @@ module LineEngine(
 	   ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
 	   deltax = x1 - x0;
 	   ABS_deltax = ($signed(deltax) < 0)? (~deltax + 1) : deltax;
-	   steep = (ABS_deltay > ABS_deltax)? 1: 0;
+	   next_steep = (ABS_deltay > ABS_deltax)? 1: 0;
 	   
-	   if (steep) begin
+	   if (next_steep) begin
 	      //SWAP x0, y0
 	      next_x0 = y0;
 	      next_y0 = x0;
@@ -199,10 +207,12 @@ module LineEngine(
 	WRITE_2: begin
 	   af_wr_en = 0;
 	  // if (!af_full & !wdf_full) begin
-	   next_error = error - ABS_deltay;		 
-	   if ($signed(next_error) < 0) begin
+	   temp_error = error - ABS_deltay;		 
+	   if ($signed(temp_error) < 0) begin
 	      next_y = y + ystep;
-	      next_error = next_error + deltax;
+	      next_error = temp_error + deltax;
+	   end else begin
+	      next_error = temp_error;
 	   end
 	   
 	   case (mask)
@@ -225,7 +235,10 @@ module LineEngine(
 
    //For x and y increments
    always@(posedge clk) begin
-      if (rst || curState == LINE_FUNCTION) begin
+      if (rst) begin
+	 x <= 0;
+	 y <= 0;
+      end else if (curState == LINE_FUNCTION) begin
 	 x <= next_x0;
 	 y <= next_y0;
       end else if (curState == WRITE_2) begin
@@ -240,7 +253,8 @@ module LineEngine(
    
     assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
-   
+   /*
+    * 
     wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -248,7 +262,8 @@ module LineEngine(
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({LE_frame_base, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
+		     .TRIG0({ ABS_deltay, deltay, deltax, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
+    */
    
 endmodule
