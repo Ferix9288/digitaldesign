@@ -47,7 +47,7 @@ module FrameFiller(//system:
    assign yOverFlow = (y_Rows == 10'd600);
 
    //REQUEST LOGIC
-   assign wdf_wr_en = (!af_full) & (!wdf_full) & (curState != IDLE);
+   assign wdf_wr_en = (curState != IDLE);
    wire 	       done;
    assign done = xOverFlow & yOverFlow;
 
@@ -90,7 +90,7 @@ module FrameFiller(//system:
 	   af_wr_en = 1'b1;
 	   wdf_mask_din = 16'h0;
 	   //not af_full and not wd_full
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	      next_x = (xOverFlow)? 0: x_Cols + 8;
 	      next_y = (xOverFlow)? y_Rows + 1: y_Rows;
 	      nextState = FILL_2;
@@ -104,7 +104,7 @@ module FrameFiller(//system:
 	   af_wr_en = 0;
 	   wdf_mask_din = 16'h0;
 	   nextState = (done)? IDLE: 
-		       (wdf_wr_en)? FILL_1: curState;
+		       FILL_1;
 	end
       endcase // case (curState)
    end
