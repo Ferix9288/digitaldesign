@@ -69,7 +69,8 @@ module GraphicsProcessorTestbench();
     				.GP_CODE(gp_code),
     				.GP_FRAME(gp_frame),
     				.GP_valid(gp_valid),
-				.GP_interrupt(gp_interrupt)
+				.GP_interrupt(gp_interrupt), 
+				.CE_ready(1'b1)
 				);
 
    //ADD FRAME FILLER READY AND LE READY MODULES

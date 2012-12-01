@@ -21,8 +21,8 @@ module LineEngine(
   // FIFO connections
   input                 af_full,
   input                 wdf_full,
-  
-  output reg [30:0]     af_addr_din,
+
+  output [30:0]     af_addr_din,
   output reg            af_wr_en,
   output [127:0]        wdf_din,
   output reg [15:0]     wdf_mask_din,
@@ -53,9 +53,8 @@ module LineEngine(
    
    reg [23:0] 		store_color, next_color;
 
-
+   wire [2:0] 		mask;
    
-   reg [2:0] 		mask;
 
    //--SET UP FOR LINE_FUNCTION STATE AND WRITE-- (Bresenham's Algorithm)
    //#define ABSOLUTE VALUES
@@ -75,6 +74,11 @@ module LineEngine(
     
    assign wdf_din = {store_color, store_color, store_color, store_color};
    assign done = (x == x1);
+
+   assign af_addr_din = (steep)? {6'b0, frameBuffer_addr, y, x[9:3], 2'b0}:
+			{6'b0, frameBuffer_addr, x, y[9:3], 2'b0};
+
+   assign mask = (steep)? x[2:0] : y[2:0];
    
    //Current state and point updates
    always@(posedge clk) begin
@@ -107,21 +111,17 @@ module LineEngine(
       next_y0 = y0;
       next_x1 = x1;
       next_y1 = y1;
+      next_y = y;
       next_error = error;
       wdf_mask_din =  16'hFFFF;
-      af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
-
       
       case (curState)
 	IDLE: begin
-	   next_y = y;
 	   next_color = (LE_color_valid)? LE_color[23:0]: store_color;
 	   nextState = (LE_color_valid)? SET_UP: curState;
 	end
 
 	SET_UP: begin
-	   next_y = y;
-	   next_error = error;
 	   next_x0 = (LE_point0_valid)? LE_point[19:10]: x0;
 	   next_y0 = (LE_point0_valid)? LE_point[9:0]: y0;
 	   next_x1 = (LE_point1_valid)? LE_point[19:10]: x1;
@@ -176,25 +176,6 @@ module LineEngine(
 	   wdf_wr_en = !af_full & !wdf_full;
 	   
 	   if (wdf_wr_en) begin
-	      //REPLACE for loop by updating x SYNCHRONOUSLY
-	      if (x <= x1) begin
-		 if (steep) begin
-		    //plot (y, x)
-		    af_addr_din = {6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
-		    mask = x[2:0];
-		 end else begin
-		    //plot (x, y)
-		    af_addr_din = {6'b0, frameBuffer_addr, x, y[9:3], 2'b0};
-		    mask = y[2:0];
-		 end
-		 
-		 next_error = $signed(error) - ABS_deltay;		 
-		 if ($signed(next_error) < 0) begin
-		    next_y = y + ystep;
-		    next_error = $signed(next_error) + deltax;
-		 end
-	      end // if (x <= x1 && curState == WRITE_1)
-
 	      //logic for wdf_mask_din  
 	      case (mask)
 		4'h0:
@@ -208,11 +189,8 @@ module LineEngine(
 		default:
 		  wdf_mask_din = 16'hFFFF;
 	      endcase // case (mask)
-
 	      nextState = WRITE_2;
 	   end else begin // if (wdf_wr_en)
-	      next_y = y;
-	      wdf_mask_din = 16'hFFFF;
 	      nextState = curState;
 	   end
 	end
@@ -222,8 +200,14 @@ module LineEngine(
 	WRITE_2: begin
 	   af_wr_en = 0;
 	   wdf_wr_en = !af_full & !wdf_full;
-	   next_y = next_y;
 	   if (wdf_wr_en) begin
+	      
+	      next_error = $signed(error) - ABS_deltay;		 
+	      if ($signed(next_error) < 0) begin
+		 next_y = y + ystep;
+		 next_error = $signed(next_error) + deltax;
+	      end
+	      
 	      case (mask)
 		4'h4:
 		  wdf_mask_din = 16'h0FFF;
@@ -238,8 +222,7 @@ module LineEngine(
 	      endcase // case (mask)
 	      nextState = (done)? IDLE: WRITE_1;
 	   end else begin
-	      wdf_mask_din = 16'hFFFF;
-	      nextState = (done)? IDLE: curState;
+	      nextState =  curState;
 	   end // else: !if(wdf_wr_en)
 	end // case: WRITE_2
 	
@@ -263,8 +246,6 @@ module LineEngine(
    
     assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
-   /*
-    *
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -274,6 +255,5 @@ module LineEngine(
 		     .CLK(clk),
 		     .TRIG0({LE_frame_base, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
-    */
    
 endmodule

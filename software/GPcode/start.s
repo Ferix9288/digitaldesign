@@ -5,20 +5,20 @@ _start:
 	li $sp, 0x10004000
 	la $t0, 0x19000000
 
-	la $t1, 0x010000ff
+	la $t1, 0x01000000
 	sw $t1, 0($t0)
 	nop
-	la $t1, 0x000D000D
+	la $t1, 0x02000000
 	sw $0, 4($t0)
 	nop
-	la $t1, 0x00EE00EE
+	la $t1, 0x00000000
 	sw $t1, 8($t0)
 	nop
 	la $t1, 0x001A002B
 	sw $0, 12($t0)
 	nop
 	la $t1, 0x02ffffff
-	sw $t1, 16($t0)
+	sw $0, 16($t0)
 	nop
 	la $t1, 0x01230124
 	sw $t1, 20($t0)

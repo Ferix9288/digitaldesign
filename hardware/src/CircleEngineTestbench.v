@@ -79,7 +79,9 @@ module CircleEngineTestbench();
       #(10*Cycle);
       Reset = 1'b0;
       #(Cycle);
-      drawCircle(10'd5, 10'd5, 12'd5, 24'h00ff00);
+      //drawCircle(10'd5, 10'd5, 12'd5, 24'h00ff00);
+      drawCircle(10'd200, 10'd200, 12'd100, 24'h00ff00);
+
       
    end // initial begin
    

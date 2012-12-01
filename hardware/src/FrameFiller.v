@@ -69,11 +69,15 @@ module FrameFiller(//system:
    //nextState Logic
    always@(*) begin
 
+      next_color = stored_color;
+      next_x = x_Cols;
+      next_y = y_Rows;
+      wdf_mask_din = 16'hffff;
+      
       case (curState)
 	
 	IDLE: begin
 	   af_wr_en = 0;
-	   wdf_mask_din = 16'hffff;
 	   next_x = 0;
 	   next_y = 0;
 	   next_color = (valid)? color: stored_color;
@@ -85,38 +89,22 @@ module FrameFiller(//system:
 	FILL_1: begin
 	   af_wr_en = 1'b1;
 	   wdf_mask_din = 16'h0;
-	   next_color = stored_color;
 	   //not af_full and not wd_full
 	   if (wdf_wr_en) begin
 	      next_x = (xOverFlow)? 0: x_Cols + 8;
 	      next_y = (xOverFlow)? y_Rows + 1: y_Rows;
 	      nextState = FILL_2;
 	   end else begin
-	      next_x = x_Cols;
-	      next_y = y_Rows;
 	      nextState = curState;
 	   end
 	end
-
 	//af_wr_en low
 	//Only go back to Fill_1 if successfully wrote 2nd burst of pixels
 	FILL_2: begin
-	   af_wr_en = 1'b0;
+	   af_wr_en = 0;
 	   wdf_mask_din = 16'h0;
-	   next_color = stored_color;
-	   next_x = x_Cols;
-	   next_y = y_Rows;
 	   nextState = (done)? IDLE: 
 		       (wdf_wr_en)? FILL_1: curState;
-	end
-	
-	default: begin
-	   af_wr_en = 0;
-	   wdf_mask_din = 16'hffff;
-	   next_x = x_Cols;
-	   next_y = y_Rows;
-	   next_color = stored_color;
-	   nextState = IDLE;
 	end
       endcase // case (curState)
    end
@@ -125,10 +113,8 @@ module FrameFiller(//system:
    
    assign ready = (curState == IDLE);
 
-
    
    /*
-    * 
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -136,7 +122,7 @@ module FrameFiller(//system:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({rst, done, curState, nextState, af_wr_en, wdf_wr_en, x_Cols, y_Rows, wdf_mask_din})
+		     .TRIG0({ready, stored_color, rst, done, curState, nextState, af_wr_en, wdf_wr_en, x_Cols, y_Rows, wdf_mask_din})
 		     ); 
     */
    
