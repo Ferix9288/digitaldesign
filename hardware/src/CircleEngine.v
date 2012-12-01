@@ -21,7 +21,7 @@ module CircleEngine(
 		    output reg af_wr_en,
 		    output [127:0] wdf_din,
 		    output reg [15:0] wdf_mask_din,
-		    output reg wdf_wr_en,
+		    output wdf_wr_en,
 
 		    input [31:0] CE_frame_base
 		    );
@@ -115,6 +115,9 @@ module CircleEngine(
 	 count_8 <= next_count_8;
       end
    end
+
+   assign wdf_wr_en = (curState == !IDLE);
+   
    
    always@(*) begin
       next_f = f;
@@ -134,7 +137,6 @@ module CircleEngine(
       next_count_8 = 0;
       
       af_wr_en = 0;
-      wdf_wr_en = 0;
       case(curState)
 	
 	IDLE: begin
@@ -194,10 +196,9 @@ module CircleEngine(
 
 	WRITE1_4: begin
 	   af_wr_en = 1'b1;
-	   wdf_wr_en = !af_full & !wdf_full;
 	   next_count_4 = count_4;
 	   
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	      case (mask)
 		4'h0:
 		  wdf_mask_din = 16'h0FFF;
@@ -216,8 +217,7 @@ module CircleEngine(
 	end // case: WRITE1_4
 
 	WRITE2_4: begin
-	   wdf_wr_en = !af_full & !wdf_full;
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	      case (mask)
 		4'h4:
 		  wdf_mask_din = 16'h0FFF;
@@ -314,10 +314,8 @@ module CircleEngine(
 
 	WRITE1_8: begin
 	   af_wr_en = 1'b1;
-	   wdf_wr_en = !af_full & !wdf_full;
 	   next_count_8 = count_8;
-
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	      case (mask)
 		4'h0:
 		  wdf_mask_din = 16'h0FFF;
@@ -337,8 +335,7 @@ module CircleEngine(
 	end // case: WRITE8_4
    	
 	WRITE2_8: begin
-	   wdf_wr_en = !af_full & !wdf_full;
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	     case (mask)
 	       4'h4:
 		 wdf_mask_din = 16'h0FFF;

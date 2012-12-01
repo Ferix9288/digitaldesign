@@ -26,7 +26,7 @@ module LineEngine(
   output reg            af_wr_en,
   output [127:0]        wdf_din,
   output reg [15:0]     wdf_mask_din,
-  output reg            wdf_wr_en,
+  output                wdf_wr_en,
   //for testing
   output reg            steep,
 
@@ -101,11 +101,12 @@ module LineEngine(
       end
    end
 
+   assign wdf_wr_en = (curState != IDLE);
+   
    //NEXT-STATE LOGIC
    always@(*) begin
 
       af_wr_en = 0;
-      wdf_wr_en = 0;
       next_color = store_color;
       next_x0 = x0;
       next_y0 = y0;
@@ -173,9 +174,7 @@ module LineEngine(
 	//af_wr_en HIGH - first batch of 4 pixels
 	WRITE_1: begin
 	   af_wr_en = 1'b1;
-	   wdf_wr_en = !af_full & !wdf_full;
-	   
-	   if (wdf_wr_en) begin
+	   if (!af_full & !wdf_full) begin
 	      //logic for wdf_mask_din  
 	      case (mask)
 		4'h0:
@@ -199,33 +198,28 @@ module LineEngine(
 	//only go back to WRITE_1 if sucessfully wrote data
 	WRITE_2: begin
 	   af_wr_en = 0;
-	   wdf_wr_en = !af_full & !wdf_full;
-	   if (wdf_wr_en) begin
-	      
-	      next_error = $signed(error) - ABS_deltay;		 
-	      if ($signed(next_error) < 0) begin
-		 next_y = y + ystep;
-		 next_error = $signed(next_error) + deltax;
-	      end
-	      
-	      case (mask)
-		4'h4:
-		  wdf_mask_din = 16'h0FFF;
-		4'h5:
-		  wdf_mask_din = 16'hF0FF;
-		4'h6:
-		  wdf_mask_din = 16'hFF0F;
-		4'h7:
-		  wdf_mask_din = 16'hFFF0;
-		default:
-		  wdf_mask_din = 16'hFFFF;
-	      endcase // case (mask)
-	      nextState = (done)? IDLE: WRITE_1;
-	   end else begin
-	      nextState =  curState;
-	   end // else: !if(wdf_wr_en)
+	  // if (!af_full & !wdf_full) begin
+	   next_error = error - ABS_deltay;		 
+	   if ($signed(next_error) < 0) begin
+	      next_y = y + ystep;
+	      next_error = next_error + deltax;
+	   end
+	   
+	   case (mask)
+	     4'h4:
+	       wdf_mask_din = 16'h0FFF;
+	     4'h5:
+	       wdf_mask_din = 16'hF0FF;
+	     4'h6:
+	       wdf_mask_din = 16'hFF0F;
+	     4'h7:
+	       wdf_mask_din = 16'hFFF0;
+	     default:
+	       wdf_mask_din = 16'hFFFF;
+	   endcase // case (mask)
+	   nextState = (done)? IDLE: WRITE_1;
 	end // case: WRITE_2
-	
+   
       endcase // case (curState)
    end // always@ (*)
 
@@ -234,7 +228,7 @@ module LineEngine(
       if (rst || curState == LINE_FUNCTION) begin
 	 x <= next_x0;
 	 y <= next_y0;
-      end else if (curState == WRITE_2 & wdf_wr_en) begin
+      end else if (curState == WRITE_2) begin
 	 y <= next_y;
 	 x <= x + 1;
       end else begin
@@ -246,7 +240,8 @@ module LineEngine(
    
     assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
-   wire [35:0] chipscope_control;
+   
+    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
