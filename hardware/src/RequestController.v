@@ -324,7 +324,7 @@ module RequestController(
             wdf_mask_din = 16'hFFFF; // not writing
             wdf_wr_en    = 1'b0; //not writing
         end
-        else if(pixel_af_wr_en && !filler_reserved && !line_reserved && !bypass_reserved) begin
+        else if(pixel_af_wr_en && !filler_reserved && !line_reserved && !circle_reserved && !bypass_reserved) begin
             fifo_access  = PIXEL_ACCESS;
             // read-only path:
             af_cmd_din   = 3'b001;

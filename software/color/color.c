@@ -9,12 +9,18 @@
 void setColor() {
   unsigned int rainbow = 0x0;
   while (1) {
-    for (int y = 0; y < 600; y += 1) {
+    for (int y = 0; y < 300; y += 1) {
       for (int x =0; x < 800; x += 1) {
-	FRAME_1[x + (y << 10)] = RED + rainbow;// + rainbow;
+	FRAME_1[x + (y << 10)] = RED;// + rainbow;
       }
     }
-    rainbow += 0xaaa;
+    
+    for (int y = 300; y < 600; y+= 1) {
+      for (int x = 0; x < 800; x += 1) {
+	FRAME_1[x + (y << 10) ] = BLUE;
+      }
+    }
+					
     for (int z = 0; z < 1000000; z += 1); 
 
     /* for (int y = 0; y < 600; y += 1) { */
