@@ -48,8 +48,8 @@ module LineEngine(
    wire 		done;
    reg [15:0] 		error, next_error, temp_error;
 
-   reg [15:0] 		deltay, ABS_deltay;
-   reg [15:0] 		deltax, ABS_deltax;
+   reg [15:0] 		next_deltay, deltay, next_ABS_deltay, ABS_deltay;
+   reg [15:0] 		next_deltax, deltax, next_ABS_deltax, ABS_deltax;
    
    reg [23:0] 		store_color, next_color;
 
@@ -94,6 +94,11 @@ module LineEngine(
 	 error <= 0;
 	 store_color <= 0;
 	 steep <= 0;
+	 deltax <= 0;
+	 deltay <= 0;
+	 ABS_deltax <= 0;
+	 ABS_deltay <= 0;
+	 
       end else begin
 	 curState <= nextState;
 	 x0 <= next_x0;
@@ -103,10 +108,16 @@ module LineEngine(
 	 error <= next_error;
 	 store_color <= next_color;
 	 steep <= next_steep;
+	 deltax <= next_deltax;
+	 deltay <= next_deltay;
+	 ABS_deltax <= next_ABS_deltax;	 
+	 ABS_deltay <= next_ABS_deltay;
+	 
+	 
       end
    end
 
-   assign wdf_wr_en = (curState != IDLE);
+   assign wdf_wr_en = (curState == WRITE_1 || curState == WRITE_2);
    
    //NEXT-STATE LOGIC
    always@(*) begin
@@ -122,7 +133,10 @@ module LineEngine(
       wdf_mask_din =  16'hFFFF;
       next_steep = steep;
       temp_error = error;
-      
+      next_deltax = deltax;
+      next_deltay = deltay;
+      next_ABS_deltax = ABS_deltax;
+      next_ABS_deltay = ABS_deltay;
       
       case (curState)
 	IDLE: begin
@@ -139,11 +153,14 @@ module LineEngine(
 	end
   
 	LINE_FUNCTION: begin
-	   deltay = y1 - y0;
-	   ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
-	   deltax = x1 - x0;
-	   ABS_deltax = ($signed(deltax) < 0)? (~deltax + 1) : deltax;
-	   next_steep = (ABS_deltay > ABS_deltax)? 1: 0;
+	   next_deltay = y1 - y0;
+	   next_ABS_deltay = ($signed(next_deltay) < 0)? 
+			     (~next_deltay + 1) : next_deltay;
+	   next_deltax = x1 - x0;
+	   next_ABS_deltax = ($signed(next_deltax) < 0)? 
+			     (~next_deltax + 1) :  next_deltax;
+	   
+	   next_steep = (next_ABS_deltay > next_ABS_deltax)? 1: 0;
 	   
 	   if (next_steep) begin
 	      //SWAP x0, y0
@@ -170,12 +187,13 @@ module LineEngine(
 	      next_y1 = temp;
 	   end 
 	   
-	   deltax = next_x1 - next_x0;
-	   deltay = next_y1 - next_y0;
-	   ABS_deltay = ($signed(deltay) < 0)? (~deltay + 1) : deltay;
+	   next_deltax = next_x1 - next_x0;
+	   next_deltay = next_y1 - next_y0;
+	   next_ABS_deltay = ($signed(next_deltay) < 0)?
+			     (~next_deltay + 1) : next_deltay;
 	   next_y =  next_y0;
 	   ystep = (next_y0 < next_y1)? 1: -1;
-	   next_error = deltax / 2;
+	   next_error = next_deltax / 2;
 	   nextState = WRITE_1;
 	end
 	
@@ -253,9 +271,8 @@ module LineEngine(
    
     assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
-   /*
-    * 
-    wire [35:0] chipscope_control;
+ 
+   wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
@@ -264,6 +281,5 @@ module LineEngine(
 		     .CLK(clk),
 		     .TRIG0({ ABS_deltay, deltay, deltax, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
-    */
    
 endmodule

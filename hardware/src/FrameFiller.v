@@ -48,6 +48,7 @@ module FrameFiller(//system:
 
    //REQUEST LOGIC
    assign wdf_wr_en = (curState != IDLE);
+   
    wire 	       done;
    assign done = xOverFlow & yOverFlow;
 

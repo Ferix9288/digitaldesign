@@ -417,5 +417,17 @@ module RequestController(
     
     assign cmd_af_full  = fifo_access == CMD_ACCESS  ? af_full || wdf_full : 1'b1;
 
+   /*
+    * wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     .TRIG0(pixel_wdf_wr_en, filler_wdf_wr_en, line_wdf_wr_en,rst, af_full, wdf_full, line_reserved, circle_reserved, filler_reserved, bypass_reserved, pixel_af_wr_en, line_af_wr_en, filler_af_wr_en, circle_af_wr_en, fifo_access})
+		     ); //frameBuffer_addr was in btw af_wr_en andic
+    */
+
 endmodule
 

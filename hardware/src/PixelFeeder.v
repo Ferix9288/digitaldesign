@@ -26,7 +26,6 @@ module PixelFeeder( //System:
    //0x1080_0000
    localparam BUFFER2_DDR = 6'b000010;
    
-
    reg [31:0] 		   ignore_count;
    reg [31:0] 		   CountPixels;
         
@@ -127,9 +126,9 @@ module PixelFeeder( //System:
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  ($signed(CountPixels) >= 4000)? IDLE: FETCH;
+	  nextState =  (($signed(CountPixels) >= 8000) & ignore_count!= 0)? IDLE: FETCH;
 	FETCH:
-	  nextState =  ($signed(CountPixels) >= 4000)? IDLE: curState;
+	  nextState =  ($signed(CountPixels) >= 8000)? IDLE: curState;
       endcase
    end
 
@@ -170,8 +169,9 @@ module PixelFeeder( //System:
    assign video = feeder_dout[23:0];
    assign video_valid = 1'b1;
    
-
-    wire [35:0] chipscope_control;
+   
+   /*
+    * wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
@@ -180,8 +180,12 @@ module PixelFeeder( //System:
 		     .CLK(cpu_clk_g),
 		     .TRIG0({rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
 		     ); //frameBuffer_addr was in btw af_wr_en and ic
+    */
+    
+
    
    
     
 endmodule
+
 
