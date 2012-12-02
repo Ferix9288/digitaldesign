@@ -14,7 +14,7 @@ _start:
 	la $t1, 0x00000000
 	sw $t1, 8($t0)
 	nop
-	la $t1, 0x03200258
+	la $t1, 0x02580320
 	sw $t1, 12($t0)
 	nop
 	la $t1, 0x02ffffff

@@ -77,10 +77,10 @@ module LineEngine(
    assign wdf_din = {color_word, color_word,color_word, color_word};
    assign done = (x == x1);
 
-   assign af_addr_din = (steep)? {6'b0, frameBuffer_addr, y, x[9:3], 2'b0}:
-			{6'b0, frameBuffer_addr, x, y[9:3], 2'b0};
+   assign af_addr_din = (steep)? {6'b0, frameBuffer_addr, x, y[9:3], 2'b0}:
+			{6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
 
-   assign mask = (steep)? x[2:0] : y[2:0];
+   assign mask = (steep)? y[2:0] : x[2:0];
    reg 		next_steep;
 
    //Current state and point updates

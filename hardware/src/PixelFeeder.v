@@ -52,7 +52,7 @@ module PixelFeeder( //System:
 
    assign request_8pixels = (af_wr_en & !af_full);
    assign fetch_pixel = (ignore_count == 0) & video_ready
-			& !(CountPixels < 0);
+			& !($signed(CountPixels) <= 0);
 
    //assign frame_interrupt = (when frame finished? half-way?)
 			      
@@ -66,6 +66,7 @@ module PixelFeeder( //System:
 	 frameBuffer_addr <= BUFFER1_DDR;
 	 
       end else begin
+	 frameBuffer_addr <= BUFFER1_DDR;
 	 curState <= nextState;
 	 //both requesting and fetching a pixel at the same time
 	 if (request_8pixels & fetch_pixel) begin
@@ -126,9 +127,9 @@ module PixelFeeder( //System:
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  (CountPixels >= 4000)? IDLE: FETCH;
+	  nextState =  ($signed(CountPixels) >= 4000)? IDLE: FETCH;
 	FETCH:
-	  nextState =  (CountPixels >= 4000)? IDLE: curState;
+	  nextState =  ($signed(CountPixels) >= 4000)? IDLE: curState;
       endcase
    end
 
@@ -177,7 +178,7 @@ module PixelFeeder( //System:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({ rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
+		     .TRIG0({rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
 		     ); //frameBuffer_addr was in btw af_wr_en and ic
    
    

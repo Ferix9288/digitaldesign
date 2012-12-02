@@ -373,9 +373,9 @@ module CircleEngine(
       end
    end
    
-   assign CE_ready = (curState == IDLE);
+   assign CE_ready = (curState == IDLE) || (curState == SETUP);
    
-   
+  
    
 endmodule
  
