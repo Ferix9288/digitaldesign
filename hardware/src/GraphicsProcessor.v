@@ -136,8 +136,7 @@ module GraphicsProcessor(
 
    wire [7:0] 		       curCommand;
    assign curCommand = fifo_GP_out[`OPCODE_IDX];
-   assign GP_stall = !FF_ready || !LE_ready;
-// || !CE_ready;
+   assign GP_stall = !FF_ready || !LE_ready || !CE_ready;
 
    reg 			       GP_stall_clocked, FIFO_stall_clocked;
 
@@ -235,7 +234,8 @@ module GraphicsProcessor(
 	CIRCLE_1: begin	
 	   if (!FIFO_stall_clocked & !GP_stall) begin
 	      CE_arguments = fifo_GP_out;
-	      CE_arguments_valid = 1;	     
+	      CE_arguments_valid = 1;
+	      CE_trigger = 1;
 	      nextState = READ_0;
 	   end else begin
 	      nextState = (GP_valid)? READ_0 : curState;
