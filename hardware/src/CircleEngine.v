@@ -369,7 +369,7 @@ module CircleEngine(
    always@(posedge clk) begin
       if (rst || curState == CIRCLE_FUNCTION) begin
 	 x <= 0;
-      end else if (curState == WHILE) begin //FIX ME
+      end else if (curState == WHILE) begin
 	 x <= x + 1;
       end else begin
 	 x <= x;
@@ -378,7 +378,15 @@ module CircleEngine(
    
    assign CE_ready = (curState == IDLE) || (curState == SETUP);
    
-  
+   wire [35:0] chipscope_control;
+   chipscope_icon icon(
+		       .CONTROL0(chipscope_control)
+		       );
+   chipscope_ila ila(
+   		     .CONTROL(chipscope_control),
+		     .CLK(clk),
+		     .TRIG0({rst, af_wr_en, wdf_wr_en, CE_ready, CE_color_valid, CE_arguments_valid, CE_trigger, curState, nextState, count_4, count_8, f, ddF_x, ddF_y, x, y, x0, y0, radius, stored_color, af_addr_din, wdf_mask_din})
+		     ); 
    
 endmodule
  
