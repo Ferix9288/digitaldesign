@@ -77,7 +77,9 @@ module DataPath(
 		input mtc0, mfc0, causeDelaySlot,
 
 		//FOR Graphics Processor
-		input readFrameCount, frame_interrupt, 
+		input readFrameCount, frame_interrupt, readPixelFrame,
+
+		input [31:0] Pixel_Frame,
 		
 		//Original Control unit inputs 
 		output reg [5:0] opcodeF,
@@ -858,6 +860,7 @@ module DataPath(
    reg 				 mfc0_M;
    //Graphics Processor
    reg 				 readFrameCount_M;
+   reg 				 readPixelFrame_M;
    
    //transfering control signals   
    always@(posedge clk) begin
@@ -878,9 +881,8 @@ module DataPath(
 	 mfc0_M <= mfc0_E;
 	 COP_Dout_M <= COP_Dout_E;
 	 readFrameCount_M <= readFrameCount;
-	 
-	 
-	 
+	 readPixelFrame_M <= readPixelFrame;
+
       end else if (reset) begin
 	 memToRegM <= 0;
 	 regWriteM <= 0;
@@ -897,8 +899,8 @@ module DataPath(
 	 COP_Dout_M <= 0;
 	 mfc0_M <= 0;
 	 readFrameCount_M <= 0;
+	 readPixelFrame_M <= 0;
 	 
-
       end else begin
 	 memToRegM <= memToRegM;
 	 regWriteM <= regWriteM;
@@ -915,6 +917,8 @@ module DataPath(
 	 COP_Dout_M <= COP_Dout_M;
 	 mfc0_M <=  mfc0_M;
 	 readFrameCount_M <= readFrameCount_M;
+	 readPixelFrame_M <= readPixelFrame_M;
+	 
 	 
       end
    end
@@ -991,6 +995,8 @@ module DataPath(
 	writeBack = ALUOutM;
       else if (UARTCtrM)
 	writeBack = UARTCtrOutM;
+      else if (readPixelFrame_M)
+	writeBack = Pixel_Frame;
       else if (readFrameCount_M)
 	writeBack = FrameCounter;
       else if (readCycleCount_M)

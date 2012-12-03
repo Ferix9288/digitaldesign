@@ -53,8 +53,11 @@ module Memory150(
                output [31:0] dcache_dout,
                output [31:0] icache_dout,
                output        stall,
-
 		  
+	       //Pixel Feeder <==> DataPath interface
+	       output frame_interrupt,
+	       output [31:0] Pixel_Frame,
+
                // DVI interface:
                output [23:0] video,
                output        video_valid,
@@ -62,8 +65,7 @@ module Memory150(
 
 	       input [31:0] cpu_gp_code,
                input [31:0] cpu_gp_frame,
-	       input cpu_gp_valid,
-	       output frame_interrupt
+	       input cpu_gp_valid
              );
 
     parameter SIM_ONLY = 1'b0;
@@ -108,15 +110,14 @@ module Memory150(
     wire         i_wdf_wr_en,    d_wdf_wr_en;
     wire         i_stall,        d_stall;
 
-    // PixelFeeder <=> RequestController wires:
-    wire         pixel_rdf_rd_en;
-    wire         pixel_af_wr_en;
-    wire [30:0]  pixel_af_addr_din;
-    wire         pixel_af_full;
-    wire         pixel_rdf_valid;
+   // PixelFeeder <=> RequestController wires:
+   wire 	 pixel_rdf_rd_en;
+   wire 	 pixel_af_wr_en;
+   wire [30:0] 	 pixel_af_addr_din;
+   wire 	 pixel_af_full;
+   wire 	 pixel_rdf_valid;
    wire 	 GP_trigger;
    
-
    // FrameFiller <=> RequestController wires:
    wire 	 filler_af_full;
    wire 	 filler_wdf_full;
@@ -406,6 +407,7 @@ module Memory150(
         .video(video),
         .video_valid(video_valid),
         .video_ready(video_ready),
+			  .Pixel_Frame(Pixel_Frame),
 			  .GP_FRAME(cpu_gp_frame),
 			  .GP_trigger(GP_trigger),
         .frame_interrupt(frame_interrupt));
@@ -447,7 +449,9 @@ module Memory150(
       .LE_frame_base(line_frame),
 		  .pixel_af_wr_en(pixel_af_wr_en),
 		  .fifo_access(fifo_access),
-		  .line_reserved(line_reserved)
+		  .line_reserved(line_reserved),
+		  .fifo_af_full(af_full),
+		  .fifo_wdf_full(wdf_full)
     );
 
    

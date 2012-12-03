@@ -154,6 +154,8 @@ module ml505top
   wire  [31:0] icache_din;
   wire [31:0]  dcache_dout;
   wire [31:0]  instruction;
+  wire [31:0] Pixel_Frame;
+   
   wire         stall;
   wire         video_ready;
   wire         dvi_video_ready;
@@ -173,6 +175,7 @@ module ml505top
    wire        circle_args_valid;
    wire [23:0] circle_color;
    wire        circle_ready;
+   
    
   //wire         line_x0_valid;
   //wire         line_y0_valid;
@@ -223,6 +226,7 @@ module ml505top
       .stall      (stall      ),
       .video      (video      ),
       .video_ready(video_ready),
+      .Pixel_Frame(Pixel_Frame),
       .video_valid(video_valid),
       .cpu_gp_code(cpu_gp_code),
       .cpu_gp_frame(cpu_gp_frame),
@@ -247,6 +251,7 @@ module ml505top
     .icache_din  (icache_din  ),
     .dcache_dout (dcache_dout ),
     .instruction (instruction ),
+    .Pixel_Frame(Pixel_Frame),
     .gp_code(cpu_gp_code),
     .gp_frame(cpu_gp_frame),
     .gp_valid(cpu_gp_valid),

@@ -105,7 +105,8 @@ module FrameFiller(//system:
 	   af_wr_en = 0;
 	   wdf_mask_din = 16'h0;
 	   nextState = (done)? IDLE: 
-		       FILL_1;
+		       (!wdf_full)? FILL_1 : curState;
+	   
 	end
       endcase // case (curState)
    end

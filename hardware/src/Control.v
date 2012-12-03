@@ -106,7 +106,7 @@ module Control(
 	       output mtc0, mfc0, causeDelaySlot,
 
 	       //FOR Graphics Processor
-	       output readFrameCount
+	       output readFrameCount, readPixelFrame
 	       
 	       );
 
@@ -424,6 +424,8 @@ module Control(
 			   ;
 
    assign readFrameCount = (ALUOutE == 32'h8000001c) & isLoadE;
+   assign readPixelFrame = (ALUOutE == 32'h80000020) & isLoadE;
+
    
 endmodule
 	  

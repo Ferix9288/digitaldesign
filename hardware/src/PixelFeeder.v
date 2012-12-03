@@ -15,6 +15,7 @@ module PixelFeeder( //System:
                     output [23:0]  video,
                     output         video_valid,
                     input          video_ready,
+		    output reg [31:0] Pixel_Frame,
 		    input [31:0] GP_FRAME,
 		    input GP_trigger,
 		    output reg frame_interrupt);
@@ -44,7 +45,6 @@ module PixelFeeder( //System:
    wire 		   xOverFlow, yOverFlow;
    reg [5:0]		   frameBuffer_addr;
 
-   reg [31:0] 		   Pixel_Frame;
    wire [5:0] 		   PixelFrame_addr;
 
    assign PixelFrame_addr = Pixel_Frame[27:22];
