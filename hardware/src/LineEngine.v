@@ -1,4 +1,3 @@
-
 module LineEngine(
   input                 clk,
   input                 rst,
@@ -22,7 +21,7 @@ module LineEngine(
   input                 af_full,
   input                 wdf_full,
 
-  output [30:0]     af_addr_din,
+  output reg [30:0]     af_addr_din,
   output reg            af_wr_en,
   output [127:0]        wdf_din,
   output reg [15:0]     wdf_mask_din,
@@ -30,7 +29,10 @@ module LineEngine(
   //for testing
   output reg               steep,
 
-  input [31:0] 		LE_frame_base
+  input [31:0] 		LE_frame_base,
+		  input pixel_af_wr_en,
+		  input [3:0] fifo_access,
+		  input line_reserved
 );
 
    //FSM for LE to operate (6 states)
@@ -44,7 +46,7 @@ module LineEngine(
    
    reg [2:0] 		curState, nextState;
    reg [9:0] 		x0, y0, x1, y1;
-   reg [9:0] 		x, y, next_y;
+   reg [9:0] 		x, y, next_y, next_x;
    wire 		done;
    reg [15:0] 		error, next_error, temp_error;
 
@@ -53,7 +55,7 @@ module LineEngine(
    
    reg [23:0] 		store_color, next_color;
 
-   wire [2:0] 		mask;
+   reg [2:0] 		mask;
    
 
    //--SET UP FOR LINE_FUNCTION STATE AND WRITE-- (Bresenham's Algorithm)
@@ -61,7 +63,7 @@ module LineEngine(
 
    
    //wire 		steep;
-   reg [9:0] 		ystep;
+   reg [9:0] 		ystep, next_ystep;
 
    wire [31:0] 		addr_div8;
    wire [5:0] 		frameBuffer_addr;
@@ -77,10 +79,10 @@ module LineEngine(
    assign wdf_din = {color_word, color_word,color_word, color_word};
    assign done = (x == x1);
 
-   assign af_addr_din = (steep)? {6'b0, frameBuffer_addr, x, y[9:3], 2'b0}:
+   /*
+    * af_addr_din = (steep)? {6'b0, frameBuffer_addr, x, y[9:3], 2'b0}:
 			{6'b0, frameBuffer_addr, y, x[9:3], 2'b0};
-
-   assign mask = (steep)? y[2:0] : x[2:0];
+    */
    reg 		next_steep;
 
    //Current state and point updates
@@ -98,8 +100,16 @@ module LineEngine(
 	 deltay <= 0;
 	 ABS_deltax <= 0;
 	 ABS_deltay <= 0;
+	 ystep <= 0;
+	 af_addr_din <= 0;
+	 mask <= 0;
 	 
-      end else begin
+      end else begin // if (rst)
+	 af_addr_din <= (next_steep)? 
+			{6'b0, frameBuffer_addr, next_x, next_y[9:3], 2'b0}:
+			{6'b0, frameBuffer_addr, next_y, next_x[9:3], 2'b0};
+	 mask <= (next_steep)? next_y[2:0] : next_x[2:0];
+
 	 curState <= nextState;
 	 x0 <= next_x0;
 	 y0 <= next_y0;
@@ -112,6 +122,8 @@ module LineEngine(
 	 deltay <= next_deltay;
 	 ABS_deltax <= next_ABS_deltax;	 
 	 ABS_deltay <= next_ABS_deltay;
+	 ystep <= next_ystep;
+	 
 	 
 	 
       end
@@ -137,6 +149,8 @@ module LineEngine(
       next_deltay = deltay;
       next_ABS_deltax = ABS_deltax;
       next_ABS_deltay = ABS_deltay;
+      next_ystep = ystep;
+      next_x = x;
       
       case (curState)
 	IDLE: begin
@@ -192,7 +206,7 @@ module LineEngine(
 	   next_ABS_deltay = ($signed(next_deltay) < 0)?
 			     (~next_deltay + 1) : next_deltay;
 	   next_y =  next_y0;
-	   ystep = (next_y0 < next_y1)? 1: -1;
+	   next_ystep = /*(next_y0 < next_y1)?*/ ($signed(next_deltay) > 0)? 1: -1;
 	   next_error = next_deltax / 2;
 	   nextState = WRITE_1;
 	end
@@ -225,6 +239,7 @@ module LineEngine(
 	WRITE_2: begin
 	   af_wr_en = 0;
 	  // if (!af_full & !wdf_full) begin
+	   next_x = x + 1;
 	   temp_error = error - ABS_deltay;		 
 	   if ($signed(temp_error) < 0) begin
 	      next_y = y + ystep;
@@ -260,8 +275,8 @@ module LineEngine(
 	 x <= next_x0;
 	 y <= next_y0;
       end else if (curState == WRITE_2) begin
+	 x <= next_x;
 	 y <= next_y;
-	 x <= x + 1;
       end else begin
 	 x <= x;
 	 y <= y;
@@ -271,8 +286,7 @@ module LineEngine(
    
     assign LE_ready = (curState == IDLE) || (curState == SET_UP);
 
-   /*
-    * 
+
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
@@ -280,8 +294,7 @@ module LineEngine(
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({ ABS_deltay, deltay, deltax, rst, rdf_valid, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
+		     .TRIG0({fifo_access, line_reserved, pixel_af_wr_en, wdf_full, af_full, ABS_deltay, deltay, deltax, rst, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
-    */
    
 endmodule

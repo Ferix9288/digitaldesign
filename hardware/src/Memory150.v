@@ -114,6 +114,8 @@ module Memory150(
     wire [30:0]  pixel_af_addr_din;
     wire         pixel_af_full;
     wire         pixel_rdf_valid;
+   wire 	 GP_trigger;
+   
 
    // FrameFiller <=> RequestController wires:
    wire 	 filler_af_full;
@@ -142,13 +144,20 @@ module Memory150(
    wire [31:0] 	 line_color;
    
    // Circle Engine <==> Request Controller Wires and to GP
+
+   wire 	 circle_af_full;
+   wire 	 circle_wdf_full;
+   wire 	 circle_wdf_wr_en;
+   wire 	 circle_af_wr_en;
+   wire 	 circle_color_valid;
+   wire 	 circle_args_valid;
    
-   wire [23:0] 		 circle_color;
-   wire [31:0] 		 circle_args;
-   wire [30:0] 		 circle_addr_din;
-   wire [127:0] 	 circle_wdf_din;
-   wire [15:0] 		 circle_wdf_mask_din;
-   wire [31:0] 		 circle_frame;
+   wire [23:0] 	 circle_color;
+   wire [31:0] 	 circle_args;
+   wire [30:0] 	 circle_addr_din;
+   wire [127:0]  circle_wdf_din;
+   wire [15:0] 	 circle_wdf_mask_din;
+   wire [31:0] 	 circle_frame;
    
 
     // Graphics Command Processor <=> RequestController wires:
@@ -239,6 +248,10 @@ module Memory150(
         .dout(rdf_dout),
         .din(ddr2_rd_dout));
 
+   wire [3:0] 		 fifo_access;
+
+   wire 		 line_reserved;
+   
     // The RequestController gives each cache the illusion of having 
     // exclusive DDR2 Access:
     RequestController req_con(
@@ -322,7 +335,10 @@ module Memory150(
         .cmd_addr_din(cmd_addr_din),
         // new inputs for graphics command processor 
         .cmd_rdf_valid(cmd_rdf_valid),
-        .cmd_af_full(cmd_af_full)
+        .cmd_af_full(cmd_af_full),
+			      .fifo_access(fifo_access),
+			      .line_reserved(line_reserved)
+			      
        );
    
     // The instruction cache:
@@ -369,6 +385,7 @@ module Memory150(
         .wdf_din(d_wdf_din),
         .wdf_mask_din(d_wdf_mask_din),
         .wdf_wr_en(d_wdf_wr_en)
+		  
     );
 
      // assignments
@@ -389,6 +406,8 @@ module Memory150(
         .video(video),
         .video_valid(video_valid),
         .video_ready(video_ready),
+			  .GP_FRAME(cpu_gp_frame),
+			  .GP_trigger(GP_trigger),
         .frame_interrupt(frame_interrupt));
 
     FrameFiller framefill(
@@ -425,7 +444,10 @@ module Memory150(
       .wdf_din(line_wdf_din),
       .wdf_mask_din(line_wdf_mask_din),
       .wdf_wr_en(line_wdf_wr_en),
-      .LE_frame_base(line_frame)
+      .LE_frame_base(line_frame),
+		  .pixel_af_wr_en(pixel_af_wr_en),
+		  .fifo_access(fifo_access),
+		  .line_reserved(line_reserved)
     );
 
    
@@ -486,7 +508,9 @@ module Memory150(
 				       //CPU IO
 				       .GP_CODE(cpu_gp_code),
 				       .GP_FRAME(cpu_gp_frame),
-				       .GP_valid(cpu_gp_valid));
+				       .GP_valid(cpu_gp_valid),
+				       .frame_ready(frame_interrupt),
+				       .GP_trigger(GP_trigger));
 
  
 endmodule

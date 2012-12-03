@@ -144,21 +144,21 @@ module FIFO_GP (
 	end // case: IDLE
 
 	REQUEST_BLOCK1: begin
-	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
 	   Block2_Written = 1'b1;
 	   //WRITE_POINTER
 	   write_pointer = 8;
-	   
-	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer >= 8)) begin
-	      next_addr_offset = addr_offset + 1;
-	      nextState = BURST_1;
-	      
+	   if (read_pointer >= 8) begin
+	      af_wr_en = !GP_stall;
+	      next_addr_offset = (!af_full)? addr_offset + 1: addr_offset;
+	      nextState = (GP_valid)? REQUEST_BLOCK1:
+			  (GP_interrupt)? IDLE:
+			  (!af_full)? BURST_1 : curState;	      
 	   end else begin
-	      
+	      af_wr_en = 0;
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
-	   end	   
+	   end // else: !if(read_pointer >= 8)
 	end
 	
 	BURST_1: begin
@@ -204,21 +204,23 @@ module FIFO_GP (
 	end // case: BURST_2
 
 	REQUEST_BLOCK2: begin
-	   af_wr_en = !GP_stall;
 	   //BLOCK_WRITTEN
 	   Block1_Written = 1'b1;
 	   //WRITE_POINTER
 	   write_pointer = 0;
-	   
-	   //ADDRESSING
-	   if (!af_full & !GP_valid & !GP_interrupt && (read_pointer < 8)) begin
-	      next_addr_offset = addr_offset + 1;
-	      nextState = BURST_3;
+	   if (read_pointer < 8) begin
+	      af_wr_en = !GP_stall;
+	      next_addr_offset = (!af_full)? addr_offset + 1: addr_offset;
+	      nextState = (GP_valid)? REQUEST_BLOCK1:
+			  (GP_interrupt)? IDLE:
+			  (!af_full)? BURST_3 : curState;	      
 	   end else begin
+	      af_wr_en = 0;
 	      nextState = (GP_valid)? REQUEST_BLOCK1:
 			  (GP_interrupt)? IDLE: curState;
-	   end	   
-	end // case: REQUEST_BLOCK2
+	   end // else: !if(read_pointer >= 8)
+	end
+	  
 	
 	BURST_3: begin
 	   //BLOCK_WRITTEN

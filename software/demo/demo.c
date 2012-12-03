@@ -1,4 +1,5 @@
 #define frameCount ((volatile unsigned int*) 0x8000001c)
+#define PIXEL_FRAME ((volatile unsigned int*) 0x8000020)
 #define GP_CODE ((volatile unsigned int*) 0x180000040)
 #define GP_FRAME ((volatile unsigned int*) 0x18000004)
 #define ODD_CODE ((volatile unsigned int*) 0x17800000)
@@ -31,25 +32,30 @@ int writeEvenFrameGPinst(void) {
 }
 
 int main(void) {
-  unsigned int oldframe;
-  frameCount[0] = 0;
-  ODD_CODE[0] = 0x01000000;
-  EVEN_CODE[0] = 0x01000000;
-  BLUE_X0[0] = 0x10;
-  RED_Y1[0] = 0xBB;
-  while (1) {
-    if (*frameCount%2) {
-      writeOddFrameGPinst();
-      GP_FRAME[0] = 0x10800000;
-      GP_CODE[0] = 0x17800000;
-    } else {
-      writeEvenFrameGPinst();
-      GP_FRAME[0] = 0x10400000;
-      GP_CODE[0] = 0x17600000;
-    }
-    oldframe = *frameCount;
-    while (*frameCount == oldframe);
-  }
-}
+  unsigned int Current_Pixel_Frame;
+  if (Current_Pixel_Frame == 
+
+
+/* int main(void) { */
+/*   unsigned int oldframe; */
+/*   frameCount[0] = 0; */
+/*   ODD_CODE[0] = 0x01000000; */
+/*   EVEN_CODE[0] = 0x01000000; */
+/*   BLUE_X0[0] = 0x10; */
+/*   RED_Y1[0] = 0xBB; */
+/*   while (1) { */
+/*     if (*frameCount%2) { */
+/*       writeOddFrameGPinst(); */
+/*       GP_FRAME[0] = 0x10800000; */
+/*       GP_CODE[0] = 0x17800000; */
+/*     } else { */
+/*       writeEvenFrameGPinst(); */
+/*       GP_FRAME[0] = 0x10400000; */
+/*       GP_CODE[0] = 0x17600000; */
+/*     } */
+/*     oldframe = *frameCount; */
+/*     while (*frameCount == oldframe); */
+/*   } */
+/* } */
 
 

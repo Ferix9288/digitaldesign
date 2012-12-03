@@ -168,6 +168,11 @@ module ml505top
    wire        line_color_valid;
    wire        line_point0_valid;
    wire        line_point1_valid;
+
+   wire        circle_color_valid;
+   wire        circle_args_valid;
+   wire [23:0] circle_color;
+   wire        circle_ready;
    
   //wire         line_x0_valid;
   //wire         line_y0_valid;
