@@ -86,7 +86,7 @@ module PixelFeeder( //System:
 	 if (request_8pixels & fetch_pixel) begin
 	    
 	    CountPixels <= CountPixels + 7;
-
+	    
 	    x_Cols <= (xOverFlow)? 0: x_Cols + 8;
 	    
 	    if (xOverFlow) begin
@@ -120,17 +120,17 @@ module PixelFeeder( //System:
 	       // frameBuffer_addr <= frameBuffer_addr;
 	    end
 	    
-	  
 	    //just fetching a pixel
 	 end else if (fetch_pixel) begin 
 	    
 	    CountPixels <= CountPixels - 1;
-	    
+	    frame_interrupt <= 0;
 	    x_Cols <= x_Cols;
 	    y_Rows <= y_Rows;
 	    
 	 end else begin
 	    CountPixels <= CountPixels;
+	    frame_interrupt <= 0;
 	    x_Cols <= x_Cols;
 	    y_Rows <= y_Rows;
 	 end
@@ -194,11 +194,11 @@ module PixelFeeder( //System:
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(cpu_clk_g),
-		     .TRIG0({rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
+		     .TRIG0({GP_trigger, frame_interrupt, Pixel_Frame, GP_FRAME, rst, yOverFlow, af_full, video_ready, curState, rdf_valid, af_wr_en, ignore_count, video, CountPixels, x_Cols, y_Rows})
 		     ); //frameBuffer_addr was in btw af_wr_en and ic
-    */
     
 
+    */
    
    
     

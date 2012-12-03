@@ -1,39 +1,14 @@
-#define frameCount ((volatile unsigned int*) 0x8000001c)
-#define PIXEL_FRAME ((volatile unsigned int*) 0x8000020)
-#define STATE ((volatile unsigned int*)) 0x1beef000)
+#define PIXEL_FRAME *((volatile unsigned int*) 0x8000020)
+#define STATE ((volatile unsigned int*) 0x1beef000)
 
+#define CMD_ADDR_1 ((volatile unsigned int*) 0x17800000)
+#define CMD_ADDR_2 ((volatile unsigned int*) 0x19000000)
 
 
 #define GP_CODE ((volatile unsigned int*) 0x180000040)
 #define GP_FRAME ((volatile unsigned int*) 0x18000004)
-//#define ODD_CODE ((volatile unsigned int*) 0x17800000)
-//#define EVEN_CODE ((volatile unsigned int*) 0x17600000)
-#define BLUE_X0 ((volatile unsigned int*) 0x18000008)
-#define RED_Y1 ((volatile unsigned int*) 0x18000008)
 
-/* //Increments Blue Line's X0 by one */
-/* int writeOddFrameGPinst(void) { */
-/*   BLUE_X0[0] = *BLUE_X0 + 1; */
-/*   ODD_CODE[1] = 0x020000FF; */
-/*   ODD_CODE[2] = 0x00000020 + *BLUE_X0 << 16; */
-/*   ODD_CODE[3] = 0x001A002B; */
-/*   ODD_CODE[4] = 0x02FF0000; */
-/*   ODD_CODE[5] = 0x012301234; */
-/*   ODD_CODE[6] = 0x00AA + *RED_Y1; */
-/*   ODD_CODE[7] = 0x00000000; */
-/* } */
 
-/* //Increments Blue Line's X0 by one */
-/* int writeEvenFrameGPinst(void) { */
-/*   RED_Y1[0] = *RED_Y1 + 1; */
-/*   ODD_CODE[1] = 0x020000FF; */
-/*   ODD_CODE[2] = 0x00000020 + *BLUE_X0 << 16; */
-/*   ODD_CODE[3] = 0x001A002B; */
-/*   ODD_CODE[4] = 0x02FF0000; */
-/*   ODD_CODE[5] = 0x012301234; */
-/*   ODD_CODE[6] = 0x00AA + *RED_Y1; */
-/*   ODD_CODE[7] = 0x00000000; */
-/* } */
 
 struct player {
    int x_position;
@@ -41,14 +16,23 @@ struct player {
 };
 
 
-int drawPlayer(player playa, int x, int y, int direction) {
-  playa->x = playa->x + direction;
+int drawPlayer(player* playa, int x_dir, int y_dir) {
+  playa->x = playa->x + x_dir;	
+  playa->y = playa->y + y_dir;
+  
+  //0x1000 + 1 << 3 = 0x1001?
+  //GP_instructions that draws player
+  CMD_ADDR_1[0] = 0x01000000;
+  CMD_ADDR_1[1] = 0x03ffffff;
+  CMD_ADDR_1[2] = 0x0000000a + (playa->y <<12) + (playa->x << 22);
+  CMD_ADDR_1[3] = 0x00000000;
   
 }
 
 
 int main(void) {
   unsigned int Current_Pixel_Frame, GP_Code_addr;
+  unsigned int currentFrame, oldFrame;
   boolean gameStateChange;
   currentState = *STATE;
 
@@ -59,55 +43,42 @@ int main(void) {
       {
       case 'w':
 	//add player up by one
+	drawPlayer(&p1, 0, -1);
 	break;
       case 'a':
 	//move player to the left
+	drawPlayer(&p1, -1, 0);
 	break;
       case 's':
 	//move player down by one
+	drawPlayer(&p1, 0, 1);
 	break;
       case 'd':
 	//move player to the right by one
+	drawPlayer(&p1, 1, 0);
 	break;
       default:
 	//do nothing
 	gameStateChange = false;
 	break;
 	;}
+    currentFrame = *PIXEL_FRAME;
     if (gameStateChange) { 	
       if (Current_Pixel_Frame == 0x10400000) {
-	GP_FRAME[0] = 0x10400000;
+	GP_FRAME[0] = 0x10800000;
 	GP_CODE[0] = GP_Code_addr;
       } else {
-	GP_FRAME[0] = 0x10800000;
+	GP_FRAME[0] = 0x10400000;
 	GP_CODE[0] = GP_Code_addr;
       }
     }
+    oldFrame = currentFrame;
+    while (currentFrame == oldFrame);
 
   }
+}
 
 
 
-/* int main(void) { */
-/*   unsigned int oldframe; */
-/*   frameCount[0] = 0; */
-/*   ODD_CODE[0] = 0x01000000; */
-/*   EVEN_CODE[0] = 0x01000000; */
-/*   BLUE_X0[0] = 0x10; */
-/*   RED_Y1[0] = 0xBB; */
-/*   while (1) { */
-/*     if (*frameCount%2) { */
-/*       writeOddFrameGPinst(); */
-/*       GP_FRAME[0] = 0x10800000; */
-/*       GP_CODE[0] = 0x17800000; */
-/*     } else { */
-/*       writeEvenFrameGPinst(); */
-/*       GP_FRAME[0] = 0x10400000; */
-/*       GP_CODE[0] = 0x17600000; */
-/*     } */
-/*     oldframe = *frameCount; */
-/*     while (*frameCount == oldframe); */
-/*   } */
-/* } */
 
 
