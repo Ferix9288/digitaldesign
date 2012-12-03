@@ -140,7 +140,9 @@ module RequestController(
 
 			  // outputs to graphics command processor
 			  output 			cmd_rdf_valid,
-			  output 			cmd_af_full
+			  output 			cmd_af_full,
+			  output reg [3:0] fifo_access,
+			  output reg line_reserved
 			  );
    
 
@@ -160,7 +162,7 @@ module RequestController(
     // the caches. Should be okay if they wrap around; 11 bits
     // so that they are larger than max fifo size.
     
-    reg  [2:0]  fifo_access;
+    //reg  [3:0]  fifo_access;
     reg [10:0]  icache_req_num;
     reg [1:0]   icache_req_valid;
     reg [10:0]  dcache_req_num;
@@ -260,7 +262,7 @@ module RequestController(
     // from interrupting the filler or line engine (which run async) during
     // writes.
     
-   reg 	 line_reserved;
+  // reg 	 line_reserved;
    reg 	 circle_reserved;
    reg 	 filler_reserved;
    reg 	 bypass_reserved;

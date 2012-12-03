@@ -67,8 +67,8 @@ module LineEngineTestbench();
    reg LE_point0_valid, LE_point1_valid;
    wire steep;
    
-   assign x = (steep)? {af_addr_din[8:2], mask} : af_addr_din[18:9];
-   assign y = (steep)? af_addr_din[18:9]: {af_addr_din[8:2], mask};
+   assign x = (steep)?  af_addr_din[18:9]: {af_addr_din[8:2], mask};
+   assign y = (steep)? {af_addr_din[8:2], mask}: af_addr_din[18:9];
    
 
    LineEngine le (
@@ -116,7 +116,7 @@ module LineEngineTestbench();
       //drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       //drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       //drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
-      drawLine(10'd0, 10'd0, 10'd800, 10'd600, 32'h00_7F_00_00);
+      drawLine(10'd0, 10'd0, 10'd800, 10'd0, 32'h00_7F_00_00);
 
    end // initial begin
    

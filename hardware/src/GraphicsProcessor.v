@@ -53,8 +53,9 @@ module GraphicsProcessor(
 			 //processor interface
 			 input [31:0] GP_CODE,
 			 input [31:0] GP_FRAME,
-			 input GP_valid, 
-			 output reg GP_interrupt);
+			 input GP_valid,
+			 input frame_ready,
+			 output GP_trigger);
    
    
    //Your code goes here. GL HF.
@@ -78,7 +79,7 @@ module GraphicsProcessor(
    wire [31:0] 		       fifo_GP_out;
    
 
-  // wire 		       GP_interrupt;
+   reg 			       GP_interrupt;
    wire 		       FIFO_stall;
    
    //GP_interrupt = HIT STOP OR GP_Valid raised high again
@@ -246,7 +247,15 @@ module GraphicsProcessor(
    end
     
    
-   				     
+  //==FSM== for leaving gp_interrupt high [ready/valid interface]
+
+   GPTrigger GPTrig ( .clk(clk),
+		      .rst(rst),
+		      .interrupt(GP_interrupt),
+		      .frame_ready(frame_ready),
+		      .GP_trigger(GP_trigger));
+   
+      
 
    
    //frame filler processor interface
@@ -258,11 +267,6 @@ module GraphicsProcessor(
    
    //DRAM request controller interface
 
-   
-   
-    
-   
-   
    /*
     * wire [35:0] chipscope_control;
    chipscope_icon icon(

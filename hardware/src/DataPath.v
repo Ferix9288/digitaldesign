@@ -448,7 +448,7 @@ module DataPath(
    always@(posedge clk) begin
       if (reset) begin
 	 GP_CODE <= 0;
-	 GP_FRAME <= 10400000;
+	 GP_FRAME <= 32'h10400000;
 	 FrameCounter <= 0;
       end else begin
 	 GP_CODE <= (is_GP_CODE)? rd2Fwd: GP_CODE;

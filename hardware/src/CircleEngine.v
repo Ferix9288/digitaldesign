@@ -378,7 +378,8 @@ module CircleEngine(
    
    assign CE_ready = (curState == IDLE) || (curState == SETUP);
    
-   wire [35:0] chipscope_control;
+   /*
+    * wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
@@ -387,6 +388,6 @@ module CircleEngine(
 		     .CLK(clk),
 		     .TRIG0({rst, af_wr_en, wdf_wr_en, CE_ready, CE_color_valid, CE_arguments_valid, CE_trigger, curState, nextState, count_4, count_8, f, ddF_x, ddF_y, x, y, x0, y0, radius, stored_color, af_addr_din, wdf_mask_din})
 		     ); 
-   
+   */
 endmodule
  

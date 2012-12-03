@@ -15,7 +15,8 @@ module PixelFeeder( //System:
                     output [23:0]  video,
                     output         video_valid,
                     input          video_ready,
-
+		    input [31:0] GP_FRAME,
+		    input GP_trigger,
 		    output reg frame_interrupt);
 
    // Hint: States
@@ -43,11 +44,25 @@ module PixelFeeder( //System:
    wire 		   xOverFlow, yOverFlow;
    reg [5:0]		   frameBuffer_addr;
 
+   reg [31:0] 		   Pixel_Frame;
+   wire [5:0] 		   PixelFrame_addr;
+
+   assign PixelFrame_addr = Pixel_Frame[27:22];
+   
+   always @(posedge cpu_clk_g) begin
+      if (rst) begin
+	 Pixel_Frame <= 32'h10400000;
+      end else begin
+	 Pixel_Frame <= (GP_trigger & frame_interrupt)? 
+			GP_FRAME: Pixel_Frame;
+      end     
+   end
+   
    assign xOverFlow = (x_Cols == 10'd792);
    assign yOverFlow = (y_Rows == 10'd599);
    
    assign rdf_rd_en = 1'b1;
-   assign af_wr_en = (ignore_count == 0) & (curState == FETCH) & (nextState == FETCH);
+   assign af_wr_en = (ignore_count == 0) & (nextState == FETCH);
 
    assign request_8pixels = (af_wr_en & !af_full);
    assign fetch_pixel = (ignore_count == 0) & video_ready
@@ -126,7 +141,8 @@ module PixelFeeder( //System:
    always @(*) begin
       case (curState)
 	IDLE:
-	  nextState =  (($signed(CountPixels) >= 8000) & ignore_count!= 0)? IDLE: FETCH;
+	  nextState =  (($signed(CountPixels) >= 8000) || ignore_count != 0)?
+		       IDLE: FETCH;
 	FETCH:
 	  nextState =  ($signed(CountPixels) >= 8000)? IDLE: curState;
       endcase
@@ -136,7 +152,7 @@ module PixelFeeder( //System:
     *Shift said address by 3 ... becomes the following:
     *Note: only care about x[3] and above because incrementing x by 8
     */
-   assign af_addr_din = {6'b0, frameBuffer_addr, y_Rows, x_Cols[9:3], 2'b0};
+   assign af_addr_din = {6'b0, PixelFrame_addr, y_Rows, x_Cols[9:3], 2'b0};
    
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
