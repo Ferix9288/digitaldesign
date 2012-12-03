@@ -78,6 +78,13 @@ module MISCTestbench();
 		   .stall(stall),
 		   .is_GP_CODE(is_GP_CODE),
 		   .GP_valid(gp_valid));
+
+   reg 	       GP_interrupt2, frame_ready;
+   GPTrigger gptrigger(.clk(Clock),
+	     .rst(Reset),
+	     .interrupt(GP_interrupt2),
+	     .frame_ready(frame_ready),
+	     .GP_trigger(GP_trigger));
    
    
    initial begin
@@ -116,7 +123,6 @@ module MISCTestbench();
       GP_valid = 1;
       rdf_dout = 32'h0;
       
-
       #1;
       
       #(10*Cycle);
@@ -138,6 +144,26 @@ module MISCTestbench();
       #(5*Cycle);
       stall = 0;
       #(3*Cycle);
+
+      //Check GP_Trigger FSM
+      Reset = 1'b1;
+      frame_ready = 1'b0;
+      #(10*Cycle);
+      Reset = 1'b0;
+      GP_interrupt2 = 1'b0;
+      #(Cycle);
+      GP_interrupt2 = 1'b1;
+      #(Cycle);
+      GP_interrupt2 = 1'b0;
+      
+      #(10*Cycle);
+      frame_ready = 1'b1;
+      #(Cycle);
+      frame_ready = 0'b0;
+      
+      #(10*Cycle);
+      
+   
       
       
       $finish();
