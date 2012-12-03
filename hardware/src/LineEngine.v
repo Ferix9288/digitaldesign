@@ -32,7 +32,9 @@ module LineEngine(
   input [31:0] 		LE_frame_base,
 		  input pixel_af_wr_en,
 		  input [3:0] fifo_access,
-		  input line_reserved
+		  input line_reserved,
+		  input fifo_af_full,
+		  input fifo_wdf_full
 );
 
    //FSM for LE to operate (6 states)
@@ -56,6 +58,7 @@ module LineEngine(
    reg [23:0] 		store_color, next_color;
 
    reg [2:0] 		mask;
+   reg [31:0] 		next_LE_Frame, LE_Frame;
    
 
    //--SET UP FOR LINE_FUNCTION STATE AND WRITE-- (Bresenham's Algorithm)
@@ -67,7 +70,7 @@ module LineEngine(
 
    wire [31:0] 		addr_div8;
    wire [5:0] 		frameBuffer_addr;
-   assign addr_div8 = LE_frame_base >> 3;
+   assign addr_div8 = LE_Frame >> 3;
    assign frameBuffer_addr = addr_div8[24:19];
    //--------------------------------------------------
    
@@ -76,7 +79,7 @@ module LineEngine(
 
    wire [31:0] 		color_word;
    assign color_word = {8'b0, store_color};
-   assign wdf_din = {color_word, color_word,color_word, color_word};
+   assign wdf_din = {color_word, color_word, color_word, color_word};
    assign done = (x == x1);
 
    /*
@@ -103,6 +106,7 @@ module LineEngine(
 	 ystep <= 0;
 	 af_addr_din <= 0;
 	 mask <= 0;
+	 LE_Frame <= 0;
 	 
       end else begin // if (rst)
 	 af_addr_din <= (next_steep)? 
@@ -123,6 +127,8 @@ module LineEngine(
 	 ABS_deltax <= next_ABS_deltax;	 
 	 ABS_deltay <= next_ABS_deltay;
 	 ystep <= next_ystep;
+	 LE_Frame <= next_LE_Frame;
+	 
 	 
 	 
 	 
@@ -151,6 +157,8 @@ module LineEngine(
       next_ABS_deltay = ABS_deltay;
       next_ystep = ystep;
       next_x = x;
+      next_LE_Frame = LE_Frame;
+      
       
       case (curState)
 	IDLE: begin
@@ -163,7 +171,8 @@ module LineEngine(
 	   next_y0 = (LE_point0_valid)? LE_point[9:0]: y0;
 	   next_x1 = (LE_point1_valid)? LE_point[19:10]: x1;
 	   next_y1 = (LE_point1_valid)? LE_point[9:0]: y1;
-	   nextState = (LE_trigger)? LINE_FUNCTION: curState;
+	   next_LE_Frame = (LE_trigger)? LE_frame_base: LE_Frame;
+	   nextState = (LE_trigger)? LINE_FUNCTION: curState;	   
 	end
   
 	LINE_FUNCTION: begin
@@ -239,28 +248,33 @@ module LineEngine(
 	WRITE_2: begin
 	   af_wr_en = 0;
 	  // if (!af_full & !wdf_full) begin
-	   next_x = x + 1;
-	   temp_error = error - ABS_deltay;		 
-	   if ($signed(temp_error) < 0) begin
-	      next_y = y + ystep;
-	      next_error = temp_error + deltax;
-	   end else begin
-	      next_error = temp_error;
-	   end
+	   temp_error = error - ABS_deltay;
+	   if (!wdf_full) begin
+	      next_x = x + 1;
+	      if ($signed(temp_error) < 0) begin
+		 next_y = y + ystep;
+		 next_error = temp_error + deltax;
+	      end else begin
+		 next_error = temp_error;
+	      end
+	      
+	      case (mask)
+		4'h4:
+		  wdf_mask_din = 16'h0FFF;
+		4'h5:
+		  wdf_mask_din = 16'hF0FF;
+		4'h6:
+		  wdf_mask_din = 16'hFF0F;
+		4'h7:
+		  wdf_mask_din = 16'hFFF0;
+		default:
+		  wdf_mask_din = 16'hFFFF;
+	      endcase // case (mask)
+	   end // if (!wdf_full)
+	   nextState = (!wdf_full)? 
+		       ((done)? IDLE : WRITE_1):
+		       curState;
 	   
-	   case (mask)
-	     4'h4:
-	       wdf_mask_din = 16'h0FFF;
-	     4'h5:
-	       wdf_mask_din = 16'hF0FF;
-	     4'h6:
-	       wdf_mask_din = 16'hFF0F;
-	     4'h7:
-	       wdf_mask_din = 16'hFFF0;
-	     default:
-	       wdf_mask_din = 16'hFFFF;
-	   endcase // case (mask)
-	   nextState = (done)? IDLE: WRITE_1;
 	end // case: WRITE_2
    
       endcase // case (curState)
@@ -294,7 +308,7 @@ module LineEngine(
    chipscope_ila ila(
    		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({fifo_access, line_reserved, pixel_af_wr_en, wdf_full, af_full, ABS_deltay, deltay, deltax, rst, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
+		     .TRIG0({fifo_wdf_full, fifo_af_full, fifo_access, line_reserved, pixel_af_wr_en, wdf_full, af_full, ABS_deltay, deltay, deltax, rst, af_wr_en, wdf_wr_en, LE_ready, steep, LE_color_valid, LE_point0_valid, LE_point1_valid, LE_trigger, curState, nextState, error, x, y, x0, y0, x1, y1, store_color, af_addr_din, wdf_mask_din})
 		     ); 
    
 endmodule

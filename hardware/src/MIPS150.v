@@ -19,6 +19,7 @@ module MIPS150(
     output [31:0] icache_din,
     input [31:0] dcache_dout,
     input [31:0] instruction,
+    input [31:0] Pixel_Frame,
 
     output [31:0] gp_code,
     output [31:0] gp_frame,
@@ -87,14 +88,8 @@ module MIPS150(
    wire        readCycleCount, readInstrCount, resetCounters;
    wire        mtc0, mfc0, causeDelaySlot;
 
-   wire        readFrameCount;
+   wire        readFrameCount, readPixelFrame;
    
-   
-   
-   
-   
-
-    
    DataPath DataPath(//Inputs
 		     .clk(clk),
 		     .stall(stall),
@@ -172,6 +167,8 @@ module MIPS150(
 
 		     .readFrameCount(readFrameCount),
 		     .frame_interrupt(frame_interrupt),
+		     .readPixelFrame(readPixelFrame),
+		     .Pixel_Frame(Pixel_Frame),
 		     
 		     //OUTPUTS
 
@@ -267,7 +264,8 @@ module MIPS150(
 		    .mtc0(mtc0),
 		    .mfc0(mfc0),
 		    .causeDelaySlot(causeDelaySlot),
-		    .readFrameCount(readFrameCount));
+		    .readFrameCount(readFrameCount),
+		    .readPixelFrame(readPixelFrame));
    
 		    
 
