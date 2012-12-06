@@ -6,7 +6,7 @@ _start:
 
 	sw $0, 0x1fff001c #Reset InIndex
 	sw $0, 0x1fff0020 #Reset OutIndex
-	#addiu $t0, $0, 86
+	addiu $t0, $0, 86
 	sw $t0,0x1beef000 #Setting State = 'V'
 	sw $0, 0x1fff0028 #Reset SW_RTC
 	addiu $t1, $0, 1
@@ -21,6 +21,10 @@ _start:
 	la $t2, 0x0000fc01 #Status = Enabled
 	mtc0 $t2, $12 #Status
 	jal main
+	la $t2, 0x00000000
+	mtc0 $t2, $12
+	la $t4, 0x40000000
+	jr $t4
 
 	
 	

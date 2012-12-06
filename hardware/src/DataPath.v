@@ -1016,21 +1016,17 @@ module DataPath(
    
      
   // ChipScope components:
-   /*
-    * 
+  
+   
    wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
-		       ) ;
- 
+		       ) /* synthesis syn_noprune=1 */;
    chipscope_ila ila(
-   		     .CONTROL(chipscope_control),
+		     .CONTROL(chipscope_control),
 		     .CLK(clk),
-		     .TRIG0({reset, stall, frame_interrupt, is_GP_FRAME, is_GP_CODE, GP_valid, regWriteM, instrSrc, nextPC, PC, DecIn, ALUOutE, writeBack, GP_FRAME, GP_CODE})
-		     ) ;
-    */
-   
-   
+		     .TRIG0({globalEnable, reset, stall, DataInValid, DataOutReady, UART0Request, UART1Request, regWriteM, mtc0_E, InterruptRequest, InterruptHandled, instrSrc, nextPC, PC, DecIn, COP_addr, ALUOutE, writeBack, regWA, ISR_MemWriteEn, ISR_DataAddr, ISR_ReadAddr, ISR_din})
+		     );
 
    
 endmodule

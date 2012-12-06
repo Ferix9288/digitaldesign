@@ -267,8 +267,9 @@ module FIFO_GP (
    
 
    
-   
-   wire [35:0] chipscope_control;
+
+   /*
+    * wire [35:0] chipscope_control;
    chipscope_icon icon(
 		       .CONTROL0(chipscope_control)
 		       );
@@ -277,6 +278,8 @@ module FIFO_GP (
 		     .CLK(clk),
 		     .TRIG0({GP_interrupt, xOverFlow, yOverFlow, rst, rdf_valid, af_full, af_wr_en, First_Block_Written, Block1_Written, Block2_Written, fifo_stall, GP_stall, GP_valid, curState, nextState, read_pointer, rdf_dout, 3'b0, addr_offset, af_addr_din, fifo_GP_out})
 		     ); 
+    */
+
     
    
    
