@@ -4,19 +4,16 @@
 #define CMD_ADDR_1 ((volatile unsigned int*) 0x17800000)
 #define CMD_ADDR_2 ((volatile unsigned int*) 0x19000000)
 
-
 #define GP_CODE ((volatile unsigned int*) 0x180000040)
 #define GP_FRAME ((volatile unsigned int*) 0x18000004)
 
-
-
 struct player {
-   int x_position;
-   int y_position;
+   int x;
+   int y;
 };
 
 
-int drawPlayer(player* playa, int x_dir, int y_dir) {
+int drawPlayer(struct player* playa, int x_dir, int y_dir) {
   playa->x = playa->x + x_dir;	
   playa->y = playa->y + y_dir;
   
@@ -26,20 +23,18 @@ int drawPlayer(player* playa, int x_dir, int y_dir) {
   CMD_ADDR_1[1] = 0x03ffffff;
   CMD_ADDR_1[2] = 0x0000000a + (playa->y <<12) + (playa->x << 22);
   CMD_ADDR_1[3] = 0x00000000;
-  
+  return 0;
 }
 
 
 int main(void) {
   unsigned int Current_Pixel_Frame, GP_Code_addr;
   unsigned int currentFrame, oldFrame;
-  boolean gameStateChange;
-  currentState = *STATE;
-
-  player p1 = {400, 550};
+  unsigned int gameStateChange;
+  struct player p1 = {400, 550};
   for ( ; ; ) {
-    gameStateChange = true;
-    switch (currentState)
+    gameStateChange = 1;
+    switch (*STATE)
       {
       case 'w':
 	//add player up by one
@@ -59,12 +54,11 @@ int main(void) {
 	break;
       default:
 	//do nothing
-	gameStateChange = false;
+	gameStateChange = 0;
 	break;
 	;}
-    currentFrame = *PIXEL_FRAME;
     if (gameStateChange) { 	
-      if (Current_Pixel_Frame == 0x10400000) {
+      if (PIXEL_FRAME == 0x10400000) {
 	GP_FRAME[0] = 0x10800000;
 	GP_CODE[0] = GP_Code_addr;
       } else {
@@ -72,10 +66,11 @@ int main(void) {
 	GP_CODE[0] = GP_Code_addr;
       }
     }
-    oldFrame = currentFrame;
-    while (currentFrame == oldFrame);
+    oldFrame = PIXEL_FRAME;
+    while (PIXEL_FRAME == oldFrame);
 
   }
+  return 0;
 }
 
 

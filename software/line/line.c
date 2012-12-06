@@ -17,7 +17,7 @@
 int main(void) {
   //CMD_ADDR[0] = 0x01000000;
 
-  CMD_ADDR[0] = 0x010000ff;
+  CMD_ADDR[0] = 0x01000000;
   //CMD_ADDR[1] = 0x00000000;
   /* CMD_ADDR[1] = 0x01ffffff; */
   /* CMD_ADDR[2] = 0x01ff00ff; */
