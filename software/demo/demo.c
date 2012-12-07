@@ -1,13 +1,13 @@
 #define PIXEL_FRAME *((volatile unsigned int*) 0x80000020)
 #define STATE ((volatile unsigned int*) 0x1beef000)
-#define INDEX ((volatile unsigned int*) 0x1beef004)
+#define INDEX ((volatile unsigned int*) 0x1dead000)
 
 
-#define CMD_1 ((volatile unsigned int*) 0x17800000)
-#define CMD_2 ((volatile unsigned int*) 0x19000000)
+#define CMD_1 ((volatile unsigned int*) 0x15000000)
+#define CMD_2 ((volatile unsigned int*) 0x16000000)
 
-#define CMD_1_ADDR 0x17800000
-#define CMD_2_ADDR 0x19000000
+#define CMD_1_ADDR 0x15000000
+#define CMD_2_ADDR 0x16000000
 
 
 #define GP_CODE ((volatile unsigned int*) 0x18000000)
@@ -70,10 +70,12 @@ int main(void) {
   demo_frame = (PIXEL_FRAME == 0x10400000)? 0x10800000: 0x10400000;
   GP_Code_instr = (demo_frame == 0x10400000)? CMD_1: CMD_2;
   GP_Code_addr = (demo_frame == 0x10400000)? CMD_1_ADDR: CMD_2_ADDR;
+
+
   //drawBlock(0, 0, 40, 0, 0x00ffffff, 600, GP_Code_instr);
 
-  setBackground(0x00000000, GP_Code_instr);
-  //drawBorder(0x00ffffff, 40, GP_Code_instr);
+  //setBackground(0x00000000, GP_Code_instr);
+  drawBorder(0x00ffffff, 40, GP_Code_instr);
   drawPlayer(&p1, 0, 0, GP_Code_instr);
 
   GP_Code_instr[*INDEX] = 0x00000000;
