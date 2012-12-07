@@ -25,24 +25,67 @@ void setBackground(int color, unsigned int* cmd_addr) {
   INDEX[0] = *INDEX + 1;
 }
 
+/* void drawBlock(int x1, int y1, int x2, int y2, */
+/* 	       int color, int height, unsigned int* cmd_addr) { */
+/*   for (int i = 0; i <= height ; i++) { */
+/*     cmd_addr[*INDEX] = 0x02000000 + color; */
+/*     cmd_addr[*INDEX+1] = 0x00000000 + (x1 << 16) + (y1 + i); */
+/*     cmd_addr[*INDEX+2] = 0x00000000 + (x2 << 16) + (y2 + i); */
+/*     INDEX[0] = *INDEX + 3; */
+/*   } */
+/* } */
 
-void drawBlock(int x1, int y1, int x2, int y2, 
-	       int color, int height, unsigned int* cmd_addr) {
-  for (int i = 0; i <= height ; i++) {
+void digitalBlock(int x, int y, int orientation, int color, unsigned int* cmd_addr) {
+  if (orientation == 0) {
     cmd_addr[*INDEX] = 0x02000000 + color;
-    cmd_addr[*INDEX+1] = 0x00000000 + (x1 << 16) + (y1 + i);
-    cmd_addr[*INDEX+2] = 0x00000000 + (x2 << 16) + (y2 + i);
-    INDEX[0] = *INDEX + 3;
+    cmd_addr[*INDEX+1] = (x << 16) + y;
+    cmd_addr[*INDEX+2] = (x << 16) + (y+10);
+
+    cmd_addr[*INDEX+3] = 0x02000000 + color;
+    cmd_addr[*INDEX+4] = ((x+1) << 16) + (y-1);
+    cmd_addr[*INDEX+5] = ((x+1) << 16) + (y+11);
+
+    cmd_addr[*INDEX+6] = 0x02000000 + color;
+    cmd_addr[*INDEX+7] = ((x+2) << 16) + (y-2);
+    cmd_addr[*INDEX+8] = ((x+2) << 16) + (y+12);
+
+    cmd_addr[*INDEX+9] = 0x02000000 + color;
+    cmd_addr[*INDEX+10] = ((x+3) << 16) + (y-1);
+    cmd_addr[*INDEX+11] = ((x+3) << 16) + (y+11);
+
+    cmd_addr[*INDEX+12] = 0x02000000 + color;
+    cmd_addr[*INDEX+13] = ((x+4) << 16) + y;
+    cmd_addr[*INDEX+14] = ((x+4) << 16) + (y+10);
+    INDEX[0] = *INDEX + 15;
+  } else {
   }
 }
 
 void drawBorder(int color, int width, unsigned int* cmd_addr) {
-  // Top and bottom borders
-  //drawBlock(0, 0, 800, 0, color, width, cmd_addr);
-  //drawBlock(0, (600-width), 800, (600-width), color, width, cmd_addr);
-  // Left and right borders
-  //drawBlock(0, 0, 40, 0, color, 600, cmd_addr);
-  // drawBlock(560, 0, 800, 0, color, 600, cmd_addr);
+  for (int i = 0; i < width; i++) {
+    cmd_addr[*INDEX] = 0x02000000 + color;
+    cmd_addr[*INDEX+1] = (i << 16) + 0;
+    cmd_addr[*INDEX+2] = (i << 16) + 600;
+    INDEX[0] = *INDEX + 3;
+  }
+  for (int i = 0; i < 10; i++) {
+    cmd_addr[*INDEX] = 0x02000000 + color;
+    cmd_addr[*INDEX+1] = ((800-width+i) << 16) + 0;
+    cmd_addr[*INDEX+2] = ((800-width+i) << 16) + 600;
+    INDEX[0] = *INDEX + 3;
+  }  
+  for (int i = 0; i < 10; i++) {
+    cmd_addr[*INDEX] = 0x02000000 + color;
+    cmd_addr[*INDEX+1] = (0 << 16) + i;
+    cmd_addr[*INDEX+2] = (800 << 16) + i;
+    INDEX[0] = *INDEX + 3;
+  }  
+  for (int i = 0; i < 10; i++) {
+    cmd_addr[*INDEX] = 0x02000000 + color;
+    cmd_addr[*INDEX+1] = (0 << 16) + (600-width+i);
+    cmd_addr[*INDEX+2] = (800 << 16) + (600-width+i);
+    INDEX[0] = *INDEX + 3;
+  }  
 }
 
 void drawPlayer(struct player* playa, int x_dir, 
@@ -71,14 +114,12 @@ int main(void) {
   GP_Code_instr = (demo_frame == 0x10400000)? CMD_1: CMD_2;
   GP_Code_addr = (demo_frame == 0x10400000)? CMD_1_ADDR: CMD_2_ADDR;
 
+  setBackground(0x00000000, GP_Code_instr);
+  digitalBlock(300, 400, 0, 0x00ff6600, GP_Code_instr); 
+  drawBorder(0x00ffffff, 10, GP_Code_instr);
 
-  //drawBlock(0, 0, 40, 0, 0x00ffffff, 600, GP_Code_instr);
-
-  //setBackground(0x00000000, GP_Code_instr);
-  drawBorder(0x00ffffff, 40, GP_Code_instr);
   drawPlayer(&p1, 0, 0, GP_Code_instr);
 
-  GP_Code_instr[*INDEX] = 0x00000000;
 
   GP_FRAME[0] = demo_frame;
   GP_CODE[0] = GP_Code_addr;
@@ -90,7 +131,10 @@ int main(void) {
   /*   GP_Code_instr = (demo_frame == 0x10400000)? CMD_1: CMD_2; */
   /*   GP_Code_addr = (demo_frame == 0x10400000)? CMD_1_ADDR: CMD_2_ADDR; */
     
-  /*   drawBlock(0, 0, 800, 0, 0x00ffffff, 20, GP_Code_instr); */
+  /*   setBackground(0x00000000, GP_Code_instr); */
+  /*   drawBorder(0x00ffffff, 10, GP_Code_instr); */
+  /*   digitalBlock(300, 400, 0, 0x00ff6600, GP_Code_instr); */
+
   /*   switch (*STATE) */
   /*     { */
   /*     case 'w': */
@@ -115,6 +159,8 @@ int main(void) {
   /* 	drawPlayer(&p1, 0, 0, GP_Code_instr); */
   /*   	break; */
   /*   	;} */
+  /*   GP_Code_instr[*INDEX] = 0x00000000;	 */
+
   /*   STATE[0] = 'p'; */
   /*   oldFrame = PIXEL_FRAME; */
   /*   GP_FRAME[0] = demo_frame; */
