@@ -1,6 +1,7 @@
 .section    .start
 .global     _start
 
+
 _start:
 	li $sp, 0x10004000
 
@@ -15,7 +16,7 @@ _start:
 	sw $0, 0x1fff0034 #MIN = 0
 
 	la $t0, 0x02faf000
-	mtc0 $t0, $9 #Count = almost @ 1 second instantly	
+	mtc0 $t0, $9 #Count = almost @ 1 second instantly
 	la $t1, 0x02faf080
 	mtc0 $t1, $11 #Compare = 50 * 10 ^6
 	la $t2, 0x0000fc01 #Status = Enabled
@@ -25,8 +26,4 @@ _start:
 	mtc0 $t2, $12
 	la $t4, 0x40000000
 	jr $t4
-
-	
-	
-	
 
